@@ -850,6 +850,7 @@ pub fn conversation_request(
         "NAVIS_OLLAMA_MODEL",
         "NAVIS_OLLAMA_TIMEOUT",
         "NAVIS_AI_PROVIDER",
+        "NAVIS_REID_NOTE_FILES",
         "GOOGLE_API_KEY",
         "GEMINI_API_KEY",
     ] {

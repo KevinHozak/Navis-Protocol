@@ -69,3 +69,23 @@ remain outside the repository through Application Default Credentials. The
 generated metadata index remains a local ignored file. Frontend `.env.production`
 is excluded from Google Cloud upload; provide deployment configuration through
 the build/deployment environment.
+
+## Reid context configuration
+
+Reid requires `NAVIS_ROOT` (or `NAVIS_VAULT_ROOT` as an alias). It has no personal
+machine-path fallback. Normal launchers/native requests already supply the root.
+Existing daily journal and transcript layout remains relative to that root.
+
+Set `NAVIS_REID_NOTE_FILES` to a JSON array of Vault-relative Markdown paths in the
+backend/desktop launching process environment. Unset, blank, or `[]` loads no
+therapy notes. Only explicitly listed files are read; there is no directory scan
+or implicit filename/year selection. Missing files are skipped. Invalid JSON,
+absolute paths, non-Markdown files, or paths/symlinks outside the Vault fail closed
+before any notes are read. The desktop conversation subprocess forwards this
+setting; it is never a `NEXT_PUBLIC_` variable.
+
+The `.env.example` file documents these values; it does not automatically load
+process environment variables. Keep real note paths and contents in local ignored
+configuration. Prompts use supplied document links rather than embedded host-path
+examples. Changing the public source does not erase the prior commit's generic
+path/filename conventions from Git history.

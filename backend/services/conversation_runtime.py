@@ -26,7 +26,10 @@ def run():
             if not isinstance(request, dict):
                 raise ConversationError("Conversation request must be an object.")
             action = sys.argv[1] if len(sys.argv) > 1 else ""
-            body = asyncio.run(dispatch(os.environ.get("NAVIS_ROOT", r"G:\My Drive\Navis-Vault"), action, request))
+            root = (os.environ.get("NAVIS_ROOT") or "").strip() or (os.environ.get("NAVIS_VAULT_ROOT") or "").strip()
+            if not root:
+                raise ConversationError("Configure NAVIS_ROOT or NAVIS_VAULT_ROOT before using conversations.")
+            body = asyncio.run(dispatch(root, action, request))
             return {"http_status": 200, "body": body}
     except (ModuleNotFoundError, ImportError):
         return {"http_status": 503, "body": {

@@ -23,6 +23,14 @@ class ConversationPackagingTests(unittest.TestCase):
         self.assertEqual(output['http_status'], 503)
         self.assertNotIn('private', json.dumps(output))
 
+    def test_missing_root_is_reported_without_a_machine_path_fallback(self):
+        from services import conversation_runtime
+        with patch.dict(os.environ, {"NAVIS_ROOT": "", "NAVIS_VAULT_ROOT": ""}), patch('sys.stdin', io.StringIO('{}')), patch('sys.argv', ['runtime', 'reid_history']):
+            output = conversation_runtime.run()
+        self.assertEqual(output['http_status'], 400)
+        self.assertEqual(output['body']['code'], 'invalid_request')
+        self.assertIn('Configure NAVIS_ROOT', output['body']['detail'])
+
     def test_packaged_modules_and_missing_dependencies_have_structured_responses(self):
         repo = Path(__file__).resolve().parents[2]
         resources = json.loads((repo / 'frontend/src-tauri/tauri.conf.json').read_text())['bundle']['resources']
