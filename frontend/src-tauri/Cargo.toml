@@ -1,6 +1,6 @@
 [package]
 name = "navis-protocol"
-version = "1.11.14"
+version = "1.11.15"
 description = "Navis Protocol native desktop cockpit"
 authors = ["Navis Protocol"]
 edition = "2021"

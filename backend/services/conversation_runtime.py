@@ -17,8 +17,9 @@ def run():
             from services.conversation_service import dispatch, ConversationError
             from services.ai_provider import ProviderError
             from services.online_ai import OnlineAIError
-            public_errors = (ProviderError, OnlineAIError, ConversationError)
-            invalid_errors += (ConversationError,)
+            from services.reid_agent import ReidConfigurationError
+            public_errors = (ProviderError, OnlineAIError, ConversationError, ReidConfigurationError)
+            invalid_errors += (ConversationError, ReidConfigurationError)
             raw = sys.stdin.read(65537)
             if len(raw) > 65536:
                 raise ConversationError("Conversation request is too large.")
@@ -26,7 +27,10 @@ def run():
             if not isinstance(request, dict):
                 raise ConversationError("Conversation request must be an object.")
             action = sys.argv[1] if len(sys.argv) > 1 else ""
-            body = asyncio.run(dispatch(os.environ.get("NAVIS_ROOT", r"G:\My Drive\Navis-Vault"), action, request))
+            root = (os.environ.get("NAVIS_ROOT") or "").strip() or (os.environ.get("NAVIS_VAULT_ROOT") or "").strip()
+            if not root:
+                raise ConversationError("Configure NAVIS_ROOT or NAVIS_VAULT_ROOT before using conversations.")
+            body = asyncio.run(dispatch(root, action, request))
             return {"http_status": 200, "body": body}
     except (ModuleNotFoundError, ImportError):
         return {"http_status": 503, "body": {

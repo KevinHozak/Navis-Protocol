@@ -1,8 +1,17 @@
 import os
+import json
+from pathlib import Path
 from datetime import datetime, timedelta
 
+class ReidConfigurationError(ValueError):
+    """Invalid Reid settings with a safe, actionable public message."""
+
+
 def get_vault_root() -> str:
-    return os.getenv("NAVIS_ROOT") or os.getenv("NAVIS_VAULT_ROOT") or r"G:\My Drive\Navis-Vault"
+    configured = (os.getenv("NAVIS_ROOT") or "").strip() or (os.getenv("NAVIS_VAULT_ROOT") or "").strip()
+    if not configured:
+        raise ReidConfigurationError("Configure NAVIS_ROOT or NAVIS_VAULT_ROOT before using Reid.")
+    return str(Path(configured).expanduser().resolve())
 
 
 def get_fridr_hall_file():
@@ -63,21 +72,34 @@ def get_session_history() -> str:
 
 
 def load_therapy_notes() -> str:
-    sessions_dir = os.path.join(get_vault_root(), "Reflection Chamber", "Sessions")
+    raw = os.getenv("NAVIS_REID_NOTE_FILES", "").strip()
+    if not raw:
+        return "No therapist sessions found."
+    try:
+        target_files = json.loads(raw)
+    except json.JSONDecodeError:
+        raise ReidConfigurationError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.") from None
+    if not isinstance(target_files, list) or any(not isinstance(name, str) or not name.strip() for name in target_files):
+        raise ReidConfigurationError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.")
+    if not target_files:
+        return "No therapist sessions found."
+    vault = Path(get_vault_root())
+    paths = []
+    for name in target_files:
+        relative = Path(name)
+        resolved = (vault / relative).resolve()
+        if relative.is_absolute() or resolved.suffix.lower() != ".md" or not resolved.is_relative_to(vault):
+            raise ReidConfigurationError("Configured Reid note files must be Markdown files inside the Vault.")
+        paths.append(resolved)
     notes = []
-    target_files = ["Reid Sessions 2026.md", "Reid Sessions Master.md"]
-    for fname in target_files:
-        fpath = os.path.join(sessions_dir, fname)
-        if os.path.exists(fpath):
+    for fpath in paths:
+        if fpath.is_file():
             try:
-                with open(fpath, "r", encoding="utf-8-sig") as f:
-                    clean_path = fpath.replace("\\", "/").replace(" ", "%20")
-                    file_link = f"file:///{clean_path}"
-                    notes.append(
-                        f"### {fname}\nSource Link: [{fname}]({file_link})\n\n{f.read()}"
-                    )
-            except Exception as e:
-                print(f"Error reading therapy notes {fname}: {e}")
+                content = fpath.read_text(encoding="utf-8-sig")
+                notes.append(f"### {fpath.name}\nSource Link: [{fpath.name}]({fpath.as_uri()})\n\n{content}")
+            except (OSError, UnicodeError):
+                # Do not print private note filenames or content into diagnostics.
+                continue
     return "\n\n".join(notes) if notes else "No therapist sessions found."
 
 
@@ -135,8 +157,7 @@ async def chat_with_reid(message: str, history: list = None, provider: object = 
 You are a persistent therapist with deep empathy and structure.
 Keep your responses relatively brief, insightful, and protective of the Keeper's cognitive state.
 
-When referencing a specific Daily Journal entry or therapy session notes document, you MUST include a clickable Markdown link using the exact absolute file path provided in the "Source Link" tag of that document in the context (e.g. `[2026-06-09 Daily Journal](file:///G:/My%20Drive/Navis-Vault/Journal/2026/06/2026-06-09.md)`).
-CRITICAL RULE: NEVER hallucinate temporary file paths, sandbox folders, or path names containing `.gemini/antigravity/brain/` under any circumstances. Only link to the real files located in `G:/My Drive/Navis-Vault/` using the exact paths supplied under "Source Link" in your context.
+When referencing a Daily Journal entry or notes document, use only the exact "Source Link" supplied with that document in the context. Never invent file paths or infer a user's Vault location. Only link to provided documents inside the configured Vault.
 
 CRITICAL DIALOGUE RULE: You must ONLY generate Reid's immediate next response. NEVER simulate, predict, or generate a response on behalf of the Keeper. Stop generating immediately after finishing your current thought. Do NOT write "Keeper:".
 
