@@ -3,10 +3,14 @@ import json
 from pathlib import Path
 from datetime import datetime, timedelta
 
+class ReidConfigurationError(ValueError):
+    """Invalid Reid settings with a safe, actionable public message."""
+
+
 def get_vault_root() -> str:
     configured = (os.getenv("NAVIS_ROOT") or "").strip() or (os.getenv("NAVIS_VAULT_ROOT") or "").strip()
     if not configured:
-        raise ValueError("Configure NAVIS_ROOT or NAVIS_VAULT_ROOT before using Reid.")
+        raise ReidConfigurationError("Configure NAVIS_ROOT or NAVIS_VAULT_ROOT before using Reid.")
     return str(Path(configured).expanduser().resolve())
 
 
@@ -74,9 +78,9 @@ def load_therapy_notes() -> str:
     try:
         target_files = json.loads(raw)
     except json.JSONDecodeError:
-        raise ValueError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.") from None
+        raise ReidConfigurationError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.") from None
     if not isinstance(target_files, list) or any(not isinstance(name, str) or not name.strip() for name in target_files):
-        raise ValueError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.")
+        raise ReidConfigurationError("NAVIS_REID_NOTE_FILES must be a JSON array of Vault-relative Markdown paths.")
     if not target_files:
         return "No therapist sessions found."
     vault = Path(get_vault_root())
@@ -85,7 +89,7 @@ def load_therapy_notes() -> str:
         relative = Path(name)
         resolved = (vault / relative).resolve()
         if relative.is_absolute() or resolved.suffix.lower() != ".md" or not resolved.is_relative_to(vault):
-            raise ValueError("Configured Reid note files must be Markdown files inside the Vault.")
+            raise ReidConfigurationError("Configured Reid note files must be Markdown files inside the Vault.")
         paths.append(resolved)
     notes = []
     for fpath in paths:

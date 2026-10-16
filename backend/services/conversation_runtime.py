@@ -17,8 +17,9 @@ def run():
             from services.conversation_service import dispatch, ConversationError
             from services.ai_provider import ProviderError
             from services.online_ai import OnlineAIError
-            public_errors = (ProviderError, OnlineAIError, ConversationError)
-            invalid_errors += (ConversationError,)
+            from services.reid_agent import ReidConfigurationError
+            public_errors = (ProviderError, OnlineAIError, ConversationError, ReidConfigurationError)
+            invalid_errors += (ConversationError, ReidConfigurationError)
             raw = sys.stdin.read(65537)
             if len(raw) > 65536:
                 raise ConversationError("Conversation request is too large.")
