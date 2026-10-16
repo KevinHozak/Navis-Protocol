@@ -1,0 +1,5 @@
+{
+  "Groza": {"passives": {"shield_percent": 20}},
+  "Lyra": {"passives": {"ap_bonus": 1}},
+  "Rita": {"passives": {"kinetic_percent": 15}}
+}

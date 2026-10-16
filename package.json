@@ -1,0 +1,14 @@
+{
+  "name": "navis-web-root",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "security:scan": "node scripts/scan-secrets.mjs --history",
+    "security:scan:staged": "node scripts/scan-secrets.mjs --staged",
+    "security:scan:tree": "node scripts/scan-secrets.mjs --tree",
+    "security:test": "node --test scripts/test-publication-guards.mjs"
+  },
+  "devDependencies": {
+    "husky": "^8.0.0"
+  }
+}

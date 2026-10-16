@@ -1,0 +1,111 @@
+{
+  "prompt_set_version": "navis-synthetic-v1",
+  "prompt_set_sha256": "2769eaf79e19c8995548957c4631fa9af14fb580a60637d96fa3aa9cff2ee68d",
+  "prompt_ids": [
+    "arithmetic",
+    "ordering",
+    "constraints"
+  ],
+  "candidates": [
+    {
+      "model": "gemini-2.5-flash-lite",
+      "input_rate": 0.1,
+      "output_rate": 0.4,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "input_rate": 0.3,
+      "output_rate": 2.5,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    }
+  ],
+  "requests_per_model": 6,
+  "maximum_online_cost_usd": 0.0103264,
+  "maximum_by_model_usd": {
+    "gemini-2.5-flash-lite": 0.0015832,
+    "gemini-2.5-flash": 0.0087432
+  },
+  "experiment_limit_usd": 0.05,
+  "settings": {
+    "repeats": 2,
+    "output_limit_tokens": 512,
+    "temperature": 0.0,
+    "seed": 95,
+    "timeout_seconds": 90,
+    "monthly_cap_fraction": 0.95,
+    "thinking_budget": 0,
+    "local_thinking": false
+  },
+  "rubric": {
+    "json_only": "1: parses as JSON without surrounding prose",
+    "schema": "1: exact keys and value types",
+    "correctness": "1: exact fictional facts, arithmetic or ordering"
+  },
+  "production_activation": false,
+  "started_at_utc": "2026-10-01T01:36:29.802432+00:00",
+  "local_baseline": {
+    "provider": "ollama",
+    "model": "Kimiko-20B:latest"
+  },
+  "online_explicitly_enabled": false,
+  "rows": [
+    {
+      "provider": "ollama",
+      "model": "Kimiko-20B:latest",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 0.797388,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": null,
+      "input_tokens": 32,
+      "output_tokens": 1,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": "empty_output"
+    }
+  ],
+  "status": "stopped_on_error",
+  "limitations": [
+    "Synthetic exact-answer rubric does not measure personality, creative prose or therapeutic quality.",
+    "Token-based paid-list estimates are not verified provider invoices; actual billed cost is unavailable.",
+    "Small sample; local hardware, model quantization and provider revisions affect results.",
+    "No private input or raw output persisted. Native hosted adapter remains unavailable."
+  ],
+  "proposal": "Insufficient evidence; no production change authorized.",
+  "summary": {
+    "Kimiko-20B:latest": {
+      "samples": 1,
+      "errors": 1,
+      "mean_quality_score_out_of_3": 0.0,
+      "mean_latency_seconds": 0.797388,
+      "accounted_cost_usd": 0.0,
+      "reported_input_tokens": 32,
+      "reported_output_tokens": 1,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "ordering": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "constraints": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        }
+      }
+    }
+  }
+}

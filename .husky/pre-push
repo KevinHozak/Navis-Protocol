@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "[Husky] Checking Git history for secrets and private exports..."
+node scripts/scan-secrets.mjs --history || exit 1

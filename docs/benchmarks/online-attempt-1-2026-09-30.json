@@ -1,0 +1,276 @@
+{
+  "prompt_set_version": "navis-synthetic-v1",
+  "prompt_set_sha256": "2769eaf79e19c8995548957c4631fa9af14fb580a60637d96fa3aa9cff2ee68d",
+  "prompt_ids": [
+    "arithmetic",
+    "ordering",
+    "constraints"
+  ],
+  "candidates": [
+    {
+      "model": "gemini-2.5-flash-lite",
+      "input_rate": 0.1,
+      "output_rate": 0.4,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    {
+      "model": "gemini-2.5-flash",
+      "input_rate": 0.3,
+      "output_rate": 2.5,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    }
+  ],
+  "requests_per_model": 6,
+  "maximum_online_cost_usd": 0.0103264,
+  "maximum_by_model_usd": {
+    "gemini-2.5-flash-lite": 0.0015832,
+    "gemini-2.5-flash": 0.0087432
+  },
+  "experiment_limit_usd": 0.05,
+  "settings": {
+    "repeats": 2,
+    "output_limit_tokens": 512,
+    "temperature": 0.0,
+    "seed": 95,
+    "timeout_seconds": 90,
+    "monthly_cap_fraction": 0.95,
+    "thinking_budget": 0,
+    "local_thinking": false
+  },
+  "rubric": {
+    "json_only": "1: parses as JSON without surrounding prose",
+    "schema": "1: exact keys and value types",
+    "correctness": "1: exact fictional facts, arithmetic or ordering"
+  },
+  "production_activation": false,
+  "started_at_utc": "2026-10-01T02:16:02.902048+00:00",
+  "local_baseline": {
+    "provider": "ollama",
+    "model": "gemma3:4b"
+  },
+  "online_explicitly_enabled": true,
+  "rows": [
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 6.537976,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "input_tokens": 39,
+      "output_tokens": 27,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "arithmetic",
+      "repeat": 2,
+      "latency_seconds": 2.10785,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "input_tokens": 39,
+      "output_tokens": 27,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "ordering",
+      "repeat": 1,
+      "latency_seconds": 3.770574,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "a2d39fdf234f393b60d648d0d941f1b0b05e7a8ab7d79dba2a42348a3ac64b24",
+      "input_tokens": 52,
+      "output_tokens": 25,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "ordering",
+      "repeat": 2,
+      "latency_seconds": 2.502523,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "a2d39fdf234f393b60d648d0d941f1b0b05e7a8ab7d79dba2a42348a3ac64b24",
+      "input_tokens": 52,
+      "output_tokens": 25,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "constraints",
+      "repeat": 1,
+      "latency_seconds": 4.354751,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "0796d63eac0fef42b4b77711607d0019dabe7ec5433ecb69c40712e9f12719ed",
+      "input_tokens": 45,
+      "output_tokens": 33,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "constraints",
+      "repeat": 2,
+      "latency_seconds": 3.378516,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "0796d63eac0fef42b4b77711607d0019dabe7ec5433ecb69c40712e9f12719ed",
+      "input_tokens": 45,
+      "output_tokens": 33,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash-lite",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 0.614262,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": null,
+      "request_id": "bec68232-f2d3-4838-97af-26f5f9ee430f",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_cost_usd": 0.0002524,
+      "accounting_state": "unknown_usage",
+      "reserved_cost_usd": 0.0002524,
+      "actual_billed_cost_usd": null,
+      "error": "provider_or_usage_error"
+    }
+  ],
+  "status": "stopped_on_error",
+  "limitations": [
+    "Synthetic exact-answer rubric does not measure personality, creative prose or therapeutic quality.",
+    "Token-based paid-list estimates are not verified provider invoices; actual billed cost is unavailable.",
+    "Small sample; local hardware, model quantization and provider revisions affect results.",
+    "No private input or raw output persisted. Native hosted adapter remains unavailable."
+  ],
+  "proposal": "Insufficient evidence; no production change authorized.",
+  "summary": {
+    "gemma3:4b": {
+      "samples": 6,
+      "errors": 0,
+      "mean_quality_score_out_of_3": 0.0,
+      "mean_latency_seconds": 3.7753650000000003,
+      "accounted_cost_usd": 0.0,
+      "reported_input_tokens": 272,
+      "reported_output_tokens": 170,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "ordering": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "constraints": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        }
+      }
+    },
+    "gemini-2.5-flash-lite": {
+      "samples": 1,
+      "errors": 1,
+      "mean_quality_score_out_of_3": 0.0,
+      "mean_latency_seconds": 0.614262,
+      "accounted_cost_usd": 0.0002524,
+      "reported_input_tokens": 0,
+      "reported_output_tokens": 0,
+      "samples_missing_usage": 1,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "ordering": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "constraints": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        }
+      }
+    },
+    "gemini-2.5-flash": {
+      "samples": 0,
+      "errors": 0,
+      "mean_quality_score_out_of_3": null,
+      "mean_latency_seconds": null,
+      "accounted_cost_usd": 0,
+      "reported_input_tokens": 0,
+      "reported_output_tokens": 0,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "ordering": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        },
+        "constraints": {
+          "successful_repeats": 0,
+          "identical_output": false,
+          "identical_rubric": false
+        }
+      }
+    }
+  }
+}

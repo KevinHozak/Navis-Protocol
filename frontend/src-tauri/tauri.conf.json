@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Navis Protocol",
+  "version": "1.11.14",
+  "identifier": "com.navis.protocol",
+  "build": {
+    "beforeDevCommand": "npm run dev -- --hostname 127.0.0.1",
+    "devUrl": "http://127.0.0.1:3000",
+    "beforeBuildCommand": "npm run build:desktop",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "windows": [{ "label": "main", "title": "Navis Protocol", "width": 1600, "height": 1000, "minWidth": 1100, "minHeight": 700, "resizable": true, "fullscreen": false, "maximized": true }],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "resources": {
+      "../../backend/native_operations.py": "backend/native_operations.py",
+      "../../backend/native_combat.py": "backend/native_combat.py",
+      "../../backend/native_task_toggle.py": "backend/native_task_toggle.py",
+      "../../backend/native_holocron.py": "backend/native_holocron.py",
+      "../../backend/services/task_toggle.py": "backend/services/task_toggle.py",
+      "../../backend/services/combat_completion.py": "backend/services/combat_completion.py",
+      "../../backend/services/combat_service.py": "backend/services/combat_service.py",
+      "../../backend/services/bestiary.py": "backend/services/bestiary.py",
+      "../../backend/data/companion_combat.json": "backend/data/companion_combat.json",
+      "../../backend/services/battle_engine.py": "backend/services/battle_engine.py",
+      "../../backend/services/rpg_engine.py": "backend/services/rpg_engine.py",
+      "../../backend/services/progression_db.py": "backend/services/progression_db.py",
+      "../../backend/services/__init__.py": "backend/services/__init__.py",
+      "../../backend/services/sync_engine.py": "backend/services/sync_engine.py",
+      "../../backend/services/holocron_engine.py": "backend/services/holocron_engine.py",
+      "../../backend/services/recurrence.py": "backend/services/recurrence.py",
+      "../../backend/services/forge_service.py": "backend/services/forge_service.py",
+      "../../backend/services/ai_provider.py": "backend/services/ai_provider.py",
+      "../../backend/services/conversation_runtime.py": "backend/services/conversation_runtime.py",
+      "../../backend/services/conversation_service.py": "backend/services/conversation_service.py",
+      "../../backend/services/reid_agent.py": "backend/services/reid_agent.py",
+      "../../backend/services/online_ai.py": "backend/services/online_ai.py",
+      "../../backend/scripts/forge/forge_character.py": "backend/scripts/forge/forge_character.py",
+      "../../backend/scripts/forge/forge_companion.py": "backend/scripts/forge/forge_companion.py",
+      "../../backend/scripts/forge/forge_realm.py": "backend/scripts/forge/forge_realm.py",
+      "../../backend/scripts/forge/forge_beast.py": "backend/scripts/forge/forge_beast.py"
+    },
+    "icon": ["icons/icon.ico", "icons/icon.png", "icons/icon.icns"]
+  }
+}

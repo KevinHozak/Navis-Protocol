@@ -1,0 +1,39 @@
+{
+  "contract_version": 1,
+  "source_of_truth": "vault_markdown_checkbox",
+  "request": {
+    "task_id": "combat-task-fixture-001",
+    "resolution_id": "resolution-fixture-001",
+    "source": {
+      "path": "Journal/2026/09/2026-09-27.md",
+      "task_id": "combat-task-fixture-001",
+      "line_number": 2,
+      "line": "- [ ] Synthetic combat task\n",
+      "fingerprint": "sha256:synthetic-line-and-context"
+    },
+    "is_completed": true
+  },
+  "responses": {
+    "completed": {"status": "completed", "task_id": "combat-task-fixture-001", "resolution_id": "resolution-fixture-001", "cards_resolved": true, "xp_sync": "confirmed"},
+    "same_key_retry": {"status": "completed", "idempotent_replay": true, "cards_resolved": true, "xp_sync": "not_repeated"},
+    "already_checked": {"status": "already_completed", "cards_resolved": false, "xp_sync": "not_repeated"},
+    "cancelled": {"status": "cancelled", "cards_resolved": true, "xp_sync": "not_started"},
+    "task_written_battle_pending": {"status": "pending_recovery", "cards_resolved": false, "retryable": true, "xp_sync": "not_started"},
+    "battle_committed_xp_pending": {"status": "pending_recovery", "cards_resolved": true, "retryable": true, "xp_sync": "pending_existing_rpg_sync"}
+  },
+  "cases": [
+    {"name": "false_resolution", "expected": "cards_only_no_checkbox_or_xp_write"},
+    {"name": "resolution_key_reused_with_different_task", "expected": "conflict_no_writes"},
+    {"name": "source_deleted", "expected": "not_found_link_retained"},
+    {"name": "source_moved", "expected": "source_mismatch_link_retained"},
+    {"name": "task_text_edited", "expected": "source_mismatch_link_retained"},
+    {"name": "multiple_fingerprint_matches", "expected": "ambiguous_link_retained"},
+    {"name": "vault_unavailable", "expected": "unavailable_no_writes"},
+    {"name": "journal_write_failure", "expected": "failed_battle_unchanged"},
+    {"name": "battle_write_failure_after_journal_write", "expected": "pending_recovery_no_full_success"},
+    {"name": "utf8_sig_crlf_and_unrelated_body", "expected": "preserve_bom_newlines_and_all_other_content"},
+    {"name": "xp_sync_retry", "expected": "existing_rpg_engine_only_and_no_duplicate_transition"},
+    {"name": "xp_sync_not_idempotent", "expected": "manual_recovery_no_automatic_duplicate_award"}
+  ],
+  "fixture_safety": "Synthetic content only; contains no personal Vault data."
+}

@@ -1,0 +1,7 @@
+[tool.ruff.lint]
+# The backend predates Ruff and intentionally contains late imports for optional
+# integrations plus compact legacy script style. Keep correctness diagnostics
+# enforced while documenting the legacy rules that are not safe to rewrite in a
+# broad lint-cleanup commit.
+select = ["E4", "E7", "E9", "F"]
+extend-ignore = ["E402", "E701", "E702", "E722", "E741"]

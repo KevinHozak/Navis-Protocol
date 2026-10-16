@@ -1,0 +1,537 @@
+{
+  "prompt_set_version": "navis-synthetic-v1",
+  "prompt_set_sha256": "2769eaf79e19c8995548957c4631fa9af14fb580a60637d96fa3aa9cff2ee68d",
+  "prompt_ids": [
+    "arithmetic",
+    "ordering",
+    "constraints"
+  ],
+  "candidates": [
+    {
+      "model": "gemini-3.1-flash-lite",
+      "input_rate": 0.25,
+      "output_rate": 1.5,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "input_rate": 0.3,
+      "output_rate": 2.5,
+      "reviewed": "2026-09-30",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    }
+  ],
+  "requests_per_model": 6,
+  "maximum_online_cost_usd": 0.014237199999999998,
+  "maximum_by_model_usd": {
+    "gemini-3.1-flash-lite": 0.005494,
+    "gemini-3.5-flash-lite": 0.0087432
+  },
+  "experiment_limit_usd": 0.05,
+  "settings": {
+    "repeats": 2,
+    "output_limit_tokens": 512,
+    "temperature": 0.0,
+    "seed": 95,
+    "timeout_seconds": 90,
+    "monthly_cap_fraction": 0.95,
+    "online_thinking_level": "minimal",
+    "local_thinking": false
+  },
+  "rubric": {
+    "json_only": "1: parses as JSON without surrounding prose",
+    "schema": "1: exact keys and value types",
+    "correctness": "1: exact fictional facts, arithmetic or ordering"
+  },
+  "production_activation": false,
+  "started_at_utc": "2026-10-01T02:26:49.476373+00:00",
+  "local_baseline": {
+    "provider": "ollama",
+    "model": "gemma3:4b"
+  },
+  "online_explicitly_enabled": true,
+  "rows": [
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 7.571392,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "input_tokens": 39,
+      "output_tokens": 27,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "arithmetic",
+      "repeat": 2,
+      "latency_seconds": 3.196723,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "input_tokens": 39,
+      "output_tokens": 27,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "ordering",
+      "repeat": 1,
+      "latency_seconds": 4.640184,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "a2d39fdf234f393b60d648d0d941f1b0b05e7a8ab7d79dba2a42348a3ac64b24",
+      "input_tokens": 52,
+      "output_tokens": 25,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "ordering",
+      "repeat": 2,
+      "latency_seconds": 2.897999,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "a2d39fdf234f393b60d648d0d941f1b0b05e7a8ab7d79dba2a42348a3ac64b24",
+      "input_tokens": 52,
+      "output_tokens": 25,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "constraints",
+      "repeat": 1,
+      "latency_seconds": 5.632446,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "0796d63eac0fef42b4b77711607d0019dabe7ec5433ecb69c40712e9f12719ed",
+      "input_tokens": 45,
+      "output_tokens": 33,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "ollama",
+      "model": "gemma3:4b",
+      "prompt_id": "constraints",
+      "repeat": 2,
+      "latency_seconds": 5.360071,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "0796d63eac0fef42b4b77711607d0019dabe7ec5433ecb69c40712e9f12719ed",
+      "input_tokens": 45,
+      "output_tokens": 33,
+      "accounted_cost_usd": 0.0,
+      "actual_billed_cost_usd": null,
+      "error": null
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 1.468535,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "a0def0732bbb1dfc135fb9ee79d893907280f4df84dd1f9e01fe01a8440d053e",
+      "request_id": "dbf7e5c2-f4d6-4473-811a-bba9a9858baf",
+      "input_tokens": 29,
+      "output_tokens": 20,
+      "accounted_cost_usd": 3.725e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000887,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "arithmetic",
+      "repeat": 2,
+      "latency_seconds": 0.899624,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "a0def0732bbb1dfc135fb9ee79d893907280f4df84dd1f9e01fe01a8440d053e",
+      "request_id": "3625535d-04e3-4f1b-8028-2ba95c2d3bd7",
+      "input_tokens": 29,
+      "output_tokens": 20,
+      "accounted_cost_usd": 3.725e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000887,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "ordering",
+      "repeat": 1,
+      "latency_seconds": 1.419721,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "48993a84294c2b4eab8410cbb30ec993af6ffc4ea84be5739dfcae6ce5c28588",
+      "request_id": "b14f4b1f-dda5-4b57-a342-97ea70084d6f",
+      "input_tokens": 42,
+      "output_tokens": 27,
+      "accounted_cost_usd": 5.1e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000935,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "ordering",
+      "repeat": 2,
+      "latency_seconds": 1.114844,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "48993a84294c2b4eab8410cbb30ec993af6ffc4ea84be5739dfcae6ce5c28588",
+      "request_id": "78ea0f0b-4254-4a01-9940-275bb9778658",
+      "input_tokens": 42,
+      "output_tokens": 27,
+      "accounted_cost_usd": 5.1e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000935,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "constraints",
+      "repeat": 1,
+      "latency_seconds": 1.002237,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "3b02d050c496a06d4bffa0cdaf7e0ae639c72916c5d278a4f3c52c2c05b12721",
+      "request_id": "4db72610-9598-4974-8c55-3d0e6140d4c9",
+      "input_tokens": 35,
+      "output_tokens": 26,
+      "accounted_cost_usd": 4.775e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000925,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "prompt_id": "constraints",
+      "repeat": 2,
+      "latency_seconds": 1.396879,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "3b02d050c496a06d4bffa0cdaf7e0ae639c72916c5d278a4f3c52c2c05b12721",
+      "request_id": "fe7703c5-78d1-4af9-93d9-a55d236962f4",
+      "input_tokens": 35,
+      "output_tokens": 26,
+      "accounted_cost_usd": 4.775e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.000925,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "arithmetic",
+      "repeat": 1,
+      "latency_seconds": 1.110129,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "request_id": "ce6fe066-58ed-4025-bf83-dd25eef2d243",
+      "input_tokens": 29,
+      "output_tokens": 25,
+      "accounted_cost_usd": 7.120000000000001e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014227999999999999,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "arithmetic",
+      "repeat": 2,
+      "latency_seconds": 1.201827,
+      "scores": {
+        "json_only": 0,
+        "schema": 0,
+        "correctness": 0
+      },
+      "output_sha256": "5998b55ef907c1a5d9f5c8e01d3ff1d292b5e2f6ed688fd71438cafeaa5db1cf",
+      "request_id": "c3a49727-fcdf-4dfa-b3bd-ecc471802161",
+      "input_tokens": 29,
+      "output_tokens": 25,
+      "accounted_cost_usd": 7.120000000000001e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014227999999999999,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "ordering",
+      "repeat": 1,
+      "latency_seconds": 1.17482,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "48993a84294c2b4eab8410cbb30ec993af6ffc4ea84be5739dfcae6ce5c28588",
+      "request_id": "69e2b2fe-e2ba-4169-8779-4bce58efd72a",
+      "input_tokens": 42,
+      "output_tokens": 27,
+      "accounted_cost_usd": 8.01e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014804,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "ordering",
+      "repeat": 2,
+      "latency_seconds": 1.089467,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "48993a84294c2b4eab8410cbb30ec993af6ffc4ea84be5739dfcae6ce5c28588",
+      "request_id": "bd76bbfb-5b79-4c3a-92bc-8a7c556f61da",
+      "input_tokens": 42,
+      "output_tokens": 27,
+      "accounted_cost_usd": 8.01e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014804,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "constraints",
+      "repeat": 1,
+      "latency_seconds": 1.150705,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "3b02d050c496a06d4bffa0cdaf7e0ae639c72916c5d278a4f3c52c2c05b12721",
+      "request_id": "bfba0921-bf8c-45ff-90ff-3a40895e7e19",
+      "input_tokens": 35,
+      "output_tokens": 26,
+      "accounted_cost_usd": 7.55e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014684000000000001,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_id": "constraints",
+      "repeat": 2,
+      "latency_seconds": 1.004584,
+      "scores": {
+        "json_only": 1,
+        "schema": 1,
+        "correctness": 1
+      },
+      "output_sha256": "3b02d050c496a06d4bffa0cdaf7e0ae639c72916c5d278a4f3c52c2c05b12721",
+      "request_id": "ae4c7da8-3834-4aab-b19d-3b8d8f620178",
+      "input_tokens": 35,
+      "output_tokens": 26,
+      "accounted_cost_usd": 7.55e-05,
+      "accounting_state": "settled",
+      "reserved_cost_usd": 0.0014684000000000001,
+      "actual_billed_cost_usd": null,
+      "error": null,
+      "provider_error_status": null,
+      "rejected_config_fields": []
+    }
+  ],
+  "status": "complete",
+  "limitations": [
+    "Synthetic exact-answer rubric does not measure personality, creative prose or therapeutic quality.",
+    "Token-based paid-list estimates are not verified provider invoices; actual billed cost is unavailable.",
+    "Small sample; local hardware, model quantization and provider revisions affect results.",
+    "No private input or raw output persisted. Native hosted adapter remains unavailable."
+  ],
+  "proposal": "Synthetic evidence supports a separate human-reviewed proposal for: gemini-3.1-flash-lite. Production remains unchanged.",
+  "summary": {
+    "gemma3:4b": {
+      "samples": 6,
+      "errors": 0,
+      "mean_quality_score_out_of_3": 0.0,
+      "mean_latency_seconds": 4.883135833333333,
+      "accounted_cost_usd": 0.0,
+      "reported_input_tokens": 272,
+      "reported_output_tokens": 170,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "ordering": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "constraints": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        }
+      },
+      "quality_delta_from_local": 0.0,
+      "latency_ratio_to_local": 1.0
+    },
+    "gemini-3.1-flash-lite": {
+      "samples": 6,
+      "errors": 0,
+      "mean_quality_score_out_of_3": 3.0,
+      "mean_latency_seconds": 1.2169733333333335,
+      "accounted_cost_usd": 0.000272,
+      "reported_input_tokens": 212,
+      "reported_output_tokens": 146,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "ordering": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "constraints": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        }
+      },
+      "quality_delta_from_local": 3.0,
+      "latency_ratio_to_local": 0.24921963567468516
+    },
+    "gemini-3.5-flash-lite": {
+      "samples": 6,
+      "errors": 0,
+      "mean_quality_score_out_of_3": 2.0,
+      "mean_latency_seconds": 1.1219219999999999,
+      "accounted_cost_usd": 0.0004536,
+      "reported_input_tokens": 212,
+      "reported_output_tokens": 156,
+      "samples_missing_usage": 0,
+      "stability": {
+        "arithmetic": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "ordering": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        },
+        "constraints": {
+          "successful_repeats": 2,
+          "identical_output": true,
+          "identical_rubric": true
+        }
+      },
+      "quality_delta_from_local": 2.0,
+      "latency_ratio_to_local": 0.2297544115692051
+    }
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "battle_state": {
+    "python": {"hand": [], "discard": [], "lost": [], "active_links": {}},
+    "native": {"hand": [], "discard": [], "lost": [], "active_links": {}}
+  },
+  "missions": {
+    "python": [{"name": "Example", "path": "Operations/Region/Main/Example/Mission.md", "region": "Region", "mission_type": "Main"}],
+    "native": [{"name": "Example", "path": "Operations/Region/Main/Example/Mission.md", "region": "Region", "mission_type": "Main"}]
+  },
+  "progression_xp": {
+    "python": {"total_xp": 100, "history": [{"id": 1, "date": "2026-09-20", "amount": 100, "details": "fixture"}]},
+    "native": {"total_xp": 100, "history": [{"id": 1, "date": "2026-09-20", "amount": 100, "details": "fixture"}]}
+  },
+  "achievements": {
+    "python": [{"id": 1, "code": "FIRST", "name": "First", "description": "fixture", "date_achieved": null, "category": "Test"}],
+    "native": [{"id": 1, "code": "FIRST", "name": "First", "description": "fixture", "date_achieved": null, "category": "Test"}]
+  },
+  "progression_talents": {
+    "python": {
+      "entity_id": "keeper",
+      "level": 1,
+      "current_level": 1,
+      "total_xp": 0,
+      "total_allocated_ranks": 0,
+      "available_points": 1
+    },
+    "native": {
+      "entity_id": "keeper",
+      "level": 1,
+      "current_level": 1,
+      "total_xp": 0,
+      "total_allocated_ranks": 0,
+      "available_points": 1
+    }
+  },
+  "sector_cache": {
+    "python": {"sectors": {}},
+    "native": {"sectors": {}}
+  },
+  "squad_deploy": {
+    "python": {
+      "status": "success",
+      "message": "Arwen deployed to active squad.",
+      "squad": [
+        {"name": "Arwen", "role": "Active Personnel", "is_vanguard": false, "entry_xp": 0}
+      ]
+    },
+    "native": {
+      "status": "success",
+      "message": "Arwen deployed to active squad.",
+      "squad": [
+        {"name": "Arwen", "role": "Active Personnel", "is_vanguard": false, "entry_xp": 0}
+      ]
+    }
+  },
+  "squad_bench": {
+    "python": {
+      "status": "success",
+      "message": "Arwen recalled to reserve.",
+      "squad": []
+    },
+    "native": {
+      "status": "success",
+      "message": "Arwen recalled to reserve.",
+      "squad": []
+    }
+  },
+  "squad_vanguard": {
+    "python": {
+      "status": "success",
+      "message": "Arwen designated as Vanguard.",
+      "squad": [
+        {"name": "Arwen", "role": "Active Personnel", "is_vanguard": true, "entry_xp": 0}
+      ]
+    },
+    "native": {
+      "status": "success",
+      "message": "Arwen designated as Vanguard.",
+      "squad": [
+        {"name": "Arwen", "role": "Active Personnel", "is_vanguard": true, "entry_xp": 0}
+      ]
+    }
+  },
+  "combat_target": {
+    "python": {
+      "status": "success",
+      "message": "Antagonist updated to Sauron",
+      "current_status": {
+        "current_antagonist": "Sauron",
+        "current_beast": "None",
+        "current_realm": "Earth",
+        "squad": []
+      }
+    },
+    "native": {
+      "status": "success",
+      "message": "Antagonist updated to Sauron",
+      "current_status": {
+        "current_antagonist": "Sauron",
+        "current_beast": "None",
+        "current_realm": "Earth",
+        "squad": []
+      }
+    }
+  },
+  "combat_log": {
+    "python": {
+      "logs": ["> Combat Log Offline."]
+    },
+    "native": {
+      "logs": ["> Combat Log Offline."]
+    }
+  },
+  "bio_adjust": {
+    "python": {
+      "status": "success",
+      "message": "Adjusted status AP by 5",
+      "data": {
+        "AP": 5,
+        "current_antagonist": "",
+        "current_beast": "",
+        "current_realm": "Earth",
+        "squad": []
+      }
+    },
+    "native": {
+      "status": "success",
+      "message": "Adjusted status AP by 5",
+      "data": {
+        "AP": 5,
+        "current_antagonist": "",
+        "current_beast": "",
+        "current_realm": "Earth",
+        "squad": []
+      }
+    }
+  }
+}

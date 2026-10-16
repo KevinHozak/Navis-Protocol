@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.0.0",
+  "week_id": "2026-W40",
+  "start_date": "2026-09-28",
+  "end_date": "2026-10-04",
+  "timezone": "America/Chicago",
+  "boundary_cutoff": "03:00:00",
+  "generated_at": "2026-10-05T03:05:12-05:00",
+  "is_synthetic": true,
+  "summary": {
+    "total_tasks": 48,
+    "completed_tasks": 41,
+    "pending_tasks": 7,
+    "precision_rate": 85.4,
+    "logged_days": 7,
+    "total_xp_gained": 4850,
+    "current_level": 42,
+    "level_progress_percent": 84.0,
+    "threats_neutralized": 4,
+    "battles_fought": 6,
+    "avg_readiness": 82.5,
+    "deep_work_hours": 28.5
+  },
+  "tactical_debrief": "A week of high operational velocity across the High-Velocity Front and Sanctum. Precision remained well above the 80% threshold across all 7 cycles, peaking on Tuesday with a 100% clean sweep. Four prime threats were neutralized, securing 4,850 XP toward Sovereign Level 43.",
+  "daily_telemetry": [
+    {
+      "date": "2026-09-28",
+      "day_name": "Mon",
+      "completed": 7,
+      "pending": 1,
+      "total": 8,
+      "precision": 87.5,
+      "xp": 720,
+      "realm": "The Silicon Spires",
+      "prime_beast": "Syntax Wyrm"
+    },
+    {
+      "date": "2026-09-29",
+      "day_name": "Tue",
+      "completed": 6,
+      "pending": 0,
+      "total": 6,
+      "precision": 100.0,
+      "xp": 850,
+      "realm": "The Silicon Spires",
+      "prime_beast": "Inertia Chimera"
+    },
+    {
+      "date": "2026-09-30",
+      "day_name": "Wed",
+      "completed": 8,
+      "pending": 1,
+      "total": 9,
+      "precision": 88.9,
+      "xp": 910,
+      "realm": "Iron Sanctum",
+      "prime_beast": "Procrastination Hydra"
+    },
+    {
+      "date": "2026-10-01",
+      "day_name": "Thu",
+      "completed": 5,
+      "pending": 2,
+      "total": 7,
+      "precision": 71.4,
+      "xp": 540,
+      "realm": "The High-Velocity Front",
+      "prime_beast": "Context-Switch Phantom"
+    },
+    {
+      "date": "2026-10-02",
+      "day_name": "Fri",
+      "completed": 6,
+      "pending": 1,
+      "total": 7,
+      "precision": 85.7,
+      "xp": 680,
+      "realm": "The Bureaucratic Gauntlet",
+      "prime_beast": "Inbox Specter"
+    },
+    {
+      "date": "2026-10-03",
+      "day_name": "Sat",
+      "completed": 5,
+      "pending": 1,
+      "total": 6,
+      "precision": 83.3,
+      "xp": 600,
+      "realm": "The Domestic Breach",
+      "prime_beast": "Dust Colossus"
+    },
+    {
+      "date": "2026-10-04",
+      "day_name": "Sun",
+      "completed": 4,
+      "pending": 1,
+      "total": 5,
+      "precision": 80.0,
+      "xp": 550,
+      "realm": "The Sanctum",
+      "prime_beast": "Cognitive Drift"
+    }
+  ],
+  "sector_distribution": [
+    {
+      "sector_id": "HIGH_VELOCITY_FRONT",
+      "name": "High-Velocity Front",
+      "icon": "⚡",
+      "completed": 16,
+      "total": 18,
+      "percentage": 37.5,
+      "color": "#00d4ff"
+    },
+    {
+      "sector_id": "SANCTUM",
+      "name": "The Sanctum",
+      "icon": "🏰",
+      "completed": 14,
+      "total": 15,
+      "percentage": 31.25,
+      "color": "#a855f7"
+    },
+    {
+      "sector_id": "DOMESTIC_BREACH",
+      "name": "Domestic Breach",
+      "icon": "🛡️",
+      "completed": 6,
+      "total": 8,
+      "percentage": 16.7,
+      "color": "#10b981"
+    },
+    {
+      "sector_id": "BUREAUCRATIC_GAUNTLET",
+      "name": "Bureaucratic Gauntlet",
+      "icon": "⚖️",
+      "completed": 3,
+      "total": 4,
+      "percentage": 8.3,
+      "color": "#f59e0b"
+    },
+    {
+      "sector_id": "KINETIC_OUTLAND",
+      "name": "Kinetic Outland",
+      "icon": "🧭",
+      "completed": 2,
+      "total": 3,
+      "percentage": 6.25,
+      "color": "#ff4d4d"
+    }
+  ],
+  "progression": {
+    "total_xp": 4850,
+    "xp_breakdown": {
+      "tasks": 1650,
+      "combat": 1400,
+      "directives": 1200,
+      "missions": 600
+    },
+    "current_level": 42,
+    "level_progress_percent": 84.0,
+    "current_xp_in_level": 35280,
+    "next_level_threshold": 42000,
+    "achievements_unlocked": [
+      {
+        "code": "STEEL_DISCIPLINE_WEEK",
+        "name": "Steel Discipline",
+        "description": "Maintain over 80% task precision across all 7 weekly journal logs.",
+        "icon": "🛡️",
+        "unlocked_at": "2026-10-04"
+      },
+      {
+        "code": "CHRONO_SEVEN",
+        "name": "Chrono-Anchor",
+        "description": "Log continuously for 7 consecutive journal days without gap.",
+        "icon": "⏳",
+        "unlocked_at": "2026-10-04"
+      }
+    ]
+  },
+  "combat": {
+    "battles_fought": 6,
+    "victories": 6,
+    "fled": 0,
+    "total_damage_dealt": 14200,
+    "beasts_neutralized": [
+      {
+        "name": "Syntax Wyrm",
+        "category": "Bug / Defect",
+        "difficulty": "Elite",
+        "xp_awarded": 350
+      },
+      {
+        "name": "Inertia Chimera",
+        "category": "Focus Block",
+        "difficulty": "Boss",
+        "xp_awarded": 500
+      },
+      {
+        "name": "Procrastination Hydra",
+        "category": "Resistance",
+        "difficulty": "Elite",
+        "xp_awarded": 400
+      },
+      {
+        "name": "Inbox Specter",
+        "category": "Bureaucracy",
+        "difficulty": "Standard",
+        "xp_awarded": 150
+      }
+    ]
+  },
+  "squad_mvp": {
+    "name": "Lyra",
+    "role": "Navigator",
+    "deployments": 5,
+    "avatar": "/assets/companions/lyra.png"
+  }
+}

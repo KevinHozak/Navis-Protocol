@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "[Husky] Running Navis-Web Pre-Commit Hooks..."
+
+echo "[Husky] Checking staged files for secrets and private exports..."
+node scripts/scan-secrets.mjs --staged || exit 1
+
+echo "[Husky] Frontend linting..."
+cd frontend
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "Frontend validation failed."
+  exit 1
+fi
+cd ..
+
+echo "[Husky] Backend linting..."
+cd backend
+.venv/Scripts/python.exe -m ruff check .
+if [ $? -ne 0 ]; then
+  echo "Backend validation failed."
+  exit 1
+fi
+cd ..
+
+echo "[Husky] Validation passed! Success is silent."

@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #f0f0f0;
+  --accent: #5dade2;
+  --sidebar: #121212;
+  --panel: #1a1a1a;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+:root {
+  --realm-bg-url: url('/bg_texture.png');
+}
+
+body {
+  color: var(--foreground);
+  background-color: #050505;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+.font-display {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+
+.realm-bg {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.15)), var(--realm-bg-url);
+  background-repeat: repeat;
+  background-size: auto;
+  background-position: top left;
+  background-attachment: fixed;
+  transition: background-image 1s ease-in-out;
+}
+
+/* Original Navis Glass */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.console-bg {
+  background: rgba(0, 0, 0, 0.85);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* Progress Bars */
+.progress-container {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}

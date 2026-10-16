@@ -1,0 +1,162 @@
+[
+  {
+    "name": "current coordinates",
+    "status": {
+      "current_realm": "Earth",
+      "current_antagonist": "Delay",
+      "current_beast": "Noise",
+      "squad": [
+        "Reid"
+      ],
+      "map_telemetry": {
+        "version": 1,
+        "coordinate_space": "canvas-1024x576",
+        "player": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z"
+        },
+        "antagonist": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Delay"
+        },
+        "beast": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Noise"
+        },
+        "squad": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "members": [
+            "Reid"
+          ]
+        }
+      }
+    },
+    "realm": "Earth",
+    "expected": [
+      "player",
+      "antagonist",
+      "beast",
+      "squad"
+    ]
+  },
+  {
+    "name": "missing status",
+    "status": null,
+    "realm": "Earth",
+    "expected": []
+  },
+  {
+    "name": "malformed status",
+    "status": {
+      "map_telemetry": []
+    },
+    "realm": "Earth",
+    "expected": []
+  },
+  {
+    "name": "realm hop",
+    "status": {
+      "current_realm": "Mars",
+      "current_antagonist": "Delay",
+      "current_beast": "Noise",
+      "squad": [
+        "Reid"
+      ],
+      "map_telemetry": {
+        "version": 1,
+        "coordinate_space": "canvas-1024x576",
+        "player": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z"
+        },
+        "antagonist": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Delay"
+        },
+        "beast": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Noise"
+        },
+        "squad": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "members": [
+            "Reid"
+          ]
+        }
+      }
+    },
+    "realm": "Mars",
+    "expected": []
+  },
+  {
+    "name": "threat clearing",
+    "status": {
+      "current_realm": "Earth",
+      "current_antagonist": null,
+      "current_beast": null,
+      "squad": [
+        "Reid"
+      ],
+      "map_telemetry": {
+        "version": 1,
+        "coordinate_space": "canvas-1024x576",
+        "player": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z"
+        },
+        "antagonist": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Delay"
+        },
+        "beast": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "target": "Noise"
+        },
+        "squad": {
+          "realm": "Earth",
+          "x": 100,
+          "y": 200,
+          "observed_at": "2026-09-30T12:00:00Z",
+          "members": [
+            "Reid"
+          ]
+        }
+      }
+    },
+    "realm": "Earth",
+    "expected": [
+      "player",
+      "squad"
+    ]
+  }
+]

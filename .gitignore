@@ -1,0 +1,103 @@
+# Next.js
+node_modules/
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+frontend/build/
+frontend/.env*
+
+# Python
+.venv-test/
+backend/.venv/
+.pytest_cache/
+backend/sync_p3_fixture/
+__pycache__/
+backend/__pycache__/
+backend/scripts/__pycache__/
+backend/venv/
+backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Navis Cache
+.navis_cache/
+
+# Tauri build output
+frontend/src-tauri/target/
+frontend/src-tauri/gen/
+
+# Local worktrees, tooling, and publication/recovery output
+/.worktrees/
+/.tools/
+/.publication/
+/.test-*/
+
+# Environment files (only sanitized examples may be committed)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Credentials and private signing material
+credentials*.json
+client_secret*.json
+service-account*.json
+service_account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Runtime data, diagnostics, and backups
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.log
+*.stackdump
+*.backup*
+
+# Private Vault exports and generated sync output
+metadata.jsonl
+search_results.json
+/sync_output.txt
+
+# Personal Vault roots and local machine credentials
+/Journal/
+/Bridge/
+/Keeper/
+/Library/
+/Companions/
+/Lounge/
+/Navis-Vault/
+/vault/
+.ssh/
+.aws/
+.azure/
+.gcloud/
+.envrc
+*credentials*.json
+secrets*.json
+token.json
+tokens.json
+token_*.json
+oauth*.json
+*.p8
+*.pkcs12
+*.mobileprovision
+
+# Portable backups, archives, and dumps
+*.bundle
+*.dump
+*.bak
+*.zip
+*.7z
+*.tar
+*.gz
+*.tgz

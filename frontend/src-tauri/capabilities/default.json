@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Minimal desktop shell capabilities for the Navis Protocol cockpit",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:app:default",
+    "core:event:default",
+    "core:window:default",
+    "core:webview:default"
+  ]
+}

@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+const source = await readFile(new URL('../src/components/TasksBoard.js', import.meta.url), 'utf8');
+const start = source.indexOf('  const handleComplete =');
+const end = source.indexOf('  return (', start);
+assert.match(source, /onClick=\{\(\) => handleComplete\(task.id\)\}/);
+assert.doesNotMatch(source, /method: "DELETE"/);
+const calls = [];
+const context = vm.createContext({ encodeURIComponent, mutate: async (...args) => { calls.push(args); return false; } });
+vm.runInContext(source.slice(start, end) + '\nglobalThis.click = handleComplete;', context);
+await context.click('imported 雪');
+assert.equal(calls[0][0], '/api/active_tasks/imported%20%E9%9B%AA/complete');
+assert.equal(calls[0][1].method, 'POST');
+assert.equal(calls[0][2], 'Complete task');
+console.log('Directive completion routes through the guarded mutation lifecycle.');
