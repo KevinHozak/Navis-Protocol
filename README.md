@@ -1,4 +1,8 @@
-﻿# Navis Protocol
+<p align="center">
+  <img src="frontend/public/icon-512.png" alt="Navis Protocol logo" width="256" />
+</p>
+
+# Navis Protocol
 
 A local-first productivity and knowledge-management cockpit, built with Next.js,
 FastAPI, and a Tauri desktop shell. It provides task boards, journals, progression,
