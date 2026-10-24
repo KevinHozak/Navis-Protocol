@@ -324,7 +324,7 @@ def execute_git_backup(log_callback=None):
             )
         subprocess.run(
             (["git", "--git-dir", fixture_git, "--work-tree", NAVIS_ROOT] if fixture_mode else ["git"])
-            + ["add", "--", "Bridge", "Journal", "Companions"],
+            + (["add", "--", "Bridge", "Journal", "Companions"] if fixture_mode else ["add", "--all", "--", "."]),
             cwd=NAVIS_ROOT,
             check=True,
             capture_output=True,
@@ -332,7 +332,7 @@ def execute_git_backup(log_callback=None):
         )
         status = subprocess.run(
             (["git", "--git-dir", fixture_git, "--work-tree", NAVIS_ROOT] if fixture_mode else ["git"])
-            + ["status", "--porcelain"],
+            + ["diff", "--cached", "--name-only"],
             cwd=NAVIS_ROOT,
             check=True,
             capture_output=True,
