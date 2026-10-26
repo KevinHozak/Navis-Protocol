@@ -252,9 +252,9 @@ export default function MarkdownRenderer({ content = '', onToggleCheckbox, onHop
       const parts = inner.split('|');
       const alias = parts.pop();
       const link = parts.join('|'); // In case link has pipes (rare, but just in case)
-      return `[${alias}](hop://${link})`;
+      return `[${alias}](${/^https?:\/\//i.test(link) ? link : `hop://${link}`})`;
     }
-    return `[${inner}](hop://${inner})`;
+    return `[${inner}](${/^https?:\/\//i.test(inner) ? inner : `hop://${inner}`})`;
   });
 
   return (

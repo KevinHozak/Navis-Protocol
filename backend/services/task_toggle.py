@@ -13,7 +13,8 @@ class ToggleConflict(ValueError):
 
 def _rendered_task_text(source_text):
     """Match Markdown source to the plain text exposed by the checkbox UI."""
-    text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", source_text)
+    text = re.sub(r"\[\[([^\]]+)\]\]", lambda m: m[1].rsplit('|', 1)[-1], source_text)
+    text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"</?[A-Za-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\s*/?>", "", text)
     for _ in range(3):
