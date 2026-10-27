@@ -6,6 +6,17 @@ A chronological record of high-fidelity architectural shifts, multiversal milest
 
 ---
 
+## Vault MCP journal and mission retrieval — 2026-10-26
+
+- NAVIS-S019: `get_journal_range` reads inclusive, canonical journal dates with
+  explicit missing dates, configured timezone and bounded continuation.
+  `get_mission` reads Main/Side mission definitions with duplicate-name
+  disambiguation and bounded context from explicit internal links. Both reuse
+  the shared read policy without an index, journal initialization, cache
+  generation, sync or XP changes. Disposable fixtures cover boundaries, errors,
+  links, budgets, junctions and real stdio calls. Internal Unicode paths retain
+  character-count bounds without unnecessary URL expansion.
+
 ## Vault MCP search and freshness — 2026-10-26
 
 - NAVIS-S018: source-linked `search_vault`, a separate private FTS5 generation

@@ -40,6 +40,11 @@ def _parts(value):
     return tuple(parts)
 
 
+def _path_input(relative):
+    """Protect literal percent escapes without expanding Unicode path lengths."""
+    return relative.replace("%", "%25")
+
+
 def _private(parts):
     return any(SECRET.match(p) or ".backup" in p.casefold() or p.casefold().endswith((".bak", ".tmp", "~"))
                for p in parts)
