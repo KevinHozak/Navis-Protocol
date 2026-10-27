@@ -9,6 +9,14 @@ remain unverified. S021 adds an explicitly enabled journal append tool; the
 default tool set remains read-only. See [guarded appends](vault-mcp-journal-appends.md)
 and the [access contract](vault-mcp-contract.md).
 
+The [2026-10-27 real-Vault pilot](vault-mcp-real-pilot.md) subsequently configured
+a restricted read-only Codex connection and verified real source provenance.
+Its measured scope is 45 notes; broad-policy inventory exceeded its deadline.
+See that report for the retained configuration, scope and remaining human checks.
+The subsequent [inventory fix and broader pilot](vault-mcp-inventory-performance.md)
+expanded the retained read-only connection to 2,160 notes across Journal,
+Operations and Documentation, using an explicit 60-second scan budget.
+
 ## Install and launch
 
 Use Python 3.11+ and a dedicated virtual environment. Run from the repository
@@ -38,6 +46,7 @@ environment when running regressions, not in the portal's runtime environment.
 | `NAVIS_MCP_DENIED_PATHS` | Optional JSON array of relative subtrees or files to exclude. Default `[]`. Denials override allowed roots. Same count/path limits as allowed roots. |
 | `NAVIS_MCP_STATE_DIR` | Required for search/rebuild: absolute private directory outside both the Vault and checkout, containing `vault-index.db`. It must not be an ancestor of either root. Direct note reads work without it. |
 | `NAVIS_MCP_ENABLE_JOURNAL_APPEND` | Only the exact value `1` advertises/enables `append_journal_entry`. Unset by default. Requires an existing allowed journal, expected SHA and stable request ID. See the guarded-write guide before opting in. |
+| `NAVIS_MCP_SCAN_TIMEOUT_SECONDS` | Optional integer 1–120, default 10. Explicit budget for exhaustive search/mission discovery and the operator rebuild command. The broad real-Vault pilot uses 60; note/journal reads retain their ten-second limit. Set the client's tool timeout higher than this scan budget. |
 
 Missing individual allowed directories are returned in coverage; unreadable/linked directories
 produce an error. Reads never create them. Root replacement or disappearance

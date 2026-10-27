@@ -1,5 +1,6 @@
 """Private FTS5 generations. Only the local operator rebuilds; MCP searches read."""
 from contextlib import closing
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -11,6 +12,9 @@ import stat
 import tempfile
 import time
 import uuid
+from itertools import islice
+from collections import deque
+from services.vault_io import read_binary
 
 from services.vault_access import (
     MAX_DATA_BYTES, MAX_FILE_BYTES, VaultAccessError, _headings, _is_link,
@@ -23,6 +27,7 @@ MAX_ENTRIES = 50000
 MAX_INDEX_BYTES = 64 * 1024 * 1024
 MAX_DB_BYTES = 256 * 1024 * 1024
 CHECKOUT = Path(__file__).resolve().parents[2]
+IO_WORKERS = 8
 
 
 def _check(deadline):
@@ -34,13 +39,56 @@ def _metadata(info):
     return (info.st_size, info.st_mtime_ns, str(info.st_dev), str(info.st_ino))
 
 
-def _discovered_file(policy, raw):
+def _parallel(function, items, deadline):
+    """Bound both pending work and retained results; never cache across calls."""
+    iterator = iter(items)
+    with ThreadPoolExecutor(max_workers=IO_WORKERS, thread_name_prefix="vault-io") as pool:
+        pending = deque(pool.submit(function, item) for item in islice(iterator, IO_WORKERS * 2))
+        while pending:
+            _check(deadline)
+            future = pending.popleft()
+            try:
+                yield future.result(timeout=max(0.001, deadline - time.monotonic()))
+            except TimeoutError:
+                raise VaultAccessError("deadline_exceeded") from None
+            for item in islice(iterator, 1):
+                pending.append(pool.submit(function, item))
+
+
+def _open_probe(path):
+    return read_binary(path)
+
+
+def _directory_signature(info):
+    return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_ctime_ns
+
+
+def _probe_file(item):
+    """Probe readability and pathname/handle identity, without reading content.
+
+    Paths come only from the component-validated walk. Every directory in that
+    walk is pinned and revalidated before this inventory may be returned.
+    """
+    relative, path = item
     try:
-        return policy.resolve(raw)
-    except VaultAccessError as error:
-        if error.code == "not_found":
-            raise VaultAccessError("source_changed") from None
-        raise
+        before = path.lstat()  # DirEntry metadata lacks inode/device on Windows.
+        if _is_link(before) or not stat.S_ISREG(before.st_mode):
+            raise VaultAccessError("source_changed")
+        if before.st_size > MAX_FILE_BYTES:
+            raise VaultAccessError("file_too_large")
+        with _open_probe(path) as stream:
+            opened = os.fstat(stream.fileno())
+            if not stat.S_ISREG(opened.st_mode) or _signature(before) != _signature(opened):
+                raise VaultAccessError("source_changed")
+            after = os.fstat(stream.fileno())
+        final = path.lstat()
+        if (_is_link(final) or not stat.S_ISREG(final.st_mode) or _signature(before) != _signature(after)
+                or _signature(after) != _signature(final)
+                or opened.st_ctime_ns != after.st_ctime_ns or before.st_ctime_ns != final.st_ctime_ns):
+            raise VaultAccessError("source_changed")
+        return relative, _metadata(final)
+    except FileNotFoundError:
+        raise VaultAccessError("source_changed") from None
 
 
 def _fingerprint(policy):
@@ -52,7 +100,7 @@ def _inventory(policy, deadline):
     """Bound discovery before content reads; excluded subtrees are never entered."""
     policy.require_root()
     coverage = policy.coverage()
-    files, visited = {}, set()
+    files, visited, directories, candidates = {}, set(), {}, {}
     pending = [policy.root.joinpath(*p) for p in policy.allowed if "/".join(p) not in coverage["missing_roots"]]
     entries = total_bytes = 0
     try:
@@ -65,7 +113,14 @@ def _inventory(policy, deadline):
             if not policy.allows(parts) or key in visited:
                 continue
             visited.add(key)
-            _no_links(directory)
+            # Check ancestors once for configured roots. Descendants are formed
+            # exclusively from validated components under already checked dirs.
+            if directory in [policy.root.joinpath(*p) for p in policy.allowed]:
+                _no_links(directory)
+            info = directory.lstat()
+            if _is_link(info) or not stat.S_ISDIR(info.st_mode):
+                raise VaultAccessError("source_changed")
+            directories[directory] = _directory_signature(info)
             with os.scandir(directory) as children:
                 for entry in children:
                     _check(deadline)
@@ -86,24 +141,27 @@ def _inventory(policy, deadline):
                     if stat.S_ISDIR(info.st_mode):
                         pending.append(Path(entry.path))
                     elif stat.S_ISREG(info.st_mode) and Path(entry.name).suffix.casefold() == ".md":
-                        path = _discovered_file(policy, raw)
-                        # Windows DirEntry.stat may omit inode/device identity.
-                        # Use pathname metadata for the handle identity check.
-                        info = path.lstat()
                         if info.st_size > MAX_FILE_BYTES:
                             raise VaultAccessError("file_too_large")
-                        # Opening is necessary to distinguish unreadable coverage
-                        # from a valid no-match result, even for non-matching notes.
-                        with path.open("rb") as stream:
-                            if _signature(info) != _signature(os.fstat(stream.fileno())):
-                                raise VaultAccessError("source_changed")
-                        _discovered_file(policy, raw)
-                        if rel not in files:
+                        if rel not in candidates:
                             total_bytes += info.st_size
-                        files[rel] = _metadata(info)
-                        if len(files) > MAX_NOTES or total_bytes > MAX_INDEX_BYTES:
+                        candidates[rel] = Path(entry.path)
+                        if len(candidates) > MAX_NOTES or total_bytes > MAX_INDEX_BYTES:
                             raise VaultAccessError("inventory_limit_exceeded")
+        # Still open every permitted note, including nonmatches. Drive I/O is
+        # parallelized; no TTL/readability cache can hide permission changes.
+        for relative, metadata in _parallel(_probe_file, candidates.items(), deadline):
+            files[relative] = metadata
+        if sum(meta[0] for meta in files.values()) > MAX_INDEX_BYTES:
+            raise VaultAccessError("inventory_limit_exceeded")
+        for directory, expected in directories.items():
+            _check(deadline)
+            current = directory.lstat()
+            if _is_link(current) or not stat.S_ISDIR(current.st_mode) or _directory_signature(current) != expected:
+                raise VaultAccessError("source_changed")
         policy.require_root()
+        if policy.coverage() != coverage:
+            raise VaultAccessError("source_changed")
         _check(deadline)
     except OSError:
         policy.require_root()
@@ -163,11 +221,17 @@ def rebuild_index(policy, state_directory, *, deadline=None):
             db.execute("CREATE TABLE metadata (value TEXT NOT NULL)")
             db.execute("CREATE TABLE files (path TEXT PRIMARY KEY, size INTEGER, modified INTEGER, device TEXT, inode TEXT, digest TEXT)")
             db.execute("CREATE VIRTUAL TABLE notes USING fts5(path UNINDEXED, content, tokenize='unicode61')")
-            for relative, expected in sorted(files.items()):
+            def snapshot(item):
                 _check(deadline)
-                _, text, digest, info = _snapshot(policy, _path_input(relative))
+                relative, expected = item
+                _, text, digest, info = _snapshot(policy, _path_input(relative), opener=_open_probe)
+                _check(deadline)
                 if _metadata(info) != expected:
                     raise VaultAccessError("source_changed")
+                return relative, expected, text, digest
+
+            for relative, expected, text, digest in _parallel(snapshot, sorted(files.items()), deadline):
+                _check(deadline)
                 db.execute("INSERT INTO files VALUES (?, ?, ?, ?, ?, ?)", (relative, *expected, digest))
                 db.execute("INSERT INTO notes(path, content) VALUES (?, ?)", (relative, text))
             db.execute("INSERT INTO metadata VALUES (?)", (json.dumps(meta),))

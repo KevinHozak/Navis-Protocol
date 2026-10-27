@@ -1,0 +1,152 @@
+{
+  "stage": "pilot_complete",
+  "server_version": "0.4.1",
+  "codex_version": "codex-cli 0.164.0-alpha.11.1",
+  "connection_ms": 1472.098,
+  "indexed_notes": 2160,
+  "unique_verified_sources": 19,
+  "unexpected_omissions": 0,
+  "source_verification": "direct raw-byte digests and physical excerpts",
+  "repetitions": [
+    {
+      "repetition": 1,
+      "search_ms": 15121.729,
+      "note_ms": 43.747,
+      "archived_journals": 4,
+      "archived_missing_dates": 3,
+      "archived_journal_ms": 292.862,
+      "mission_ms": 7444.769,
+      "journal_ms": 335.2,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    },
+    {
+      "repetition": 2,
+      "search_ms": 16840.242,
+      "note_ms": 49.078,
+      "archived_journals": 4,
+      "archived_missing_dates": 3,
+      "archived_journal_ms": 389.619,
+      "mission_ms": 8234.878,
+      "journal_ms": 357.238,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    },
+    {
+      "repetition": 3,
+      "search_ms": 15714.832,
+      "note_ms": 40.494,
+      "archived_journals": 4,
+      "archived_missing_dates": 3,
+      "archived_journal_ms": 301.394,
+      "mission_ms": 7359.406,
+      "journal_ms": 347.187,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    }
+  ],
+  "vault_source_changes_observed": 0,
+  "persistent_configuration_preserved_by_probe": true,
+  "tools": [
+    "get_journal_range",
+    "get_mission",
+    "read_note",
+    "search_vault"
+  ],
+  "write_tools_available": false,
+  "model_turns": 0,
+  "human_correction_time": "not_measured",
+  "decision": "adopt_read_only_pilot",
+  "raw_note_text_logged": false,
+  "search_query_scope": "all configured roots",
+  "journal_days": 7,
+  "archived_calendar_days": 7,
+  "rpc_methods": [
+    "initialize",
+    "mcpServer/tool/call",
+    "mcpServerStatus/list",
+    "thread/start"
+  ],
+  "client_exit_code": 0,
+  "source_identity": [
+    {
+      "path": "backend/navis_vault_mcp.py",
+      "sha256": "141f940c8b602b227110f07b8d9ef7b1350db6f39fab715be445caaf825a47c7"
+    },
+    {
+      "path": "backend/services/vault_access.py",
+      "sha256": "dc975c6da6fb75dc37d33b33adab5ede26b896a31724a277f727bc8196cfbdfd"
+    },
+    {
+      "path": "backend/services/vault_index.py",
+      "sha256": "fd326e745c0ef1f0608e1b081ab50e4256518c14f87164fd45df23ba7e2ac87c"
+    },
+    {
+      "path": "backend/services/vault_io.py",
+      "sha256": "e9fe9a49295eb7bb6f819544d84224ff0d7448312529f9d8859864938fe2fa08"
+    },
+    {
+      "path": "backend/services/vault_limits.py",
+      "sha256": "cc540189f9f215567e51be85cc1c00ee20b98f8ec99641467dd0702d9768e0e8"
+    },
+    {
+      "path": "backend/services/vault_retrieval.py",
+      "sha256": "77956fe321460fcfa67f720a06a5dd222246e28064cd56a57f2f6c18cc1a61a3"
+    }
+  ],
+  "date": "2026-10-27",
+  "base_commit": "3a11dc064dcd81f8234d2c03f34486e0239166f1",
+  "source_state": "verified local MCP 0.4.1 changes, bound by normalized source_identity hashes",
+  "scope": [
+    "Journal",
+    "Operations",
+    "Documentation"
+  ],
+  "scan_budget_seconds": 60,
+  "default_scan_budget_seconds": 10,
+  "setup": {
+    "stage": "prepared",
+    "notes": 2160,
+    "source_bytes": 3085197,
+    "inventory_ms": 9002.528,
+    "index_build_ms": 50406.903,
+    "index_bytes": 6037504,
+    "missing_roots": [],
+    "indexed_notes": 2160
+  },
+  "median_ms": {
+    "search_ms": 15714.832,
+    "note_ms": 43.747,
+    "journal_ms": 347.187,
+    "archived_journal_ms": 301.394,
+    "mission_ms": 7444.769
+  },
+  "coverage_limits": [
+    "Search result provenance checked, not exhaustive semantic recall",
+    "Archived week had three actual absent journal files, explicitly reported",
+    "Four mission links remain explicitly unresolved",
+    "Human correction effort and simultaneous-client load not measured"
+  ],
+  "verification": {
+    "affected_python_tests_passed": 209,
+    "duration_seconds": 47.55,
+    "independent_external_review": "unavailable"
+  },
+  "baseline_profile": {
+    "deadline_seconds": 30,
+    "result": "deadline_exceeded",
+    "readability_probes_completed": 418,
+    "open_total_ms": 12900.49,
+    "repeated_resolution_total_ms": 15163.03,
+    "profile_totals_overlap": true
+  }
+}

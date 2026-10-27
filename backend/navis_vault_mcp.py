@@ -15,6 +15,7 @@ from mcp.types import CallToolResult, ListToolsResult, TextContent, Tool, ToolAn
 from services.vault_access import VaultAccessError, VaultPolicy, read_note
 from services.vault_index import search_vault
 from services.vault_retrieval import get_journal_range, get_mission
+from services.vault_limits import scan_timeout_seconds
 
 CALL_TIMEOUT_SECONDS = 10
 READ_NOTE_SCHEMA = {
@@ -89,6 +90,7 @@ APPEND_SCHEMA = {
 def create_server(policy, state_directory=None):
     state_directory = os.environ.get("NAVIS_MCP_STATE_DIR") if state_directory is None else state_directory
     append_enabled = os.environ.get("NAVIS_MCP_ENABLE_JOURNAL_APPEND") == "1"
+    scan_timeout = scan_timeout_seconds()
     limiter = anyio.CapacityLimiter(4)
     async def list_tools(ctx, params):
         tools = [Tool(
@@ -133,11 +135,12 @@ def create_server(policy, state_directory=None):
         if params.name not in readers:
             return _error("unknown_tool")
         try:
-            scope = contextlib.nullcontext() if params.name == "append_journal_entry" else anyio.fail_after(CALL_TIMEOUT_SECONDS)
+            timeout = scan_timeout if params.name in {"search_vault", "get_mission"} else CALL_TIMEOUT_SECONDS
+            scope = contextlib.nullcontext() if params.name == "append_journal_entry" else anyio.fail_after(timeout)
             with scope:
                 reader = readers[params.name]
                 data = await anyio.to_thread.run_sync(
-                    functools.partial(reader, params.arguments or {}, deadline=time.monotonic() + CALL_TIMEOUT_SECONDS),
+                    functools.partial(reader, params.arguments or {}, deadline=time.monotonic() + timeout),
                     # Never abandon a mutation thread and report a read timeout
                     # while it can still save. Disconnects recover by request ID.
                     abandon_on_cancel=params.name != "append_journal_entry", limiter=limiter,
@@ -154,7 +157,7 @@ def create_server(policy, state_directory=None):
             # Never pass SDK/OS exceptions, arguments or note text to the client.
             return _error("internal_error")
 
-    return Server("navis-vault", version="0.4.0", on_list_tools=list_tools, on_call_tool=call_tool)
+    return Server("navis-vault", version="0.4.1", on_list_tools=list_tools, on_call_tool=call_tool)
 
 
 async def serve(policy):
