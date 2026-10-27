@@ -7,8 +7,9 @@ import os
 from pathlib import Path
 import re
 import threading
+import time
 
-from services.combat_completion import atomic_json
+from services.combat_completion import atomic_json as _atomic_json
 
 _current = ContextVar("navis_operation", default=None)
 _locks = {}
@@ -19,6 +20,17 @@ LABELS = {
     "indexes": "Journal index and readiness", "banter": "Squad banter",
     "biometrics": "Biometrics", "holocron": "Weekly Holocron", "cache": "View cache",
 }
+
+
+def atomic_json(path, value):
+    """Allow short Windows read/share locks without replaying operation steps."""
+    for attempt in range(8):
+        try:
+            return _atomic_json(path, value)
+        except PermissionError as error:
+            if getattr(error, "winerror", None) not in (5, 32, 33) or attempt == 7:
+                raise
+            time.sleep(0.025 * (attempt + 1))
 
 
 class OperationBusy(ValueError):

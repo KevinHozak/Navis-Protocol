@@ -59,7 +59,7 @@ recovery and retained runtime limits. Acceptance is verified within the document
 the complete frontend regression runner passed. 71 serial Rust tests passed;
 the personal-Vault availability probe was excluded. Backend Ruff, frontend lint
 (existing warnings), whitespace and desktop frontend production build passed.
-The known missing-watchdog test is explicitly excluded; unrelated Holocron
+The known missing-watchfiles test is explicitly excluded; unrelated Holocron
 manifest test failures remain recorded under S009/S015. No production sync,
 packaged installer or physical Drive-race verification was performed. See
 [operation contract](../docs/sync-operation-outcomes.md) and
@@ -71,3 +71,14 @@ delivery is accepted; audit PR #16 is merged.
 ## Main reconciliation - 2026-10-27
 
 PR #16 merged as 5fb6b7e. PR #17 now targets main; its issue conflict was reconciled by retaining both the audit scope and S014 verification. Application source hashes remain identical to the verified S014 report. Packaged runtime/installer and Drive-race checks remain unverified under S015.
+
+
+## Final packaged fixture gate - 2026-10-27
+
+Release 1.11.20 passed the targeted packaged fixture acceptance, including actual
+partial writes, cancellation, active close, restart, read-only reconnect and review
+without replay. Bundled resource resolution and fixture isolation are verified.
+The watcher shutdown and Windows receipt-sharing defects exposed by smoke were
+fixed and verified. See [acceptance and retained limits](../docs/sync-operation-outcomes.md#packaged-fixture-acceptance---2026-10-27-11120).
+Status remains in_review pending PR #17 acceptance; clean-machine installation and
+production/Drive checks are retained under S015.

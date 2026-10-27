@@ -36,3 +36,13 @@ Follow the parent epic's audit-first gate, privacy and runtime evidence requirem
 Retain the full web/packaged trust matrix from S009. Reconcile the two manifest tests assuming one row while current WTD is injected; validate/install declared watcher dependencies in an isolated test environment before claiming watcher acceptance. Packaged offline/reconnect, navigation-during-save, partial outcomes, cancel/close, keyboard and source navigation remain unrun blockers, not passed tests.
 
 Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.
+
+
+## S014 packaged subset - 2026-10-27
+
+The targeted 1.11.20 operation fixture matrix now passes; see [S014 acceptance](../docs/sync-operation-outcomes.md).
+The declared watchfiles 1.1.1 dependency and watcher shutdown are verified.
+Installer execution, clean-machine setup, remaining trust journeys, production
+integrations and physical Drive races remain open. An unavailable root still
+receives Holocron startup cache writes; sync/rollover preflight rejects operation
+writes. Do not infer whole-epic acceptance from the S014 subset.

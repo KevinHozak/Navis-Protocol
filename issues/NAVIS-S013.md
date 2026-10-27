@@ -35,3 +35,11 @@ Follow the parent epic's audit-first gate, privacy and runtime evidence requirem
 T01: replace or explicitly label fixed readiness, estimated deep-work/damage, invented squad fallback and inferred combat outcomes/XP; expose genuine contributing evidence and rules in UI and HTML export. Do not manufacture source references. Share evidence presentation with S006, but factual corrections do not wait for its AI trial.
 
 Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.
+
+
+## Packaged observation - 2026-10-27
+
+S014 unavailable-root smoke observed Holocron startup creating weekly cache files
+under a root without a Journal, while the dashboard displays zero-based WTD
+claims. Sync preflight rejects the root. Preserve this source-availability/cache
+behavior in the S013/S015 repair matrix; no Holocron fix is claimed by PR #17.

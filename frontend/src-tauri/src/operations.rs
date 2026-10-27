@@ -51,26 +51,32 @@ pub(crate) fn backend_root(app: &AppHandle) -> Result<PathBuf, String> {
         .join("..")
         .join("..")
         .join("backend");
-    if backend_entrypoint_exists(&development) {
-        return Ok(development);
-    }
-
     let bundled = app
         .path()
         .resource_dir()
         .map_err(|error| format!("unable to locate application resources: {error}"))?
         .join("backend");
-    if backend_entrypoint_exists(&bundled) {
-        return Ok(bundled);
-    }
+    select_backend(&development, &bundled, cfg!(debug_assertions))
+}
 
-    Err("Navis sync backend resource is missing. Reinstall the application or use a complete development checkout.".into())
+fn select_backend(development: &Path, bundled: &Path, debug: bool) -> Result<PathBuf, String> {
+    let choices = if debug { vec![development, bundled] } else { vec![bundled] };
+    choices.into_iter().find(|path| backend_entrypoint_exists(path)).map(Path::to_path_buf)
+        .ok_or_else(|| "Navis sync backend resource is missing. Reinstall the application or use a complete development checkout.".into())
+}
+
+fn fixture_environment(mode: Option<&std::ffi::OsStr>, git: Option<&std::ffi::OsStr>) -> Result<Vec<(&'static str, std::ffi::OsString)>, String> {
+    if mode != Some(std::ffi::OsStr::new("1")) { return Ok(Vec::new()); }
+    let git = git.filter(|value| !value.is_empty()).ok_or("fixture mode requires NAVIS_FIXTURE_GIT_DIR")?;
+    Ok(vec![("NAVIS_NATIVE_FIXTURE_MODE", "1".into()), ("NAVIS_FIXTURE_GIT_DIR", git.to_os_string())])
 }
 
 fn backend_entrypoint_exists(backend: &Path) -> bool {
     backend.join("native_operations.py").is_file()
         && backend.join("services").join("__init__.py").is_file()
         && backend.join("services").join("sync_engine.py").is_file()
+        && backend.join("native_operation_status.py").is_file()
+        && backend.join("services").join("operation_outcomes.py").is_file()
 }
 
 pub(crate) fn configured_vault_root() -> Result<PathBuf, String> {
@@ -215,7 +221,7 @@ fn configure_process_tree(command: &mut Command) {
 fn configure_process_tree(_command: &mut Command) {}
 
 #[cfg(windows)]
-fn attach_windows_job(child: &Child) -> Result<isize, String> {
+pub(crate) fn attach_windows_job(child: &Child) -> Result<isize, String> {
     use std::os::windows::io::AsRawHandle;
     use windows_sys::Win32::System::JobObjects::{
         AssignProcessToJobObject, JobObjectExtendedLimitInformation, SetInformationJobObject,
@@ -396,6 +402,8 @@ pub fn start_sync_operation(
     let backend = backend_root(&app)?;
     let vault_root = configured_vault_root()?;
     let runtime = crate::command::resolve_python_runtime(&backend, !cfg!(debug_assertions))?;
+    let fixture_env = fixture_environment(std::env::var_os("NAVIS_NATIVE_FIXTURE_MODE").as_deref(),
+                                          std::env::var_os("NAVIS_FIXTURE_GIT_DIR").as_deref())?;
     let generated_id = format!(
         "native-{}-{}",
         operation,
@@ -435,6 +443,7 @@ pub fn start_sync_operation(
         }
         command
             .env("NAVIS_OPERATION_ID", &job2)
+            .envs(fixture_env)
             .env("NAVIS_ROOT", &vault_root)
             .env("PYTHONPATH", &backend)
             .env("PYTHONIOENCODING", "utf-8");
@@ -539,8 +548,35 @@ mod tests {
         std::fs::write(root.join("services/__init__.py"), "").unwrap();
         assert!(!backend_entrypoint_exists(&root));
         std::fs::write(root.join("services/sync_engine.py"), "").unwrap();
+        assert!(!backend_entrypoint_exists(&root));
+        std::fs::write(root.join("native_operation_status.py"), "").unwrap();
+        std::fs::write(root.join("services/operation_outcomes.py"), "").unwrap();
         assert!(backend_entrypoint_exists(&root));
         std::fs::remove_dir_all(root).unwrap();
+    }
+    #[test]
+    fn release_backend_never_uses_checkout_and_fixture_environment_is_allowlisted() {
+        use std::ffi::OsStr;
+        let development = fixture("development-backend");
+        let bundled = fixture("bundled-backend");
+        for root in [&development, &bundled] {
+            std::fs::create_dir_all(root.join("services")).unwrap();
+            for file in ["native_operations.py", "native_operation_status.py", "services/__init__.py", "services/sync_engine.py", "services/operation_outcomes.py"] {
+                std::fs::write(root.join(file), "").unwrap();
+            }
+        }
+        assert_eq!(super::select_backend(&development, &bundled, false).unwrap(), bundled);
+        assert_eq!(super::select_backend(&development, &bundled, true).unwrap(), development);
+        std::fs::remove_file(bundled.join("native_operation_status.py")).unwrap();
+        assert!(super::select_backend(&development, &bundled, false).is_err());
+        assert!(super::fixture_environment(Some(OsStr::new("1")), None).is_err());
+        let values = super::fixture_environment(Some(OsStr::new("1")), Some(OsStr::new("fixture-git"))).unwrap();
+        assert_eq!(values.len(), 2);
+        assert_eq!(values[0], ("NAVIS_NATIVE_FIXTURE_MODE", "1".into()));
+        assert_eq!(values[1], ("NAVIS_FIXTURE_GIT_DIR", "fixture-git".into()));
+        assert!(super::fixture_environment(None, Some(OsStr::new("ignored"))).unwrap().is_empty());
+        std::fs::remove_dir_all(development).unwrap();
+        std::fs::remove_dir_all(bundled).unwrap();
     }
     #[test]
     fn vault_root_defaults_to_available_navis_vault_when_unset() {

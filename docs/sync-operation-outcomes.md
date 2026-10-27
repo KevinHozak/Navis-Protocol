@@ -97,7 +97,7 @@ fixture verifies missing-target partial failure preserves unmerged work.
 
 Packaged WebView2 interaction, cross-device Drive races, installer/resource
 execution and actual production integrations remain unverified under S015.
-The known missing-watchdog test is explicitly excluded, not passed. This change
+The known missing-watchfiles test is explicitly excluded, not passed. This change
 does not repair S013 factual Holocron metrics or the other S009 findings. Version
 1.11.19 is prepared for these app changes; no installer is produced by this work.
 
@@ -105,7 +105,7 @@ does not repair S013 factual Holocron metrics or the other S009 findings. Versio
 ## Local verification - 2026-10-27
 
 81 affected Python tests passed (27.55 seconds); the existing watcher test was
-excluded because watchdog is unavailable, not counted as passed. The seven mounted
+excluded because watchfiles was unavailable, not counted as passed. The seven mounted
 operation scenarios, 49 complete-adapter tests and the full frontend regression
 runner passed. 71 serial Rust library tests passed, with only the personal-Vault
 availability probe excluded. Backend Ruff and frontend lint passed (existing
@@ -119,3 +119,40 @@ is unavailable. A separate S014 PR is authorized and depends on audit PR #16.
 S009 reproduction probes describe the audit baseline at 279a614. Their T06/T07
 cases are historical observations, not passing acceptance tests for this repaired
 source. Use the S014 operation tests for current recovery acceptance.
+
+
+## Packaged fixture acceptance - 2026-10-27, 1.11.20
+
+The final release executable passed the targeted S014 fixture gate from a copied
+standalone resource directory. All 37 bundled resources match source bytes and
+the launched executable matches the final release artifact. Release backend
+selection now requires bundled resources; only debug builds prefer the checkout.
+The native launcher forwards the two explicit fixture flags after clearing its
+environment. Four missing local backend imports are included in the bundle.
+
+Actual sync and rollover, generated partial failure after saved work/XP,
+read-only reconnect, restart readback, prior-outcome gating, explicit review
+without replay, cancellation and active-close/relaunch passed. Journal hashes,
+receipt counts and the single fixture XP award remained stable through recovery.
+Active-close left no recorded app or child process alive, including the idle
+watcher. Its Windows job handle now terminates the tree without waiting for a
+stdout line. Short Windows receipt sharing locks receive at most eight bounded
+persistence attempts; operation steps are never replayed by that retry.
+
+The final selected suite passed 69 Python tests, 73 serial native library tests
+(one personal-Vault probe filtered), 49 adapter tests and seven mounted operation
+scenarios. Ruff and issue-store validation passed. The earlier watcher dependency
+was misidentified as watchdog: the service uses declared watchfiles 1.1.1, which
+is now installed and tested in the isolated runtime.
+
+Unavailable-Vault sync UI and packaged-entrypoint rollover fail before operation
+receipts, journals or XP writes. Existing Holocron startup nevertheless creates
+cache files under an unavailable root; this remains an S013/S015 finding. The
+existing S012 false XP-pending startup toast is unchanged. NSIS/MSI installers
+were built but not executed; clean-machine installation, physical Drive races,
+production integrations and independent external review remain unverified.
+No personal Vault or external integration was used.
+
+Evidence: [final sanitized smoke report](trials/s014-packaged-smoke-1.11.20-2026-10-27.json).
+The [1.11.19 checkpoint](trials/s014-packaged-smoke-2026-10-27.json) is retained
+as historical seeded-UI evidence; it is superseded by this executed pipeline run.

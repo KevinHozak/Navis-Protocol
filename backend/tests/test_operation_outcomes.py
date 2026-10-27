@@ -11,6 +11,41 @@ from services import operation_outcomes as ops
 from services import sync_engine
 
 
+def test_receipt_write_retries_only_bounded_windows_sharing_failures(tmp_path, monkeypatch):
+    original = ops._atomic_json
+    calls = []
+    error = PermissionError("synthetic Windows sharing lock")
+    error.winerror = 32
+
+    def transient(path, value):
+        calls.append(1)
+        if len(calls) < 3:
+            raise error
+        return original(path, value)
+
+    monkeypatch.setattr(ops, "_atomic_json", transient)
+    monkeypatch.setattr(ops.time, "sleep", lambda _: None)
+    path = tmp_path / "receipt.json"
+    ops.atomic_json(path, {"status": "partial"})
+    assert len(calls) == 3
+    assert json.loads(path.read_text(encoding="utf-8-sig"))["status"] == "partial"
+
+    def permanent(*args):
+        calls.append(1)
+        raise error
+
+    calls.clear()
+    monkeypatch.setattr(ops, "_atomic_json", permanent)
+    with pytest.raises(PermissionError):
+        ops.atomic_json(path, {})
+    assert len(calls) == 8
+    error.winerror = None
+    calls.clear()
+    with pytest.raises(PermissionError):
+        ops.atomic_json(path, {})
+    assert len(calls) == 1
+
+
 @pytest.fixture
 def root(tmp_path, monkeypatch):
     (tmp_path / "Bridge").mkdir()

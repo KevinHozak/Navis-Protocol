@@ -1,0 +1,337 @@
+{
+  "date": "2026-10-27",
+  "version": "1.11.20",
+  "scope": "Release executable with copied standalone resource directory on build host; synthetic Vaults only. Not an installed or clean-machine acceptance.",
+  "host": {
+    "os": "Windows 11 10.0.26300 x64",
+    "webview2": "155.0.4283.62",
+    "python": "3.14.8 external isolated test venv",
+    "watchfiles": "1.1.1"
+  },
+  "source_sha256": {
+    "backend/services/operation_outcomes.py": "137f292fa96f11b72f8345d5d5e02a5e4bad6c8e9ea7deca8da7996fafa9b138",
+    "backend/tests/test_operation_outcomes.py": "7dd0cdb8240065849804288e407fe1206b95208d1249dafe1e8434bb51e12bee",
+    "backend/tests/test_packaged_operation_resources.py": "0d9d588e17eefd24d20e578f387aeadc8959acaded7d4c2c29022c9d336dba72",
+    "frontend/src-tauri/src/operations.rs": "87ef730890a8e9ab98b932dafeecfa5f9b475c9dac914915b7f850d21a4e6d83",
+    "frontend/src-tauri/src/vault.rs": "42f51e27730956c1b6b43a271f848497a5565083e9f16df94d126c692e00f05b",
+    "frontend/src-tauri/tauri.conf.json": "c7e5881f3a9fd73104bbfa818babc311134a5aec2d661aaad71e2b23cee3a4b9"
+  },
+  "artifacts": [
+    {
+      "name": "navis-protocol.exe",
+      "bytes": 28433920,
+      "file_version": "1.11.20",
+      "product_version": "1.11.20",
+      "sha256": "5874447a4d4e299f97c06a5dff20b0cd081b9137699a567cffb76e6469ac24ce"
+    },
+    {
+      "name": "Navis Protocol_1.11.20_x64-setup.exe",
+      "bytes": 19281658,
+      "file_version": "1.11.20",
+      "product_version": "1.11.20",
+      "sha256": "20aca300805dbe59a035a14e637676a566c728b31cc7dd19002164e2c7b3e0cd"
+    }
+  ],
+  "bundled_resources": {
+    "expected": 37,
+    "source_hash_matched": 37,
+    "executable_hash_matched": true
+  },
+  "scenarios": {
+    "success": {
+      "status": "completed",
+      "steps": [
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "backup",
+          "label": "Vault backup",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "cache",
+          "label": "View cache",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        }
+      ],
+      "reviewed": false,
+      "award_count": 1,
+      "saved_state_unchanged": {},
+      "receipt_count": 2
+    },
+    "partial": {
+      "status": "partial",
+      "steps": [
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "backup",
+          "label": "Vault backup",
+          "status": "failed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "cache",
+          "label": "View cache",
+          "status": "not_run",
+          "persistence": "not_attempted"
+        }
+      ],
+      "reviewed": true,
+      "award_count": 1,
+      "saved_state_unchanged": {
+        "baseline.json": true,
+        "after-reconnect.json": true,
+        "after-restart.json": true
+      },
+      "receipt_count": 2
+    },
+    "cancel": {
+      "status": "interrupted",
+      "steps": [
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "backup",
+          "label": "Vault backup",
+          "status": "unknown",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "cache",
+          "label": "View cache",
+          "status": "not_run",
+          "persistence": "not_attempted"
+        }
+      ],
+      "reviewed": false,
+      "award_count": 1,
+      "saved_state_unchanged": {
+        "baseline.json": true
+      },
+      "receipt_count": 2
+    },
+    "close": {
+      "status": "interrupted",
+      "steps": [
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "backup",
+          "label": "Vault backup",
+          "status": "unknown",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "cache",
+          "label": "View cache",
+          "status": "not_run",
+          "persistence": "not_attempted"
+        }
+      ],
+      "reviewed": false,
+      "award_count": 1,
+      "saved_state_unchanged": {
+        "baseline.json": true
+      },
+      "receipt_count": 2
+    },
+    "rollover": {
+      "status": "completed",
+      "steps": [
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "backup",
+          "label": "Vault backup",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "sweep",
+          "label": "Task sweep",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "work",
+          "label": "Work journal",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "xp",
+          "label": "XP reconciliation",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "watch",
+          "label": "Watch history",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "journals",
+          "label": "Daily journals",
+          "status": "completed",
+          "persistence": "confirmed"
+        },
+        {
+          "id": "indexes",
+          "label": "Journal index and readiness",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        },
+        {
+          "id": "banter",
+          "label": "Squad banter",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "biometrics",
+          "label": "Biometrics",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "holocron",
+          "label": "Weekly Holocron",
+          "status": "skipped",
+          "persistence": "not_attempted"
+        },
+        {
+          "id": "cache",
+          "label": "View cache",
+          "status": "completed",
+          "persistence": "may_have_committed"
+        }
+      ],
+      "reviewed": false,
+      "award_count": 1,
+      "saved_state_unchanged": {},
+      "receipt_count": 2
+    }
+  },
+  "checks": {
+    "release_startup": "passed",
+    "standalone_backend_resolution": "passed: observed sync child uses copied app/backend/native_operations.py",
+    "fixture_flag_forwarding": "passed: external integrations skipped; isolated Git used",
+    "partial_failure_generated_after_saved_work_and_xp": "passed",
+    "read_only_reconnect": "passed",
+    "restart_prior_outcome_gate": "passed",
+    "review_without_replay": "passed",
+    "cancel_active_operation": "passed: cancelled UI observed within 545 ms; captured sync/Git/hook processes exited",
+    "close_active_operation": "passed: all captured app and child processes exited before relaunch",
+    "post_close_restart": "passed: interrupted prior outcome shown; no new write or award",
+    "rollover": "passed: today journal created and status date advanced; one award",
+    "unavailable_vault_sync_ui": "passed: preflight error; no sync receipt, journal or XP database",
+    "unavailable_vault_rollover_packaged_entrypoint": "passed: rejected before operation writes",
+    "final_fixture_process_cleanup": "passed: no matching app/Python/Git/hook process remains"
+  },
+  "automated": {
+    "selected_python_tests": 69,
+    "native_library_tests": 73,
+    "native_filtered": "one personal Vault availability probe",
+    "adapter_tests": 49,
+    "mounted_operation_scenarios": 7,
+    "ruff": "passed",
+    "issue_store": "30 issues valid"
+  },
+  "limitations": [
+    "Installers built but not executed; clean-machine installation remains unverified.",
+    "Physical multi-device Drive races and production integrations remain unverified.",
+    "Independent external review unavailable.",
+    "Existing S012 false XP pending toast remains outside this change.",
+    "Existing Holocron startup creates cache files below an unavailable root; S013/S015 follow-up. Sync itself rejects missing Journal before writing receipts/journals/XP."
+  ],
+  "historical_corrections": [
+    "Earlier missing watcher dependency was incorrectly called watchdog; actual declared dependency is watchfiles 1.1.1, installed and tested here."
+  ],
+  "ready_fixture_gate": true,
+  "personal_vault_used": false,
+  "external_integrations_called": false
+}

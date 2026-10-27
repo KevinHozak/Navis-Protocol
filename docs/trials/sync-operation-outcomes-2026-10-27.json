@@ -58,7 +58,7 @@
       "passed": 81,
       "deselected": 1,
       "seconds": 27.55,
-      "exclusion": "missing watchdog dependency: test_native_operations_watch"
+      "exclusion": "missing watchfiles dependency: test_native_operations_watch"
     },
     "native_serial_library": {
       "passed": 71,
