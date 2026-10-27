@@ -39,8 +39,7 @@ Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-a
 
 ## Implementation checkpoint - 2026-10-27
 
-S009 audit and T06/T07 evidence are published in draft PR #16 (commit 8d044f5).
-The audit dependency is delivered there but not yet merged. Local S014 implements
+S009 audit and T06/T07 evidence merged in PR #16 as 5fb6b7ea934a91a17d202bbd19a6802b35327129. S014 implements
 one shared durable outcome runner for web/native sync and rollover, step-level
 intent/outcomes, conservative saved/uncertain states, cross-process serialization,
 stable request identity, read-only reconnect and explicit review acknowledgement
@@ -48,7 +47,7 @@ without step replay. Root mismatch, unavailable state and unresolved previous
 operations fail closed. Existing journal/XP services and process supervision are
 retained. Receipt files/locks are excluded from backup staging.
 
-Separate codex-branch/PR publication is explicitly authorized. Delivery is based on the S009 audit branch; merge the audit first.
+Separate codex-branch/PR publication is explicitly authorized. PR #17 is retargeted to main after the S009 merge.
 Version 1.11.19 is prepared, not a packaged release. See
 [partial-operation contract](../docs/sync-operation-outcomes.md) for protocol,
 recovery and retained runtime limits. Acceptance is verified within the documented fixture/transport scope; packaged interaction remains under S015. No personal Vault operation was executed.
@@ -66,4 +65,9 @@ packaged installer or physical Drive-race verification was performed. See
 [operation contract](../docs/sync-operation-outcomes.md) and
 [sanitized verification](../docs/trials/sync-operation-outcomes-2026-10-27.json).
 Independent external review remains unavailable. Status remains in_review until
-delivery is accepted; audit PR #16 is a dependency.
+delivery is accepted; audit PR #16 is merged.
+
+
+## Main reconciliation - 2026-10-27
+
+PR #16 merged as 5fb6b7e. PR #17 now targets main; its issue conflict was reconciled by retaining both the audit scope and S014 verification. Application source hashes remain identical to the verified S014 report. Packaged runtime/installer and Drive-race checks remain unverified under S015.
