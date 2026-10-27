@@ -70,6 +70,24 @@
     "skip_reason": "POSIX distinct-case aliases on Windows",
     "duration_seconds": 63.3
   },
-  "current_chat_after_reload": "pending",
+  "current_chat_after_reload": {
+    "status": "passed",
+    "date": "2026-10-27",
+    "elapsed_ms": [
+      284,
+      247,
+      226
+    ],
+    "matches_per_query": 1,
+    "lowercase_root_verified": true,
+    "index_state": "current_for_scope",
+    "validated_roots": [
+      "Documentation"
+    ],
+    "unvalidated_roots": [
+      "Journal",
+      "Operations"
+    ]
+  },
   "raw_private_text_logged": false
 }

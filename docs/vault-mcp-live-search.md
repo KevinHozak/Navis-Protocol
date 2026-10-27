@@ -50,11 +50,12 @@ binds these measurements to normalized source hashes. Three source-verified sear
 digests and physical excerpts matched direct reads in memory. The private index
 was unchanged, the client exited cleanly and no model turn was requested.
 
-These fresh-client measurements do not establish that an already-running chat
-has reloaded its imported Python modules. The current chat still advertised the
-old search description during verification. Its server restart and post-restart
-search remain pending until separately observed. Runtime configuration reloads
-queue a refresh for loaded threads; see the
+After the user restarted only `navis_vault_readonly`, this chat advertised the
+new scoped-search contract. Three actual current-chat searches passed in
+**284, 247 and 226 ms**, including a lowercase-root query. Each returned one
+match with `current_for_scope`, Documentation validated and Journal/Operations
+unvalidated. This completes the previously pending post-restart acceptance.
+Runtime configuration reloads queue a refresh for loaded threads; see the
 [official app-server guide](https://learn.chatgpt.com/docs/app-server).
 No desktop UI automation, unrelated server restart, Vault write or additional
 provider/model call was performed.
