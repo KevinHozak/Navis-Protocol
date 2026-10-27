@@ -1,0 +1,54 @@
+{
+  "exe_sha256": "d5068e82e2a570788ba856d63607734182e3635c80b17d4a6b9d72d0b07e59ce",
+  "setup_sha256": "be0432fe97f7c73566a85bb20caa26de9ca932a236993075348d0a449716f409",
+  "exe_bytes": 28355072,
+  "setup_bytes": 19262775,
+  "fixture_source_before": "f01a489858bcfa2be7326ef9cb4a917fc3106c058460be7db70381cfea8ddae8",
+  "scope": "seeded outcome UI smoke; not a generated partial mutation",
+  "version": "1.11.19",
+  "head": "5a6100ce7bf0a0d136792c0a098f24d073c941f9",
+  "journal_unchanged": true,
+  "no_xp_files": true,
+  "receipt_status": "partial",
+  "reviewed": true,
+  "checks": {
+    "release_startup": "passed",
+    "seeded_partial_display": "passed",
+    "reconnect_readonly_integrity": "passed",
+    "restart_seeded_receipt_readback": "passed",
+    "review_without_replay": "passed",
+    "normal_close": "passed on isolated-profile launch",
+    "real_pipeline_partial_failure": "not run: fixture suppression flags are not forwarded",
+    "cancel_or_close_during_active_mutation": "not run",
+    "standalone_packaged_resources": "not verified: checkout backend is preferred",
+    "installer_execution": "not run"
+  },
+  "ready": false,
+  "bundled_resource_inventory": {
+    "expected": 33,
+    "present": 33,
+    "hash_matched": 33
+  },
+  "artifact_files": [
+    {
+      "name": "navis-protocol.exe",
+      "bytes": 28355072,
+      "sha256": "d5068e82e2a570788ba856d63607734182e3635c80b17d4a6b9d72d0b07e59ce",
+      "file_version": "1.11.19",
+      "product_version": "1.11.19"
+    },
+    {
+      "name": "Navis Protocol_1.11.19_x64-setup.exe",
+      "bytes": 19262775,
+      "sha256": "be0432fe97f7c73566a85bb20caa26de9ca932a236993075348d0a449716f409",
+      "file_version": "1.11.19",
+      "product_version": "1.11.19"
+    }
+  ],
+  "additional_observation": "Fresh fixture startup shows Task saved. XP pending. before a task mutation; optional-chain comparison of two undefined IDs in app/page.js makes the toast visible.",
+  "blockers": [
+    "Native start_sync_operation env_clear omits NAVIS_NATIVE_FIXTURE_MODE and NAVIS_FIXTURE_GIT_DIR; integration-suppressed real pipeline smoke cannot be run safely via the UI.",
+    "Release backend_root prefers the compiled source-checkout path; standalone bundled backend execution has not been established.",
+    "Actual partial-write generation and cancel/close during a controlled running mutation remain untested."
+  ]
+}

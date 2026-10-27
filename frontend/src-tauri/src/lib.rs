@@ -131,6 +131,13 @@ async fn vault_request(
     method: Option<String>,
     body: Option<Value>,
 ) -> Result<vault::ApiResponse, String> {
+    if path.starts_with("/api/ops/jobs/") || path == "/api/ops/latest" {
+        let backend = operations::backend_root(&app)?;
+        return tauri::async_runtime::spawn_blocking(move || {
+            let result = p3::operation_status_request(&backend, &path, method.as_deref().unwrap_or("GET"))?;
+            Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text})
+        }).await.map_err(|error| error.to_string())?;
+    }
     if method.as_deref() == Some("POST") && path == "/api/journal/entry" {
         let backend = operations::backend_root(&app)?;
         let app_handle = app.clone();

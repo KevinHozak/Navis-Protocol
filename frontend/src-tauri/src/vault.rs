@@ -75,6 +75,8 @@ pub fn emit_vault_change_event(app: tauri::AppHandle, event: VaultChangeEvent) -
 pub struct VaultWatcherState {
     pub is_running: Arc<AtomicBool>,
     pub cancel: Arc<Mutex<Option<Arc<AtomicBool>>>>,
+    #[cfg(windows)]
+    pub process_job: Arc<Mutex<Option<isize>>>,
 }
 
 impl VaultWatcherState {
@@ -84,6 +86,19 @@ impl VaultWatcherState {
             if let Some(token) = lock.take() {
                 token.store(true, Ordering::Release);
             }
+        }
+        #[cfg(windows)]
+        close_watcher_job(&self.process_job, None);
+    }
+}
+
+#[cfg(windows)]
+fn close_watcher_job(job: &Mutex<Option<isize>>, expected: Option<isize>) {
+    if let Ok(mut lock) = job.lock() {
+        if expected.is_some() && *lock != expected { return; }
+        if let Some(handle) = lock.take() {
+            // Kill-on-close wakes an idle stdout reader and terminates Python's children.
+            unsafe { windows_sys::Win32::Foundation::CloseHandle(handle as _); }
         }
     }
 }
@@ -137,11 +152,33 @@ pub fn start_vault_watcher(
         .stderr(Stdio::piped());
 
     let mut child = command.spawn().map_err(|e| format!("failed to spawn watcher: {e}"))?;
+    #[cfg(windows)]
+    let watcher_job = {
+        let job = match crate::operations::attach_windows_job(&child) {
+            Ok(job) => job,
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(error);
+            }
+        };
+        match state.process_job.lock() {
+            Ok(mut lock) => *lock = Some(job),
+            Err(_) => {
+                unsafe { windows_sys::Win32::Foundation::CloseHandle(job as _); }
+                let _ = child.wait();
+                return Err("watcher process state unavailable".into());
+            }
+        }
+        job
+    };
     let stdout = child.stdout.take().ok_or("failed to capture watcher stdout")?;
 
     state.is_running.store(true, Ordering::Release);
     let app_handle = app.clone();
     let is_running = state.is_running.clone();
+    #[cfg(windows)]
+    let process_job = state.process_job.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
         let reader = BufReader::new(stdout);
@@ -157,6 +194,8 @@ pub fn start_vault_watcher(
                 break;
             }
         }
+        #[cfg(windows)]
+        close_watcher_job(&process_job, Some(watcher_job));
         let _ = child.kill();
         let _ = child.wait();
         is_running.store(false, Ordering::Release);
@@ -2204,6 +2243,24 @@ fn python_holocron(
 #[cfg(test)]
 mod tests {
     use std::fs;
+
+    #[cfg(windows)]
+    #[test]
+    fn stopping_idle_watcher_terminates_without_stdout_activity() {
+        let state = super::VaultWatcherState::default();
+        let mut child = crate::command::hidden_command("cmd.exe")
+            .args(["/C", "ping -n 60 127.0.0.1 >nul"])
+            .stdout(std::process::Stdio::piped()).spawn().unwrap();
+        *state.process_job.lock().unwrap() = Some(crate::operations::attach_windows_job(&child).unwrap());
+        state.stop();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
+        while child.try_wait().unwrap().is_none() {
+            assert!(std::time::Instant::now() < deadline, "idle watcher did not terminate");
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        state.stop(); // Already closed handles must not be reused.
+        assert!(state.process_job.lock().unwrap().is_none());
+    }
     use std::sync::{Mutex, OnceLock};
 
     use serde_json::{json, Value};

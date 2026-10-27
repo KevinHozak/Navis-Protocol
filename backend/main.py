@@ -856,89 +856,44 @@ async def append_journal_entry(req: JournalEntryRequest):
         raise HTTPException(status_code=503, detail="append_outcome_unknown_retry_same_request") from None
 
 
-@app.post("/api/journal/rollover")
-async def journal_rollover(
-    run_async: bool = False, background_tasks: BackgroundTasks = None
-):
+async def _submit_sync_operation(operation, run_async, background_tasks, request_id):
+    import uuid
+    from services.operation_outcomes import _identifier, read_operation, run_operation
+    try:
+        job_id = _identifier(request_id or str(uuid.uuid4()))
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid operation identity") from None
+    try:
+        previous = read_operation(NAVIS_ROOT, job_id)
+    except FileNotFoundError:
+        previous = None
+    except Exception:
+        raise HTTPException(status_code=503, detail="Saved operation state unavailable") from None
+    if previous and previous["operation"] != operation:
+        raise HTTPException(status_code=409, detail="Operation identity conflict")
     if run_async and background_tasks:
-        import uuid
-
-        job_id = str(uuid.uuid4())
-        active_jobs[job_id] = {
-            "status": "running",
-            "output": "Daily rollover sequence started. Awaiting progress...",
-            "script": "daily_rollover",
-        }
-
-        background_tasks.add_task(
-            run_rollover_sequence_in_background, job_id, {}, "", "", ""
-        )
+        if previous:
+            return {"status": "accepted", "job_id": job_id}
+        if job_id in active_jobs and active_jobs[job_id].get("operation") != operation:
+            raise HTTPException(status_code=409, detail="Operation identity conflict")
+        if job_id not in active_jobs:
+            active_jobs[job_id] = {"job_id": job_id, "operation": operation, "status": "running", "output": "Operation queued."}
+            background_tasks.add_task(_run_sync_job, job_id, operation)
         return {"status": "accepted", "job_id": job_id}
-    else:
-        from services.sync_engine import run_midnight_rollover
+    try:
+        return await asyncio.to_thread(run_operation, NAVIS_ROOT, operation, job_id)
+    except Exception:
+        raise HTTPException(status_code=409, detail="Operation unavailable; review the latest saved outcome") from None
 
-        try:
-            res = run_midnight_rollover()
 
-            # Load updated status.json to retrieve the new active date
-            updated_status = load_json(STATUS_PATH)
-            new_date = updated_status.get("last_updated")
-
-            return {
-                "status": "success",
-                "message": "Daily rollover sequence complete.",
-                "new_date": new_date,
-                "stdout": res,
-                "stderr": "",
-            }
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error executing daily rollover: {str(e)}"
-            )
+@app.post("/api/journal/rollover")
+async def journal_rollover(run_async: bool = False, background_tasks: BackgroundTasks = None, request_id: str = None):
+    return await _submit_sync_operation("rollover", run_async, background_tasks, request_id)
 
 
 @app.post("/api/sync")
-async def execute_sync(
-    run_async: bool = False, background_tasks: BackgroundTasks = None
-):
-    if run_async and background_tasks:
-        import uuid
-
-        job_id = str(uuid.uuid4())
-        active_jobs[job_id] = {
-            "status": "running",
-            "output": "Synchronization sequence started. Awaiting progress...",
-            "script": "sync",
-        }
-
-        background_tasks.add_task(run_sync_sequence_in_background, job_id, {}, [])
-        return {"status": "accepted", "job_id": job_id}
-    else:
-        from services.sync_engine import execute_git_backup
-
-        try:
-            res = execute_git_backup()
-
-            # Cache Invalidation Protocol
-            cache_path = os.path.join(
-                NAVIS_ROOT, "Bridge", ".navis_cache", "sector_cache.json"
-            )
-            if os.path.exists(cache_path):
-                try:
-                    os.remove(cache_path)
-                except:
-                    pass
-
-            return {
-                "status": "success",
-                "message": "Synchronization sequence complete.",
-                "stdout": res,
-                "stderr": "",
-            }
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Error executing sync sequence: {str(e)}"
-            )
+async def execute_sync(run_async: bool = False, background_tasks: BackgroundTasks = None, request_id: str = None):
+    return await _submit_sync_operation("sync", run_async, background_tasks, request_id)
 
 
 @app.post("/api/squad/deploy")
@@ -3094,71 +3049,26 @@ def run_script_in_background(job_id: str, script_rel_path: str):
         active_jobs[job_id]["output"] = f"CRITICAL ERROR: {str(e)}"
 
 
-def run_rollover_sequence_in_background(
-    job_id: str,
-    env: dict,
-    backup_script: str,
-    rollover_script: str,
-    sync_bridge_script: str,
-):
+def _run_sync_job(job_id, operation):
+    from services.operation_outcomes import run_operation
+    job = active_jobs.setdefault(job_id, {"job_id": job_id, "status": "running", "output": ""})
+    def log(message):
+        job["output"] = (job.get("output", "") + "\n" + message)[-65536:]
+    def publish(result):
+        job.update(result)
     try:
-
-        def log_cb(msg):
-            active_jobs[job_id]["output"] += f"\n{msg}"
-
-        active_jobs[job_id]["output"] = "Starting Daily Rollover Sequence..."
-        from services.sync_engine import execute_git_backup, run_midnight_rollover
-
-        execute_git_backup(log_callback=log_cb)
-
-        log_cb("\n---")
-        log_cb("Running Daily Rollover...")
-        run_midnight_rollover(log_callback=log_cb)
-
-        # Load updated status.json to retrieve the new active date
-        updated_status = load_json(STATUS_PATH)
-        new_date = updated_status.get("last_updated")
-
-        active_jobs[job_id]["status"] = "completed"
-        active_jobs[job_id]["output"] += (
-            f"\n\nDaily rollover sequence complete.\nNew active date: {new_date}"
-        )
-    except Exception as e:
-        active_jobs[job_id]["status"] = "failed"
-        active_jobs[job_id]["output"] += (
-            f"\nCRITICAL ERROR during daily rollover: {str(e)}"
-        )
+        job.update(run_operation(NAVIS_ROOT, operation, job_id, log=log, publish=publish))
+    except Exception:
+        job.update(status="failed", recovery="review_saved_changes",
+                   message="Operation unavailable. Review the latest saved outcome before starting another.")
 
 
-def run_sync_sequence_in_background(job_id: str, env: dict, scripts: list):
-    try:
+def run_rollover_sequence_in_background(job_id, env, backup_script, rollover_script, sync_bridge_script):
+    _run_sync_job(job_id, "rollover")
 
-        def log_cb(msg):
-            if job_id in active_jobs:
-                active_jobs[job_id]["output"] += f"\n{msg}"
 
-        active_jobs[job_id]["output"] = "Initializing Synchronization Sequence..."
-        from services.sync_engine import execute_git_backup
-
-        execute_git_backup(log_callback=log_cb)
-
-        # Cache Invalidation Protocol
-        cache_path = os.path.join(
-            NAVIS_ROOT, "Bridge", ".navis_cache", "sector_cache.json"
-        )
-        if os.path.exists(cache_path):
-            try:
-                os.remove(cache_path)
-            except Exception:
-                pass
-
-        active_jobs[job_id]["status"] = "completed"
-        active_jobs[job_id]["output"] += "\n\nSynchronization sequence complete."
-    except Exception as e:
-        active_jobs[job_id]["status"] = "failed"
-        active_jobs[job_id]["output"] += (
-            f"\nCRITICAL ERROR during sync sequence: {str(e)}"
-        )
+def run_sync_sequence_in_background(job_id, env, scripts):
+    _run_sync_job(job_id, "sync")
 
 
 @app.post("/api/ops/execute")
@@ -3188,11 +3098,39 @@ async def execute_ops_script(
     return {"status": "accepted", "job_id": job_id}
 
 
+@app.get("/api/ops/latest")
+async def get_latest_sync_operation():
+    from services.operation_outcomes import read_latest
+    try:
+        return read_latest(NAVIS_ROOT)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Saved operation unavailable") from None
+
+
 @app.get("/api/ops/jobs/{job_id}")
 async def get_ops_job_status(job_id: str):
-    if job_id not in active_jobs:
-        raise HTTPException(status_code=404, detail="Job ID not found.")
-    return active_jobs[job_id]
+    from services.operation_outcomes import read_operation
+    try:
+        result = read_operation(NAVIS_ROOT, job_id)
+        if job_id in active_jobs:
+            result["output"] = active_jobs[job_id].get("output", "")
+        return result
+    except FileNotFoundError:
+        if job_id in active_jobs:
+            return active_jobs[job_id]
+        raise HTTPException(status_code=404, detail="Job ID not found") from None
+    except Exception:
+        raise HTTPException(status_code=503, detail="Operation state unavailable; review saved changes") from None
+
+
+@app.post("/api/ops/jobs/{job_id}/review")
+async def review_ops_job(job_id: str):
+    from services.operation_outcomes import acknowledge
+    try:
+        return await asyncio.to_thread(acknowledge, NAVIS_ROOT, job_id)
+    except Exception:
+        raise HTTPException(status_code=409, detail="Review unavailable while an operation is active or its state is unavailable") from None
+
 
 
 # -----------------------------------------------------------------------------

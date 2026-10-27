@@ -47,12 +47,12 @@ def fixture_vault(fixture_root):
         encoding="utf-8-sig",
     )
     (vault / "Journal" / "daily_template.md").write_text(
-        "# {{DATE}}\n\n- **🌀 Realm:** {{REALM}}\n## The High-Velocity Front\n{{COMMANDER_TASKS}}\n",
+        "# {{DATE}}\n\n- **🌀 Realm:** {{REALM}}\n## 🛡️ The High-Velocity Front\n{{COMMANDER_TASKS}}\n",
         encoding="utf-8-sig",
     )
     (vault / "Journal" / "2026" / "09" / "2026-09-28.md").write_text(
         "# 2026-09-28\n## 🥾 The Kinetic Outland\n- [x] Fixture XP marker\n"
-        "## The High-Velocity Front\n\n",
+        "## 🛡️ The High-Velocity Front\n\n",
         encoding="utf-8-sig",
     )
     return vault, office_log, fixture_root / "fixture-git"
@@ -138,7 +138,8 @@ def test_fixture_operations_use_only_fixture_state(fixture_vault, operation):
     assert "C:\\Projects\\Agents" not in result.stdout + result.stderr
     assert "S:\\My Drive" not in result.stdout + result.stderr
     assert (git_dir / "HEAD").is_file()
-    assert "Fixture work item" in office_log.read_text(encoding="utf-8-sig")
+    assert "Fixture work item" not in office_log.read_text(encoding="utf-8-sig")
+    assert "Fixture work item" in (vault / "Journal/2026/09/2026-09-28.md").read_text(encoding="utf-8-sig")
     assert (vault / "Journal" / "2026" / "09" / "2026-09-28.md").is_file()
     if operation == "rollover":
         today = date.today().isoformat()
@@ -172,7 +173,7 @@ def test_completed_history_and_recurring_cadence_survive_native_restart(fixture_
     previous = vault / f'Journal/{day[:4]}/{day[5:7]}/{day}.md'
     previous.parent.mkdir(parents=True, exist_ok=True)
     history = b'\xef\xbb\xbf' + (
-        '# Completed history\r\n## The High-Velocity Front\r\n'
+        '# Completed history\r\n## 🛡️ The High-Velocity Front\r\n'
         '- [x] Finished one-off\r\n- [x] Weekly inspection\r\nKeep 雪\r\n').encode()
     previous.write_bytes(history)
     state = {'tasks': [

@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.11.18",
+  "version": "1.11.20",
   "private": true,
   "scripts": {
     "test": "npm run test:unit && npm run test:regressions",
@@ -34,7 +34,8 @@
     "test:combat-theater-assets": "node scripts/test-combat-theater-assets.mjs",
     "test:vault-change-event": "node --experimental-vm-modules scripts/test-vault-change-event.mjs",
     "lint": "next lint",
-    "typecheck:desktop": "cargo check --manifest-path src-tauri/Cargo.toml"
+    "typecheck:desktop": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "test:operations": "node scripts/test-operation-outcomes.cjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.8.0",

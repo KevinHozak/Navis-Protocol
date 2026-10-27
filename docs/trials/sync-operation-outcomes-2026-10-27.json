@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-27",
+  "base_commit": "279a614182ed48c946ac9724aac484e023472f40",
+  "audit_dependency_commit": "8d044f5515972161dd70090d01aa761f42202a07",
+  "version": "1.11.19",
+  "source_identity": [
+    {
+      "path": "backend/services/operation_outcomes.py",
+      "normalized_sha256": "55db12d9266e65cb161c57b9fbf29030ac901d63ef9f2b6ace57ee5dd48b0d3f"
+    },
+    {
+      "path": "backend/services/sync_engine.py",
+      "normalized_sha256": "312d04b25eab11e44f12533b9c5116ea5d1601f13bbd1f0d18112d7a6a027fc3"
+    },
+    {
+      "path": "backend/native_operations.py",
+      "normalized_sha256": "14cd9f5ce8a36957cc59b92201981fd052735d8bca95f3cc84297782e11ccf1b"
+    },
+    {
+      "path": "backend/native_operation_status.py",
+      "normalized_sha256": "3ec85890ab2f24f0b8dde19dc83ba62204ae5a239d8d0b6e4e3e43e10daa9ae4"
+    },
+    {
+      "path": "backend/main.py",
+      "normalized_sha256": "6f9ece565358c910f91b6b42eca2331d280f86cd4f3c63f80aba740cfc15baa6"
+    },
+    {
+      "path": "frontend/src/components/AsyncJobModal.js",
+      "normalized_sha256": "9d07e609888aa1990d29752a2cd0be1905ed4cff46a5d49a1268af975966ecf9"
+    },
+    {
+      "path": "frontend/src/components/JournalCalendar.js",
+      "normalized_sha256": "12e2fd2bba24ff105c85065d79e41dc85703a59c0d8f4a7a8991fee7e8e49db1"
+    },
+    {
+      "path": "frontend/src/app/page.js",
+      "normalized_sha256": "cf9c6ed26df1657d8793a7104bc6184e97e1b6b8e3359d0400dead5b944423e8"
+    },
+    {
+      "path": "frontend/src/lib/desktopApi.js",
+      "normalized_sha256": "44bfcc642d6e22aa9f8591438d8258989d70c26e34739c0fbedd99e5fd9186c0"
+    },
+    {
+      "path": "frontend/src-tauri/src/p3.rs",
+      "normalized_sha256": "294bf0129583fbbdd2c027560c83cd99b26b41124efee8f202bb0023ff35297f"
+    },
+    {
+      "path": "frontend/src-tauri/src/lib.rs",
+      "normalized_sha256": "0c117ede14ed034628a5f1168033f4a23ffb2cc89fc9fb3625a88387c803ad0c"
+    },
+    {
+      "path": "frontend/src-tauri/src/operations.rs",
+      "normalized_sha256": "3c090e8ab43897e9b8a18091817f3923963942f2103da6ec8e827f498bc36978"
+    }
+  ],
+  "checks": {
+    "python_affected": {
+      "passed": 81,
+      "deselected": 1,
+      "seconds": 27.55,
+      "exclusion": "missing watchfiles dependency: test_native_operations_watch"
+    },
+    "native_serial_library": {
+      "passed": 71,
+      "filtered": 1,
+      "exclusion": "personal Vault availability probe"
+    },
+    "frontend_adapter": {
+      "passed": 49
+    },
+    "mounted_operation_scenarios": {
+      "passed": 7
+    },
+    "frontend_regressions": "passed",
+    "backend_ruff": "passed",
+    "frontend_lint": "passed with existing warnings",
+    "desktop_frontend_build": "passed after sandbox EPERM retry"
+  },
+  "known_unrelated_failures": [
+    "Two existing Holocron manifest tests assume one row despite current WTD injection"
+  ],
+  "unverified": [
+    "packaged WebView2 interaction",
+    "installer execution",
+    "physical multi-device Drive races",
+    "production integrations",
+    "independent external review"
+  ],
+  "personal_vault_access": false,
+  "automatic_mutation_replay": false,
+  "providers_called": false,
+  "outcomes_fixture_only": true
+}

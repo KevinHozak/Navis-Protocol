@@ -250,7 +250,11 @@ async function performApiFetch(path, options = {}) {
     );
     if (nativeOperation) {
       const result = await withAbort(
-        invokeNative('start_sync_operation', { operation: nativeOperation }),
+        invokeNative('start_sync_operation', {
+          operation: nativeOperation,
+          ...(new URLSearchParams(path.split('?')[1] || '').get('request_id')
+            ? { requestId: new URLSearchParams(path.split('?')[1]).get('request_id') } : {}),
+        }),
         options.signal,
       );
       return new NativeResponse({ status: 200, body: result, text: JSON.stringify(result) });

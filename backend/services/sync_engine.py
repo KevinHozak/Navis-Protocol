@@ -1,3 +1,4 @@
+from services.operation_outcomes import committed as operation_committed, failure as operation_failure, note as operation_note, step as operation_step
 import os
 import re
 import json
@@ -69,6 +70,7 @@ def sync_work_journal():
     if not os.path.exists(office_log_path):
         if fixture_mode:
             raise FileNotFoundError("fixture office work log is unavailable")
+        operation_failure()
         return f"Office log not found at {office_log_path}. Skipping work sync."
 
     if not os.path.exists(status_path):
@@ -93,6 +95,7 @@ def sync_work_journal():
         re.finditer(r"^## (\d{4}-\d{2}-\d{2})\s*$", work_content, re.MULTILINE)
     )
     if not dates_found:
+        operation_failure()
         return "No valid dates found in work log."
 
     total_items_added = 0
@@ -127,6 +130,7 @@ def sync_work_journal():
         )
 
         if not os.path.exists(daily_path):
+            operation_failure()
             print(f"Daily log not found for {current_date} at {daily_path}. Skipping.")
             continue
 
@@ -137,6 +141,7 @@ def sync_work_journal():
         section_pattern = r"(## .*? The High-Velocity Front)"
         section_match = re.search(section_pattern, daily_content)
         if not section_match:
+            operation_failure()
             print(
                 f"Could not find 'The High-Velocity Front' section in daily log for {current_date}."
             )
@@ -148,6 +153,7 @@ def sync_work_journal():
         pattern_body = re.escape(section_header) + r"(.*?)((?=\n## |\n---|\Z))"
         body_match = re.search(pattern_body, daily_content, re.DOTALL)
         if not body_match:
+            operation_failure()
             continue
 
         current_section_body = body_match.group(1)
@@ -200,12 +206,14 @@ def sync_work_journal():
                 shutil.copy2(daily_path, backup_path)
                 print(f"✅ BACKUP COPY: {backup_path}")
             except Exception as e:
+                operation_failure()
                 print(
                     f"⚠️ BACKUP COPY ERROR in sync_work_journal for {current_date}: {e}"
                 )
 
             with open(daily_path, "w", encoding="utf-8-sig") as f:
                 f.write(new_daily_content)
+            operation_committed()
         synced_dates.add(current_date)
 
     # Remove only successfully merged date blocks; preserve pending work when
@@ -223,6 +231,7 @@ def sync_work_journal():
         with open(office_log_path, "w", encoding="utf-8-sig") as f:
             f.write(updated_work)
     except Exception as e:
+        operation_failure()
         print(f"Error purging work log: {e}")
 
     return f"✅ SYNCED: {total_items_added} work items merged into High-Velocity Front across dates."
@@ -233,12 +242,14 @@ def execute_git_backup(log_callback=None):
     logs = []
 
     def _log(msg):
+        operation_note(msg)
         logs.append(msg)
         if log_callback:
             log_callback(msg)
 
     fixture_mode = os.environ.get("NAVIS_NATIVE_FIXTURE_MODE") == "1"
 
+    operation_step("work")
     # 1. Sync work journal
     try:
         if log_callback:
@@ -246,10 +257,12 @@ def execute_git_backup(log_callback=None):
         sync_res = sync_work_journal()
         _log(sync_res)
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"work journal sync failed: {e}") from e
         _log(f"⚠️ WORK SYNC ERROR: {str(e)}")
 
+    operation_step("xp")
     # 2. Apply XP
     try:
         if log_callback:
@@ -259,10 +272,12 @@ def execute_git_backup(log_callback=None):
         calculate_and_apply_xp()
         _log("📊 XP ACCRUAL: Processed current cycle achievements...")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"XP processing failed: {e}") from e
         _log(f"⚠️ XP ERROR: {e}")
 
+    operation_step("watch")
     # 2.5 Sync Jellyfin watch history into journals
     try:
         if log_callback:
@@ -275,10 +290,12 @@ def execute_git_backup(log_callback=None):
             sync_watch_history()
             _log("🎬 WATCH HISTORY: Jellyfin history synced into The Sanctum.")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"watch history sync failed: {e}") from e
         _log(f"⚠️ WATCH HISTORY ERROR: {e}")
 
+    operation_step("backup")
     # 3. Git commit
     if log_callback:
         log_callback("⏳ Anchoring State to Git Void...")
@@ -324,7 +341,8 @@ def execute_git_backup(log_callback=None):
             )
         subprocess.run(
             (["git", "--git-dir", fixture_git, "--work-tree", NAVIS_ROOT] if fixture_mode else ["git"])
-            + (["add", "--", "Bridge", "Journal", "Companions"] if fixture_mode else ["add", "--all", "--", "."]),
+            + (["add", "--", "Bridge", "Journal", "Companions", ":(exclude)Bridge/.navis_operations"]
+               if fixture_mode else ["add", "--all", "--", ".", ":(exclude)Bridge/.navis_operations"]),
             cwd=NAVIS_ROOT,
             check=True,
             capture_output=True,
@@ -360,14 +378,17 @@ def execute_git_backup(log_callback=None):
             text=True,
             **({"env": git_environment} if git_environment else {}),
         )
+        operation_committed()
         _log(
             f"✅ SAVE COMPLETE: State anchored in the Git Void.\n📜 LOG: {result.stdout.splitlines()[0] if result.stdout else 'Success'}"
         )
     except subprocess.CalledProcessError as e:
+        operation_failure()
         _log(f"❌ GIT ERROR: {_process_error_text(e)}")
         if fixture_mode:
             raise RuntimeError(f"Vault backup failed: {_process_error_text(e)}") from e
     except Exception as e:
+        operation_failure()
         _log(f"❌ BACKUP FAILED: {str(e)}")
         if fixture_mode:
             raise RuntimeError(f"Vault backup failed: {e}") from e
@@ -380,6 +401,7 @@ def run_midnight_rollover(log_callback=None):
     logs = []
 
     def _log(msg):
+        operation_note(msg)
         logs.append(msg)
         if log_callback:
             log_callback(msg)
@@ -407,6 +429,7 @@ def run_midnight_rollover(log_callback=None):
     template_path = os.path.join(NAVIS_ROOT, "Journal", "daily_template.md")
     status_path = os.path.join(NAVIS_ROOT, "Bridge", "status.json")
 
+    operation_step("sweep")
     # 1. Sweep active tasks natively
     try:
         if log_callback:
@@ -414,10 +437,12 @@ def run_midnight_rollover(log_callback=None):
         sweep_res = sync_active_tasks()
         _log(sweep_res)
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"active task sweep failed: {e}") from e
         _log(f"⚠️ SWEEP ERROR: {e}")
 
+    operation_step("work")
     # 1.5 Sync work journal
     try:
         if log_callback:
@@ -425,10 +450,12 @@ def run_midnight_rollover(log_callback=None):
         sync_res = sync_work_journal()
         _log(sync_res)
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"work journal sync failed: {e}") from e
         _log(f"⚠️ WORK SYNC ERROR: {str(e)}")
 
+    operation_step("xp")
     # 2. Apply XP via native imported module
     try:
         if log_callback:
@@ -438,10 +465,12 @@ def run_midnight_rollover(log_callback=None):
         calculate_and_apply_xp()
         _log("📊 XP ACCRUAL: Processed current cycle achievements...")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"XP processing failed: {e}") from e
         _log(f"⚠️ XP ERROR: {e}")
 
+    operation_step("watch")
     # 2.5 Sync Jellyfin watch history into journals
     try:
         if log_callback:
@@ -454,10 +483,12 @@ def run_midnight_rollover(log_callback=None):
             sync_watch_history()
             _log("🎬 WATCH HISTORY: Jellyfin history synced into The Sanctum.")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"watch history sync failed: {e}") from e
         _log(f"⚠️ WATCH HISTORY ERROR: {e}")
 
+    operation_step("journals")
     # 3. Determine missing days from last_updated through today
     status = {}
     if os.path.exists(status_path):
@@ -549,6 +580,7 @@ def run_midnight_rollover(log_callback=None):
                     f"🛰️ OPS ENGINE: Injected due recurring mandates for {current_date_str}"
                 )
         except Exception as e:
+            operation_failure()
             _log(f"⚠️ OPS INJECT ERROR for {current_date_str}: {e}")
 
         try:
@@ -568,6 +600,7 @@ def run_midnight_rollover(log_callback=None):
                     today_tasks["Commander"] += extracted + "\n"
                     _log(f"✅ Future Buffer: Extracted tasks for {current_date_str}")
         except Exception as e:
+            operation_failure()
             _log(f"⚠️ FUTURE BUFFER ERROR for {current_date_str}: {e}")
 
         new_content = template_content.replace("{{DATE}}", current_date_str)
@@ -588,10 +621,12 @@ def run_midnight_rollover(log_callback=None):
         try:
             with open(current_path, "w", encoding="utf-8-sig") as f:
                 f.write(new_content)
+            operation_committed()
             latest_processed = current_date_str
             initialized_any = True
             _log(f"✅ Link Start: {current_date_str}.md initialized and anchored.")
         except Exception as e:
+            operation_failure()
             if fixture_mode:
                 raise RuntimeError(f"journal write failed for {current_date_str}") from e
             _log(f"⚠️ JOURNAL WRITE ERROR for {current_date_str}: {e}")
@@ -603,6 +638,7 @@ def run_midnight_rollover(log_callback=None):
             with open(future_path, "w", encoding="utf-8-sig") as f:
                 f.write(future_content)
         except Exception as e:
+            operation_failure()
             if fixture_mode:
                 raise RuntimeError(f"future buffer write failed at {future_path}") from e
             _log(f"⚠️ FUTURE BUFFER SAVE ERROR: {e}")
@@ -614,10 +650,12 @@ def run_midnight_rollover(log_callback=None):
                 json.dump(status, f, indent=4, ensure_ascii=False)
             _log(f"🗓️ ROLLOVER: Advanced last_updated to {latest_processed}.")
         except Exception as e:
+            operation_failure()
             if fixture_mode:
                 raise RuntimeError(f"status write failed at {status_path}") from e
             _log(f"⚠️ STATUS WRITE ERROR: {e}")
 
+    operation_step("indexes")
     # 7. Update Legacy Indexes natively
     try:
         if log_callback:
@@ -630,10 +668,12 @@ def run_midnight_rollover(log_callback=None):
         readiness_res = update_readiness()
         _log(readiness_res)
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"journal indexing/readiness update failed: {e}") from e
         _log(f"⚠️ INDEX/READINESS ERROR: {e}")
 
+    operation_step("banter")
     # 7.5. Generate fresh squad banter for the new day
     try:
         if log_callback:
@@ -646,10 +686,12 @@ def run_midnight_rollover(log_callback=None):
             generate_squad_banter(count=3)
             _log("🗣️ NEURAL RESONANCE: Generated fresh daily banter threads.")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"squad banter generation failed: {e}") from e
         _log(f"⚠️ BANTER GENERATION ERROR: {e}")
 
+    operation_step("biometrics")
     # 8. Sync Biometrics
     try:
         if log_callback:
@@ -672,14 +714,17 @@ def run_midnight_rollover(log_callback=None):
         else:
             _log("⚠️ BIOMETRICS: sync_biometrics.py not found.")
     except subprocess.CalledProcessError as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError("biometrics integration failed") from e
         _log(f"⚠️ BIOMETRICS ERROR: {e.stderr if e.stderr else e.output}")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError("biometrics integration failed") from e
         _log(f"⚠️ BIOMETRICS ERROR: {e}")
 
+    operation_step("holocron")
     # 8.5. Compile Weekly Holocron if crossing week boundary or previous week missing
     try:
         if log_callback:
@@ -696,6 +741,7 @@ def run_midnight_rollover(log_callback=None):
             else:
                 _log(f"💠 HOLOCRON: Concluded cycle {prev_week} already anchored.")
     except Exception as e:
+        operation_failure()
         if fixture_mode:
             raise RuntimeError(f"holocron synthesis failed: {e}") from e
         _log(f"⚠️ HOLOCRON SYNTHESIS ERROR: {e}")

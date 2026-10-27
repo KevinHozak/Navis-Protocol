@@ -89,6 +89,7 @@ export default function Home() {
   // Journal Calendar State
   const [selectedJournalDate, setSelectedJournalDate] = useState(getLocalDateStr());
 
+  const syncRequestId = useRef(null);
   const refreshStatus = async () => {
     try {
       const res = await fetchWithTimeout(`${API_BASE}/api/status`);
@@ -282,7 +283,8 @@ export default function Home() {
 
       setIsSyncing(true);
       try {
-        const res = await apiFetch('/api/sync?run_async=true', {
+        syncRequestId.current ??= crypto.randomUUID();
+        const res = await apiFetch(`/api/sync?run_async=true&request_id=${syncRequestId.current}`, {
           method: 'POST',
         });
         if (!res.ok) {
@@ -912,7 +914,8 @@ export default function Home() {
         <AsyncJobModal 
           jobId={activeJob.id} 
           title={activeJob.title} 
-          onClose={() => setActiveJob(null)}
+          operation="sync"
+          onClose={() => { setActiveJob(null); syncRequestId.current = null; }}
           onComplete={() => {
             refreshStatus();
           }}
