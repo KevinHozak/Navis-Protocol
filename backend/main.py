@@ -34,7 +34,7 @@ import re
 import glob
 from datetime import datetime
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from urllib.parse import quote, unquote
+from urllib.parse import quote
 from services.recurrence import calculate_next_due, journal_day, validate_date
 
 NAVIS_ROOT = os.getenv("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
@@ -423,72 +423,13 @@ NAVIS_ROOT = os.getenv("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
 
 
 def resolve_vault_path(file_path: str) -> str:
-    """Resolve a Vault-relative path inside NAVIS_ROOT without allowing traversal.
-
-    Enforces URL decoding, Windows drive/UNC path rejection, separator normalization,
-    strict relative containment, and symlink/junction containment.
-    """
-    if not file_path or not str(file_path).strip():
-        raise HTTPException(status_code=400, detail="Invalid Vault path: path cannot be empty")
-
-    decoded_path = unquote(str(file_path)).strip()
-    normalized = decoded_path.replace("\\", "/")
-
-    # Reject absolute, drive-qualified, UNC, or root-relative paths
-    if (
-        normalized.startswith("/")
-        or normalized.startswith("//")
-        or ":" in normalized
-        or normalized.startswith(r"\\")
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Vault path: absolute or drive-qualified paths not allowed",
-        )
-
-    parts = [p for p in normalized.split("/") if p != ""]
-    if not parts or any(p in (".", "..") for p in parts):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Vault path: traversal or invalid segments not allowed",
-        )
-
-    root_path = os.path.abspath(NAVIS_ROOT)
-    full_path = os.path.abspath(os.path.join(root_path, *parts))
-
-    root_norm = os.path.normcase(os.path.abspath(root_path))
-    full_norm = os.path.normcase(os.path.abspath(full_path))
+    """HTTP compatibility wrapper around the import-safe Vault path resolver."""
+    from services.vault_paths import VaultPathError, resolve_relative_path
 
     try:
-        if os.path.commonpath([root_norm, full_norm]) != root_norm:
-            raise HTTPException(
-                status_code=400, detail="Invalid Vault path: path escapes Vault root"
-            )
-    except ValueError:
-        raise HTTPException(
-            status_code=400, detail="Invalid Vault path: path on different drive"
-        )
-
-    root_real = os.path.normcase(os.path.realpath(root_path))
-    target_real = os.path.normcase(os.path.realpath(full_path))
-
-    try:
-        if os.path.commonpath([root_real, target_real]) != root_real:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid Vault path: path escapes Vault root via symlink",
-            )
-    except ValueError:
-        raise HTTPException(
-            status_code=400, detail="Invalid Vault path: path on different drive"
-        )
-
-    if target_real == root_real:
-        raise HTTPException(
-            status_code=400, detail="Invalid Vault path: Vault root is not a file path"
-        )
-
-    return full_path
+        return resolve_relative_path(NAVIS_ROOT, file_path)
+    except VaultPathError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from None
 
 
 def vault_asset_url(abs_path: str) -> str:

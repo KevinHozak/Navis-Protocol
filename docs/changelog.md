@@ -6,6 +6,16 @@ A chronological record of high-fidelity architectural shifts, multiversal milest
 
 ---
 
+## Standalone Vault MCP boundary — 2026-10-26
+
+- NAVIS-S017: independent Python stdio adapter with a bounded, source-linked
+  `read_note` tool, explicit Vault roots and exclusions, Windows path/link
+  checks, safe errors and disposable-fixture process verification. Shared HTTP
+  path containment is extracted without changing its contract. See the
+  [operating guide](vault-mcp.md). Search, journal/mission retrieval, client
+  adoption and write enablement remain NAVIS-S018–S021; no desktop installer
+  or personal-data connection is certified by this change.
+
 ## Merged delivery — 2026-10-02
 
 Verified from first-parent repository history through `fd3efb4`. PR links identify merged delivery, not manual release certification. Current application metadata is `1.7.1`.
