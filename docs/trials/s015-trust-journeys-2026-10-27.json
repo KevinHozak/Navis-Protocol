@@ -1,7 +1,7 @@
 {
   "date": "2026-10-27",
   "base": "17c23ca9d66c4651df9727783549f304197b955e",
-  "status": "in_progress",
+  "status": "in_review",
   "web": {
     "environment": "real browser + FastAPI loopback fixture; lifespan daemons disabled",
     "source_read_failure": "passed after unavailable-status repair",
@@ -46,10 +46,9 @@
     }
   },
   "remaining": [
-    "Selected final packaged 1.11.25 smoke and native checks passed; broader acceptance remains open",
-    "Clean-machine installer execution unavailable in current host",
-    "Physical Drive races and production integrations not exercised",
-    "Independent external review unavailable"
+    "Clean-machine installer and physical Drive/production integration coverage accepted by user as untested limits",
+    "Independent external review unavailable; final primary-agent source review completed with no actionable findings",
+    "PR review and merge; S015/E002 remain open until delivery reconciliation"
   ],
   "packaged_checkpoint": {
     "version": "1.11.25 first build",
@@ -115,5 +114,23 @@
     "journal_hash_and_full_ledger_unchanged_after_reconnect_close": true,
     "cleanup": "Owned fixture backend/Next trees stopped; dedicated listeners absent; isolated InPrivate window closed",
     "limits": "No lifespan/watchers, provider integration, real Drive race or clean-machine install certification"
+  },
+  "accepted_limits": {
+    "authorized_by": "User: Accept the documented clean-machine and Drive/integration limits",
+    "clean_machine_installer": "accepted untested limit; no installation pass claimed",
+    "physical_drive_races_and_production_integrations": "accepted unexercised limits; no production coverage claimed"
+  },
+  "final_review": {
+    "source_head": "91955c7646f0742a5a0337b52adc04060d620267",
+    "base": "17c23ca9d66c4651df9727783549f304197b955e",
+    "reviewer": "primary agent source audit",
+    "actionable_findings": 0,
+    "github_reviews": 0,
+    "github_review_threads": 0,
+    "github_conversation_comments": 0,
+    "independent_external_review": "unavailable; not represented as passed",
+    "composer_regression": "passed on unchanged source",
+    "broader_evidence": "Previously recorded automated and packaged checks retained for identical application source",
+    "status_source_regression": "9 passed; disposable Vault, external network denied; sandbox temp/socket restrictions resolved with targeted elevation"
   }
 }

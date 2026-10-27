@@ -151,3 +151,24 @@ rebuilding 1.11.25. Clean-machine installer execution remains unavailable; physi
 Drive races and production integrations remain unexercised, and independent
 external review remains unavailable. S015/E002 stay open and PR #22 stays draft
 pending retained acceptance or explicit disposition of those remaining limits.
+
+## Final review and accepted limits
+
+The user accepted the documented clean-machine installer and physical Drive /
+production integration limits. These checks remain untested or unexercised;
+acceptance does not turn them into passing results. The selected synthetic web
+and packaged trust journeys have passing evidence.
+
+Final primary-agent source review compared PR #22 at `91955c7` with `17c23ca`,
+including status validation on both runtimes, startup persistence reporting,
+composer receipt reconciliation, tests, synchronized release metadata and
+verification records. No actionable findings remain. GitHub had no formal
+reviews, inline threads or conversation comments. Independent external review
+remains unavailable, separately from this completed source audit. Focused
+composer regression and nine isolated status-source tests passed; previously recorded broader checks and packaged
+evidence apply to unchanged application source.
+
+S015 moves to in review with these explicit limits; PR #22 may be marked ready
+after the documentation update and current-head CI pass. This does not merge
+the PR or close S015/E002. Earlier draft/blocker checkpoints above are historical
+and superseded by the completed journeys and this user disposition.

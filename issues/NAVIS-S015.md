@@ -4,7 +4,7 @@ id: "NAVIS-S015"
 parent: ["NAVIS-E002"]
 priority: "medium"
 schema_version: 1
-status: "in_progress"
+status: "in_review"
 title: "Verify trust journeys across web and packaged desktop"
 type: "enhancement"
 ---
@@ -68,3 +68,15 @@ Remaining: clean-machine installation, physical Drive races/production integrati
 coverage and independent external review retain their documented limits. Keep
 S015 and E002 open and PR #22 draft until affected acceptance passes or is
 explicitly dispositioned. See the integrated report and sanitized JSON record.
+
+
+## Accepted limits and final review
+
+The user accepted the clean-machine installer and Drive/production integration
+limits; they remain untested, not passed. Selected retained web and packaged
+journeys passed. Final primary-agent review of PR #22 found no actionable issues;
+no GitHub reviews, inline threads or conversation feedback were present.
+Independent external review remains unavailable. Current application source is
+unchanged from the verified release. S015 is in review; readiness does not close
+this story or E002, and merge remains a separate action. This disposition
+supersedes earlier draft/blocker statements above.
