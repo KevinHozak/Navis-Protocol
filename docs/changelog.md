@@ -6,6 +6,17 @@ A chronological record of high-fidelity architectural shifts, multiversal milest
 
 ---
 
+## Vault MCP search and freshness — 2026-10-26
+
+- NAVIS-S018: source-linked `search_vault`, a separate private FTS5 generation
+  store and an explicit local rebuild command. Searches distinguish current
+  empty results from stale indexes, corrupt/missing indexes and unreadable or
+  unavailable Vaults. Failed builds retain the last complete generation.
+  Synthetic fixtures cover exclusions, source provenance, phrase/keyword
+  queries, bounds and CLI/stdio behavior. Shared note reads now preserve C#
+  heading names and fenced-code boundaries; plural credential/secret filenames
+  and directories are excluded. See [operation and limits](vault-mcp.md).
+
 ## Standalone Vault MCP boundary — 2026-10-26
 
 - NAVIS-S017: independent Python stdio adapter with a bounded, source-linked
