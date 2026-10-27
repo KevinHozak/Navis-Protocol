@@ -6,6 +6,17 @@ A chronological record of high-fidelity architectural shifts, multiversal milest
 
 ---
 
+## Vault MCP read-only client trial — 2026-10-26
+
+- NAVIS-S020: predefined rubric, reproducible model-free trial runner and sanitized
+  results compare direct file/search retrieval with the installed desktop-bundled
+  Codex MCP runtime. Five repetitions returned all ten required sources, rejected
+  stale evidence and preserved fixture/XP bytes. The decision adopts a controlled
+  read-only pilot on that runtime; desktop UI setup, human preference,
+  personal-Vault performance and Claude Desktop remain unverified. No persistent
+  MCP configuration or write tools were installed. See the
+  [trial report](vault-mcp-trial-results.md).
+
 ## Vault MCP journal and mission retrieval — 2026-10-26
 
 - NAVIS-S019: `get_journal_range` reads inclusive, canonical journal dates with

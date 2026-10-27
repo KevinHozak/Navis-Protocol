@@ -2,7 +2,10 @@
 
 S017–S019 implement a local **stdio** process, independent of Obsidian, FastAPI and
 the Tauri application. Advertised tools are `read_note`, `search_vault`,
-`get_journal_range` and `get_mission`. Client adoption is S020;
+`get_journal_range` and `get_mission`. The S020
+[trial report](vault-mcp-trial-results.md) adopts a controlled read-only pilot on
+the verified desktop-bundled Codex runtime; desktop UI setup and real-Vault scale
+remain unverified. S021 governs guarded writes;
 no write tools are enabled. See the [access contract](vault-mcp-contract.md).
 
 ## Install and launch
@@ -246,7 +249,9 @@ Run with the isolated interpreter:
 
 This verifies the server transport and shared HTTP behavior. It does not certify
 Codex or Claude Desktop configuration, personal Drive availability, cross-client
-adoption, real-Vault retrieval quality or any write-integrity gate. Those remain S020–S021.
+adoption, real-Vault retrieval quality or any write-integrity gate. S020 separately verifies
+the actual Codex MCP runtime on synthetic data, without installing a permanent
+connection; human usability and production behavior remain unmeasured.
 
 SDK references consulted with Firecrawl on 2026-10-26:
 [low-level server](https://py.sdk.modelcontextprotocol.io/advanced/low-level-server/),
