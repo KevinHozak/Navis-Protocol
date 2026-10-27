@@ -67,8 +67,8 @@ Prior packaged observations above keep their original build versions; they are
 not relabelled as 1.11.25 observations. Fresh runtime evidence is recorded in the
 [sanitized trial record](trials/s015-trust-journeys-2026-10-27.json).
 
-Remaining gates include physical web partial-sync/cancel/close, packaged delayed
-response races, and clean-machine installer execution. This host does not provide
+Remaining gates include physical web partial-sync/cancel/close and clean-machine
+installer execution. The fresh packaged delayed-response check below passed. This host does not provide
 an isolated clean Windows machine; no installer was run over the user's installed
 application. Physical Drive races and production integrations remain unexercised.
 Independent external review is unavailable. S015 and E002 must remain open until
@@ -95,3 +95,30 @@ cases and one parity case, excluding the personal-Vault availability probe.
 Source audit found no remaining actionable defect in the selected repairs;
 independent external review remains unavailable. Remaining runtime gates above
 continue to block full S015 acceptance and PR readiness.
+
+## Fresh fixture follow-up
+
+The packaged 1.11.25 delayed-save/navigation check passed on a new synthetic
+Vault. All 38 bundled backend resources matched source before a test-only response
+gate was added to the copied journal bridge. The gate held the response after the
+canonical append completed. A fresh UI observation showed October 27 (B), with
+its original content and no receipt, before releasing October 26 (A)'s response.
+A's saved/XP-pending receipt then arrived while B stayed displayed. Readback found
+one entry, one canonical 12-XP award, unchanged B bytes and preserved BOM/CRLF.
+The projection obstruction was intentional; this check does not replace the
+earlier XP recovery check. The copied bridge was restored and the app closed.
+
+A separate fresh web fixture reached the real Sync confirmation. The browser
+dialog API returned no handle, and documented CDP dialog handling timed out
+during focus setup. The backend log contains no sync POST and the backup hook
+was not entered. Dismissal, partial outcome and close checks remain blocked;
+no passing result is inferred. Source inspection shows that running web jobs
+expose a disabled Sequence Lock Active control, while native jobs expose Cancel
+operation; actual web cancellation is not currently offered.
+
+Owned fixture backend/Next process trees were stopped and their dedicated
+listeners were absent afterward. Native fixture closure was verified. Closing
+the temporary IAB tab was also blocked by the confirmation tooling. S015/E002
+remain open and PR #22 remains draft. Clean-machine installer execution, physical
+Drive races, production integrations and independent external review retain
+their existing unavailable/unexercised dispositions. No production source changed.

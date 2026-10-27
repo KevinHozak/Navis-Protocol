@@ -47,8 +47,7 @@
   },
   "remaining": [
     "Selected final packaged 1.11.25 smoke and native checks passed; broader acceptance remains open",
-    "Physical web partial-sync/cancel/close trial not yet executed",
-    "Packaged controlled-delay late-response race not yet executed",
+    "Physical web partial-sync/cancel/close blocked by browser confirmation control",
     "Clean-machine installer execution unavailable in current host",
     "Physical Drive races and production integrations not exercised",
     "Independent external review unavailable"
@@ -76,5 +75,26 @@
     "fixture_closed": true,
     "exe_sha256": "a2a2e69e3f81a511366c51beda69ff84409ab716c91678c81156f464bf5cb8fb",
     "nsis_sha256": "057635d3ad363737e91bb75224a2a030d08a7f12983aba29be3e01f9bc7f1319"
+  },
+  "packaged_delayed_save_resume": {
+    "version": "1.11.25",
+    "fixture": "fresh isolated synthetic Vault",
+    "resource_baseline_matches": 38,
+    "test_instrumentation": "Copied journal bridge held response after canonical append; released only after a fresh observation showed B selected without receipt. Copied bridge restored afterward.",
+    "result": "passed",
+    "A_receipt_while_B_selected": true,
+    "entry_count": 1,
+    "keeper_rows": 1,
+    "keeper_xp": 12,
+    "B_unchanged": true,
+    "bom_crlf_preserved": true,
+    "phase": "saved; XP projection intentionally blocked",
+    "fixture_process_closed": true
+  },
+  "web_resume": {
+    "fixture": "fresh isolated synthetic Vault; loopback 18015/18016; real FastAPI and Next; lifespan disabled",
+    "result": "blocked before sync submission",
+    "observation": "Real sync confirmation opened. Dialog API returned undefined; documented CDP dialog handling timed out in focus setup. No POST /api/sync in backend log and no hook entry. No partial/cancel/close pass claimed.",
+    "cleanup": "Owned backend and Next process trees stopped; dedicated listeners absent. Tab close also blocked by dialog tooling; agent-created IAB tab is temporary."
   }
 }
