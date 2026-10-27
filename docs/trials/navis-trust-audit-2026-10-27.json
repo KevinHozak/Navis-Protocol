@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-27",
+  "base_commit": "279a614182ed48c946ac9724aac484e023472f40",
+  "scope": "audit only; synthetic fixtures and transport/render doubles",
+  "source_identity": [
+    {
+      "path": "frontend/src/components/WeeklyHolocronView.js",
+      "normalized_sha256": "4c4b2484cd574b4c8fa567e42ca174c370852f84e9a2f11618311fe667276deb"
+    },
+    {
+      "path": "frontend/src/components/JournalEntryComposer.js",
+      "normalized_sha256": "04c23d2ef03f134f70c87e791225eacd303c0be11ce74decea4700ea30d52cf7"
+    },
+    {
+      "path": "frontend/src/components/JournalCalendar.js",
+      "normalized_sha256": "8b69b58623bcb66c87eca2fb419ded56a56c236966be600ff8563ee5b9f0dabb"
+    },
+    {
+      "path": "frontend/src/components/AsyncJobModal.js",
+      "normalized_sha256": "6621e567d353b83e379acc45ebefe60c5f3e06851c63addc1f901cb9002c24b2"
+    },
+    {
+      "path": "frontend/src/app/page.js",
+      "normalized_sha256": "b9943dcd72e9f948a91230cdd28aafcd374ac98ae5eead33b87a543419cf76a6"
+    },
+    {
+      "path": "frontend/src/lib/taskBoardStore.mjs",
+      "normalized_sha256": "89f0103b48901351e788ed96056e88af72f820ecb269dc2ca9f6cb9ac1366413"
+    },
+    {
+      "path": "frontend/src/lib/desktopApi.js",
+      "normalized_sha256": "f3f11e78eff64759dd690ef82ae80f2102e166d3c3972f165daeeba1c606efb1"
+    },
+    {
+      "path": "backend/services/holocron_engine.py",
+      "normalized_sha256": "2d0f8c921f521eab2660253652bd8fbdad01135660cde762503406562eee68f8"
+    },
+    {
+      "path": "backend/services/journal_entry.py",
+      "normalized_sha256": "0a10e63149d2be373fae6b3f43827e012275dc7ef41ff942c86e1839912fb43a"
+    },
+    {
+      "path": "backend/services/task_toggle.py",
+      "normalized_sha256": "3f94ee1eb56fe08c54008bd1027aaa4e7e9f58bfa56c006be6045bf11cbaf854"
+    },
+    {
+      "path": "backend/services/sync_engine.py",
+      "normalized_sha256": "741544f8cb80756add8cbb627b60569f8e0e2c27f3255509b6141a8f18af8d74"
+    },
+    {
+      "path": "backend/native_operations.py",
+      "normalized_sha256": "542dca0b917077855816bfec9c15fdcd6e63ccb0046af4583582636f9a2c1057"
+    },
+    {
+      "path": "backend/main.py",
+      "normalized_sha256": "d098172beb7eee92ef7bfe38d11b4fa06b4ff2c26d9e6773712403fb44c0506a"
+    },
+    {
+      "path": "frontend/src-tauri/src/lib.rs",
+      "normalized_sha256": "7b0d8abb9300de7945bbbefad67364eb668ff14022c913274e3e63a5f11f54eb"
+    },
+    {
+      "path": "frontend/src-tauri/src/p3.rs",
+      "normalized_sha256": "0bea3dbe63fccc5c5f18b912e4b818a677be544e7b3d4ea24b3fb80c26e7a811"
+    },
+    {
+      "path": "frontend/src-tauri/src/vault.rs",
+      "normalized_sha256": "28959266498ef3e460f9eaf506fb243fce5250e7f40444d4bace2fc23b44b0be"
+    },
+    {
+      "path": "frontend/src-tauri/src/operations.rs",
+      "normalized_sha256": "ebb9265a466f89864eab48e1ac8720ffb2d74e747deae44470f4bc343e611f90"
+    }
+  ],
+  "checks": {
+    "python_existing": {
+      "passed": 73,
+      "failed": 3,
+      "duration_seconds": 39.95,
+      "failures": [
+        {
+          "test": "test_build_weekly_holocron_isolated",
+          "category": "fixture assertion assumes one manifest row despite injected current week"
+        },
+        {
+          "test": "test_api_holocron_endpoints",
+          "category": "same manifest fixture assumption"
+        },
+        {
+          "test": "test_native_operations_watch",
+          "category": "missing watchdog dependency; confirmed absent in both available environments"
+        }
+      ]
+    },
+    "frontend_transport": {
+      "passed": 48
+    },
+    "task_board_scenarios": {
+      "passed": 72
+    },
+    "journal_entry_source_contract": "passed; static only",
+    "audit_probes": {
+      "python_cases": 5,
+      "javascript_cases": 5,
+      "all_expected_defects_reproduced": true
+    },
+    "audit_probe_ruff": "passed after import order and documented local-source exec annotation"
+  },
+  "runtime_limits": {
+    "browser_visual_keyboard": "not run",
+    "packaged_desktop": "not run",
+    "rust_tests": "not run in this audit",
+    "installer": "not run",
+    "external_review": "unavailable"
+  },
+  "personal_vault_access": false,
+  "application_source_changed": false,
+  "provider_calls": false,
+  "initial_probe_recovery": [
+    "sandbox temporary ACL denial: same probe elevated",
+    "probe function name corrected before final run"
+  ],
+  "audit_commands": [
+    ".tools/mcp-venv/Scripts/python.exe scripts/audits/trust-signals.py",
+    "node scripts/audits/trust-signals.cjs"
+  ],
+  "probe_identity": [
+    {
+      "path": "scripts/audits/trust-signals.py",
+      "normalized_sha256": "b584325634f8d731c95cbb158fc4e1b0e4591457d885a5b2e28b275989d9b1ff"
+    },
+    {
+      "path": "scripts/audits/trust-signals.cjs",
+      "normalized_sha256": "910aaa29c4ae1a45bea22c632bf86555cdbd5a4b19377698bede5b8705a492e9"
+    }
+  ],
+  "reproduced_outcomes": {
+    "holocron": {
+      "fixed_readiness": 85.0,
+      "estimated_hours_one_task": 0.8,
+      "assigned_beast_xp": 300,
+      "fallback_mvp_deployments": 7,
+      "is_synthetic": false,
+      "unreadable_equals_empty": true,
+      "missing_and_corrupt_ledger_same_zero_result": true,
+      "selected_week": "2026-W41",
+      "displayed_week_after_late_response": "2026-W40"
+    },
+    "dashboard": {
+      "retained_data_after_error": true,
+      "console_error_count": 1
+    },
+    "journal_callback": {
+      "late_saved_content_overwrites_different_selection": true,
+      "full_page_runtime_verified": false
+    },
+    "calendar": {
+      "HTTP_error_becomes_empty_dates": true
+    },
+    "sync": {
+      "web_job_after_logged_failure": "completed",
+      "native_warning_failure_count": 0,
+      "retry_additional_status_GETs": 1,
+      "retry_restarts_operation": false
+    }
+  }
+}

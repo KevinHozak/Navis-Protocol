@@ -28,4 +28,11 @@ Integrated audit matrix and retained repair stories; packaged runtime evidence a
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. Current deficiencies are unconfirmed until the audit establishes them. Issue creation authorizes persistence only; no audit execution or application implementation is performed now.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+
+
+## S009 audit disposition - 2026-10-27
+
+Retain the full web/packaged trust matrix from S009. Reconcile the two manifest tests assuming one row while current WTD is injected; validate/install declared watcher dependencies in an isolated test environment before claiming watcher acceptance. Packaged offline/reconnect, navigation-during-save, partial outcomes, cancel/close, keyboard and source navigation remain unrun blockers, not passed tests.
+
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.
