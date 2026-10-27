@@ -1,4 +1,4 @@
-﻿---
+ï»¿---
 depends_on: []
 id: "NAVIS-E002"
 parent: []
@@ -48,7 +48,8 @@ S009 completed a source/fixture audit with seven confirmed findings and existing
 S014 is accepted after PR #17 merged at `cf23ca7`; its packaged 1.11.20 fixture
 gate passed. S013 is accepted after PR #18 merged at `cc05842`, with the shared
 [evidence contract](../docs/holocron-evidence.md). Its affected manifest assumptions
-are reconciled in tests. S011 is in review on `codex/journal-availability` after
-the packaged 1.11.22 availability/recovery fixture passed;
-see its [narrowed T02 contract](../docs/journal-availability.md). S010, S012 and the remaining S015 journeys,
+are reconciled in tests. S011 is accepted after PR #19 merged at `9408bd1` and its
+packaged 1.11.22 fixture passed; see its [T02 contract](../docs/journal-availability.md).
+S012 passed its scoped automated and packaged 1.11.23 fixture checks and awaits PR review on `codex/journal-save-verification`; see the
+[T05 save contract](../docs/journal-save-verification.md). S010 and the remaining S015 journeys,
 clean-machine installation, personal Drive races and dependency limits stay open.

@@ -13,6 +13,8 @@ import HorizonRoadmap from '@/components/HorizonRoadmap';
 import AsyncJobModal from '@/components/AsyncJobModal';
 import AudioEngine from '@/lib/AudioEngine';
 import DesktopDiagnostics from '@/components/DesktopDiagnostics';
+import JournalSaveNotice from '@/components/JournalSaveNotice';
+import { journalPath, saveJournalEntry, verifiedJournalReceipt } from '@/lib/journalSave.mjs';
 import { apiFetch, apiUrl, vaultAssetUrl, subscribeVaultStream } from '@/lib/desktopApi';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
@@ -79,6 +81,10 @@ export default function Home() {
   const refreshSequence = useRef(0);
   const appliedReadSequence = useRef(0);
   const [pendingCheckboxXP, setPendingCheckboxXP] = useState(null);
+  const [journalSaveReceipt, setJournalSaveReceipt] = useState(null);
+  const [retryingJournalXP, setRetryingJournalXP] = useState(false);
+  const journalSaveReceiptRef = useRef(null);
+  const journalXPRetryPending = useRef(false);
   const [loadingContent, setLoadingContent] = useState(false);
   const [contentLoadError, setContentLoadError] = useState(null);
   const [loadedContentEntityId, setLoadedContentEntityId] = useState(null);
@@ -127,11 +133,13 @@ export default function Home() {
           setLoadedContentEntityId(targetId);
           setContentLoadError(null);
           setLoadingContent(false);
+          return true;
         }
       }
     } catch (err) {
       console.warn("DEBUG: Error refreshing active entity content:", err);
     }
+    return false;
   };
 
   const refreshEntitiesForSector = async (sectorId) => {
@@ -579,16 +587,63 @@ export default function Home() {
     }
   };
 
-  const handleJournalEntrySaved = (result) => {
-    if (result?.content) {
-      contentRevision.current += 1;
-      sourceContentRef.current = result.content;
-      setEntityContent(result.content);
-      if (activeEntity?.id) {
-        setLoadedContentEntityId(activeEntity.id);
-      }
+  const handleJournalEntryUnverified = (request) => {
+    const receipt = { verified: false, date: request.date, path: journalPath(request.date), request: { ...request } };
+    journalSaveReceiptRef.current = receipt;
+    setJournalSaveReceipt(receipt);
+  };
+
+  const handleJournalEntrySaved = (result, request) => {
+    if (!request || !verifiedJournalReceipt(result, request)) {
+      if (request) handleJournalEntryUnverified(request);
+      return;
     }
-    if (result?.date) setSelectedJournalDate(result.date);
+    const receipt = { verified: true, date: result.date, path: result.path,
+      xp_status: result.xp_status, request_id: result.request_id, request: { ...request } };
+    journalSaveReceiptRef.current = receipt;
+    setJournalSaveReceipt(receipt);
+    if (activeSectorRef.current === 'JOURNAL' && selectedEntityRef.current === result.path &&
+        selectedJournalDateRef.current === result.date) {
+      contentRevision.current += 1;
+      refreshActiveEntityContent(result.path).then(refreshed => {
+        if (!refreshed && journalSaveReceiptRef.current === receipt && selectedEntityRef.current === result.path) {
+          const pending = { ...receipt, viewRefreshError: true };
+          journalSaveReceiptRef.current = pending;
+          setJournalSaveReceipt(pending);
+        }
+      });
+    }
+  };
+
+  const handleOpenSavedJournal = (receipt) => {
+    if (!receipt || receipt.path !== journalPath(receipt.date)) return;
+    const chronicle = pillars.find(p => p.sectors?.some(s => s.id === 'JOURNAL'));
+    if (chronicle) setActivePillar(chronicle.id);
+    const journal = { id: receipt.path, name: receipt.date, type: 'file' };
+    setSelectedJournalDate(receipt.date);
+    setSectorActiveEntities(previous => ({ ...previous, JOURNAL: journal }));
+    setActiveSector('JOURNAL');
+    setActiveEntity(journal);
+  };
+
+  const handleRetryJournalXP = async () => {
+    const receipt = journalSaveReceiptRef.current;
+    if (journalXPRetryPending.current || !receipt?.verified || receipt.xp_status !== 'pending' || !receipt.request) return;
+    journalXPRetryPending.current = true;
+    setRetryingJournalXP(true);
+    try {
+      const result = await saveJournalEntry(receipt.request);
+      handleJournalEntrySaved(result, receipt.request);
+    } catch {
+      if (journalSaveReceiptRef.current === receipt) {
+        const pending = { ...receipt, retryError: true };
+        journalSaveReceiptRef.current = pending;
+        setJournalSaveReceipt(pending);
+      }
+    } finally {
+      journalXPRetryPending.current = false;
+      setRetryingJournalXP(false);
+    }
   };
 
   const handleRolloverComplete = async (newDate) => {
@@ -687,12 +742,15 @@ export default function Home() {
         className="flex flex-col h-screen overflow-hidden realm-bg bg-zinc-950"
         style={{ '--realm-bg-url': realmTexture }}
       >
-        {pendingCheckboxXP?.entityId === activeEntity?.id && (
+        {pendingCheckboxXP && pendingCheckboxXP.entityId === activeEntity?.id && (
           <div role="status" className="fixed bottom-4 right-4 z-50 rounded border border-amber-400/40 bg-zinc-950/90 p-3 text-sm text-amber-200 backdrop-blur-md">
             Task saved. XP pending.
             <button className="ml-3 underline" onClick={() => handleToggleCheckbox(pendingCheckboxXP.targetText, pendingCheckboxXP.isChecked, pendingCheckboxXP.lineNumber, pendingCheckboxXP.expectedContent)}>Retry XP</button>
           </div>
         )}
+        <JournalSaveNotice receipt={journalSaveReceipt} retrying={retryingJournalXP}
+          onOpen={() => handleOpenSavedJournal(journalSaveReceipt)} onRetryXP={handleRetryJournalXP}
+          onDismiss={() => { journalSaveReceiptRef.current = null; setJournalSaveReceipt(null); }} />
         {startupMessage && (
           <div role="alert" className="fixed top-3 left-1/2 z-50 w-[min(90vw,44rem)] -translate-x-1/2 rounded border border-amber-400/40 bg-amber-950/90 px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider text-amber-200 shadow-xl backdrop-blur-md">
             {startupMessage}
@@ -758,6 +816,8 @@ export default function Home() {
                 onSelectEntity={handleEntitySelect}
                 onToggleCheckbox={handleToggleCheckbox}
                 onJournalEntrySaved={handleJournalEntrySaved}
+                onJournalEntryUnverified={handleJournalEntryUnverified}
+                journalEntryDraft={journalSaveReceipt && !journalSaveReceipt.verified && journalSaveReceipt.path === activeEntity?.id ? journalSaveReceipt.request : null}
                 onRefreshStatus={refreshStatus}
                 onMissionClick={handleMissionClick}
                 onOpenJournal={(path, day) => {
