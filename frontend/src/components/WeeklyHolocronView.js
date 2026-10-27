@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { apiFetch } from '@/lib/desktopApi';
+import ReadFreshness from './ReadFreshness';
 import HolocronEvidence from './HolocronEvidence';
 
 const measured = (value, suffix = '') => value == null ? 'Unavailable' : `${value}${suffix}`;
@@ -17,6 +18,22 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
   const [exportNotice, setExportNotice] = useState(null);
   const [synthesizingAi, setSynthesizingAi] = useState(false);
 
+  const [lastRead, setLastRead] = useState(null);
+  const requestRevision = useRef(0);
+  const selectedWeekRef = useRef(selectedWeek);
+  selectedWeekRef.current = selectedWeek;
+  const selectWeek = (week) => {
+    requestRevision.current += 1;
+    selectedWeekRef.current = week;
+    setData(null);
+    setLastRead(null);
+    setError(null);
+    setRegenerating(false);
+    setSynthesizingAi(false);
+    setSelectedWeek(week);
+  };
+  useEffect(() => () => { requestRevision.current += 1; }, []);
+
   // 1. Fetch manifest of available weeks
   useEffect(() => {
     let isCancelled = false;
@@ -24,9 +41,9 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
       .then(res => res.ok ? res.json() : [])
       .then(list => {
         if (!isCancelled && Array.isArray(list)) {
-          setManifest(list);
-          if (!selectedWeek && list.length > 0) {
-            setSelectedWeek(list[0].week_id);
+          if (list.length > 0) setManifest(list);
+          if (!selectedWeekRef.current && list.length > 0) {
+            selectWeek(list[0].week_id);
           }
         }
       })
@@ -40,12 +57,13 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
   // Update selected week if prop changes
   useEffect(() => {
     if (activeWeekId && activeWeekId !== selectedWeek) {
-      setSelectedWeek(activeWeekId);
+      selectWeek(activeWeekId);
     }
   }, [activeWeekId]);
 
   // 2. Fetch specific or latest week data
   const fetchHolocron = (weekId) => {
+    const revision = ++requestRevision.current;
     setLoading(true);
     setError(null);
     let endpoint = '/api/holocron/weekly/latest';
@@ -58,19 +76,23 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
       }
     }
 
-    apiFetch(endpoint)
+    apiFetch(endpoint, { signal: AbortSignal.timeout(10000) })
       .then(res => {
         if (!res.ok) throw new Error(`Holocron load failed (${res.status})`);
         return res.json();
       })
       .then(payload => {
+        if (revision !== requestRevision.current) return;
+        if (!payload?.week_id || (weekId && payload.week_id !== weekId)) throw new Error('Holocron identity mismatch');
         setData(payload);
+        setLastRead(new Date().toISOString());
         if (!selectedWeek && payload?.week_id) {
           setSelectedWeek(payload.week_id);
         }
         setLoading(false);
       })
       .catch(err => {
+        if (revision !== requestRevision.current) return;
         setError(err.message);
         setLoading(false);
       });
@@ -78,21 +100,28 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
 
   useEffect(() => {
     fetchHolocron(selectedWeek);
-  }, [selectedWeek]);
+    return () => { requestRevision.current += 1; };
+  }, [selectedWeek, manifest]);
 
   // 3. Handle manual regeneration
   const handleRegenerate = async () => {
     if (!selectedWeek) return;
+    const week = selectedWeek;
+    const revision = ++requestRevision.current;
     setRegenerating(true);
     try {
       const res = await apiFetch(`/api/holocron/weekly/${selectedWeek}/regenerate`, { method: 'POST' });
       if (!res.ok) throw new Error(`Regeneration failed (${res.status})`);
       const updated = await res.json();
+      if (revision !== requestRevision.current) return;
+      if (updated?.week_id !== week) throw new Error('Holocron identity mismatch');
       setData(updated);
+      setLastRead(new Date().toISOString());
+      setError(null);
     } catch (err) {
-      alert("Error: " + err.message);
+      if (revision === requestRevision.current) setError(err.message);
     } finally {
-      setRegenerating(false);
+      if (revision === requestRevision.current) setRegenerating(false);
     }
   };
 
@@ -145,11 +174,14 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
   const handleSynthesizeAiDebrief = async () => {
     if (!selectedWeek && !data?.week_id) return;
     const targetWeek = selectedWeek || data.week_id;
+    const revision = ++requestRevision.current;
     setSynthesizingAi(true);
     try {
       const res = await apiFetch(`/api/holocron/weekly/${targetWeek}/debrief/ai`, { method: 'POST' });
       if (!res.ok) throw new Error(`AI Debrief failed (${res.status})`);
       const result = await res.json();
+      if (revision !== requestRevision.current) return;
+      if (result.holocron?.week_id && result.holocron.week_id !== targetWeek) throw new Error('Holocron identity mismatch');
       setData(prev => ({
         ...prev,
         tactical_debrief: result.tactical_debrief,
@@ -159,13 +191,13 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
       setExportNotice(result.debrief_source === 'ollama' ? '✨ Tactical Sage debrief synthesized by Ollama!' : '⚠️ Ollama offline. Retained rule-based debrief.');
       setTimeout(() => setExportNotice(null), 4000);
     } catch (err) {
-      alert("AI Debrief failed: " + err.message);
+      if (revision === requestRevision.current) setError(err.message);
     } finally {
-      setSynthesizingAi(false);
+      if (revision === requestRevision.current) setSynthesizingAi(false);
     }
   };
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div role="status" className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <div className="w-12 h-12 rounded-full border-4 border-cyan-400 border-t-transparent animate-spin" />
@@ -176,14 +208,14 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
     );
   }
 
-  if (error || !data) {
+  if (!data) {
     return (
       <div role="alert" className="p-8 bg-zinc-950/80 border border-red-500/30 rounded-xl space-y-4 text-center max-w-xl mx-auto my-12">
         <div className="text-3xl">💠</div>
         <h2 className="text-lg font-bold text-white uppercase tracking-wider">Holocron Telemetry Unavailable</h2>
         <p className="text-xs text-red-200/80 font-mono">{error || "No active telemetry found for this cycle."}</p>
         <button
-          onClick={() => fetchHolocron(null)}
+          onClick={() => fetchHolocron(selectedWeek)}
           className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 rounded text-xs font-bold uppercase tracking-wider hover:bg-cyan-500/30 transition-all"
         >
           Retry Transmission
@@ -200,6 +232,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-6xl mx-auto space-y-6 pb-12"
     >
+      <ReadFreshness label="Holocron" pending={loading || regenerating || synthesizingAi} lastRead={lastRead} error={!!error} sourceLabel="Generated" sourceTime={data.generated_at} onRetry={() => fetchHolocron(selectedWeek)} />
       {/* Top Cockpit Header */}
       <header className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-xl border border-white/10 bg-zinc-950/70 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center gap-3">
@@ -226,7 +259,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
             <select
               aria-label="Select Operating Cycle"
               value={selectedWeek || data.week_id}
-              onChange={(e) => setSelectedWeek(e.target.value)}
+              onChange={(e) => selectWeek(e.target.value)}
               className="bg-zinc-900 border border-white/10 text-white text-xs font-mono px-3 py-1.5 rounded focus:outline-none focus:border-cyan-400 cursor-pointer"
             >
               {manifest.map((item) => (
@@ -239,7 +272,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
 
           <button
             onClick={handleRegenerate}
-            disabled={regenerating}
+            disabled={loading || regenerating || synthesizingAi}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all disabled:opacity-50"
             title="Re-aggregate from daily journals and XP ledger"
           >
@@ -288,7 +321,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
           </div>
           <button
             onClick={handleSynthesizeAiDebrief}
-            disabled={synthesizingAi}
+            disabled={loading || regenerating || synthesizingAi}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-purple-500/20 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold hover:bg-purple-500/30 hover:border-purple-300 transition-all disabled:opacity-50"
             title="Synthesize an inspiring tactical debrief using local Ollama"
           >

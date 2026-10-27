@@ -14,15 +14,15 @@ if (!vm.SourceTextModule) {
 }
 
 await swc.loadBindings();
-const context = vm.createContext({ console, React, AbortController });
+const context = vm.createContext({ console, React, AbortController, AbortSignal, setInterval, clearInterval });
 let requests = 0;
 const payload = { history_note: 'Synthetic history', beasts: [{ name: 'Wyrm', affinity: 'Void', vulnerabilities: { Digital: 2 }, encounters: 2, wins: 1, defeats: 1, win_rate: 50, defeat_rate: 50, active: 0, slayings: 1, highest_turn_damage: 7, trophies: ['First Slaying'] }] };
 const source = await readFile(new URL('../src/components/CodexBestiaryView.js', import.meta.url), 'utf8');
 const code = swc.transformSync(source, { filename: 'CodexBestiaryView.js', jsc: { parser: { syntax: 'ecmascript', jsx: true }, transform: { react: { runtime: 'classic' } } }, module: { type: 'es6' } }).code;
 const component = new vm.SourceTextModule(code, { context });
 const linker = async name => {
-  if (name === './HolocronEvidence') {
-    const evidenceSource = await readFile(new URL('../src/components/HolocronEvidence.js', import.meta.url), 'utf8');
+  if (name === './HolocronEvidence' || name === './ReadFreshness') {
+    const evidenceSource = await readFile(new URL(`../src/components/${name.slice(2)}.js`, import.meta.url), 'utf8');
     const evidenceCode = swc.transformSync(evidenceSource, { filename: 'HolocronEvidence.js', jsc: { parser: { syntax: 'ecmascript', jsx: true }, transform: { react: { runtime: 'classic' } } }, module: { type: 'es6' } }).code;
     const evidence = new vm.SourceTextModule(evidenceCode, { context });
     await evidence.link(linker); return evidence;
@@ -30,7 +30,7 @@ const linker = async name => {
   const values = name === 'react' ? { default: React, useState: React.useState, useRef: React.useRef, useEffect: React.useEffect }
     : name === 'framer-motion' ? { motion: { article: 'article', div: 'div' } }
       : { apiFetch: async path => {
-        if (path.includes('/holocron/')) return { ok: true, json: async () => path.endsWith('/manifest') ? [] : { summary: {}, combat: { beasts_neutralized: [{ name: 'Wyrm' }] } } };
+        if (path.includes('/holocron/')) return { ok: true, json: async () => path.endsWith('/manifest') ? [] : { week_id: '2026-W40', summary: {}, combat: { beasts_neutralized: [{ name: 'Wyrm' }] } } };
         assert.equal(path, '/api/battle/bestiary'); requests++; return requests === 1 ? { ok: false, status: 503 } : { ok: true, json: async () => payload };
       } };
   const mod = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });

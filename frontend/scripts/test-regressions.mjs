@@ -26,6 +26,7 @@ const scripts = [
   'test-holocron-evidence.cjs',
   'test-journal-calendar.cjs',
   'test-journal-save-verification.cjs',
+  'test-refresh-freshness.cjs',
   'test-tasks-cockpit.mjs',
   'test-e2e-sector-boards.mjs',
   'test-constellation-talents.mjs',

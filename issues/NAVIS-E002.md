@@ -50,6 +50,6 @@ gate passed. S013 is accepted after PR #18 merged at `cc05842`, with the shared
 [evidence contract](../docs/holocron-evidence.md). Its affected manifest assumptions
 are reconciled in tests. S011 is accepted after PR #19 merged at `9408bd1` and its
 packaged 1.11.22 fixture passed; see its [T02 contract](../docs/journal-availability.md).
-S012 passed its scoped automated and packaged 1.11.23 fixture checks and awaits PR review on `codex/journal-save-verification`; see the
-[T05 save contract](../docs/journal-save-verification.md). S010 and the remaining S015 journeys,
+S012 is accepted after PR #20 merged at `3751f2c` and its packaged 1.11.23 fixture passed; see the
+[T05 save contract](../docs/journal-save-verification.md). S010 passed scoped automated and packaged 1.11.24 checks and awaits PR review on `codex/refresh-freshness`; see its [read freshness contract](../docs/refresh-freshness.md). The remaining S015 journeys,
 clean-machine installation, personal Drive races and dependency limits stay open.

@@ -42,9 +42,7 @@ S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
 and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
 accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
 S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
-see the [availability contract](journal-availability.md). S012 late-save isolation is
-verified in scoped automated and packaged 1.11.23 fixtures and awaiting PR review; see the [save contract](journal-save-verification.md). Next repairs remain S010
-refresh/selection state. Remaining packaged trust journeys and dependency limits
+see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state passed scoped automated and packaged 1.11.24 checks and awaits PR review; see the [read freshness contract](refresh-freshness.md). Remaining packaged trust journeys and dependency limits
 remain explicit under S015. Task-status enhancements (S022-S024) and evidence-gated
 AI workflow trials (S001-S008) remain separate open workstreams.
 
