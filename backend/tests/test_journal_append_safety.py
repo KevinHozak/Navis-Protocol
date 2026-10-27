@@ -137,15 +137,18 @@ def test_missing_unavailable_denied_and_invalid_encoding_never_create_journal(ta
         service.append(root / "unavailable", args, guarded=True, award=noop)
 
 
-def test_real_ledger_projection_retry_does_not_duplicate_xp(target, monkeypatch):
+@pytest.mark.parametrize("companion", [None, "Ava & Echo", "Reid's Echo", "雪 ☃"])
+def test_real_ledger_projection_retry_does_not_duplicate_xp(target, monkeypatch, companion):
     from services import progression_db as db, rpg_engine
     root, path = target
     monkeypatch.setattr(db, "NAVIS_ROOT", str(root))
     monkeypatch.setattr(db, "DB_PATH", str(root / "Keeper/navis_progression.db"))
     monkeypatch.setattr(rpg_engine, "NAVIS_ROOT", str(root))
     (root / "Bridge").mkdir()
-    (root / "Bridge/status.json").write_text(json.dumps({"squad": [], "last_updated": "2026-10-26"}), encoding="utf-8")
-    (root / "Bridge/CompanionStats.json").write_text(json.dumps({"companions": {"Keeper": {}}}), encoding="utf-8")
+    squad = [{"name": companion}] if companion else []
+    companions = {"Keeper": {}, **({companion: {}} if companion else {})}
+    (root / "Bridge/status.json").write_text(json.dumps({"squad": squad, "last_updated": "2026-10-26"}), encoding="utf-8")
+    (root / "Bridge/CompanionStats.json").write_text(json.dumps({"companions": companions}), encoding="utf-8")
     args = request(path)
     with monkeypatch.context() as patch:
         patch.setattr(db, "_project_entity", lambda *a, **k: (_ for _ in ()).throw(OSError("synthetic projection failure")))
@@ -154,6 +157,8 @@ def test_real_ledger_projection_retry_does_not_duplicate_xp(target, monkeypatch)
     assert total == 12
     assert service.append(root, args, guarded=True)["xp_status"] == "complete"
     assert db.get_total_xp("keeper") == total
+    if companion:
+        assert db.get_total_xp("companion:" + companion) == 12
     assert "12 XP" in (root / "Keeper/XP.md").read_text(encoding="utf-8-sig")
     assert path.read_text(encoding="utf-8").count("- [x]") == 1
 

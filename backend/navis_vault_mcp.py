@@ -69,7 +69,8 @@ def _result(data):
 
 def _error(code):
     return _result({"status": "error", "error": {"code": code, "retryable": code in {
-        "vault_unavailable", "source_unreadable", "source_changed", "deadline_exceeded"}}})
+        "vault_unavailable", "source_unreadable", "source_changed", "deadline_exceeded",
+        "append_outcome_unknown_retry_same_request"}}})
 
 
 APPEND_SCHEMA = {

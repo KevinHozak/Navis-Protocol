@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 from services.combat_completion import atomic_bytes, atomic_json, battle_lock
-from services.vault_access import VaultPolicy, VaultAccessError, _snapshot, _no_links, _note_lines, _headings, MAX_FILE_BYTES
+from services.vault_access import VaultPolicy, VaultAccessError, _snapshot, _no_links, _note_lines, _headings, _parts, _path_input, MAX_FILE_BYTES
 
 HEADINGS = {
     "sanctum": "## 🏰 The Sanctum", "domestic": "## 🏠 The Domestic Breach",
@@ -124,7 +124,7 @@ def _sync(root, day, content):
     stats = json.loads((root / "Bridge/CompanionStats.json").read_text(encoding="utf-8-sig"))
     names = set(stats.get("companions", {})) | {m.get("name") for m in status.get("squad", []) if isinstance(m, dict)}
     for name in names:
-        if not isinstance(name, str) or not re.fullmatch(r"[\w -]{1,100}", name) or name.strip() != name:
+        if not isinstance(name, str) or len(_parts(_path_input(name))) != 1:
             raise ValueError("Unsafe XP recipient")
         for path in (root / "Companions" / name, root / "Companions" / name / "XP.md", root / "Companions" / name / "Profile.md"):
             if path.exists() or path.is_symlink():
