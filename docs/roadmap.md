@@ -74,4 +74,4 @@ These retain the original product direction without treating an existing compone
 
 Use issue acceptance criteria and the linked evidence records to select follow-up work. Recheck issue state before starting: merged implementation and unfinished manual verification can coexist.
 
-S015 integrated verification is in progress: real browser trust journeys exposed unavailable-status and startup-receipt gaps. See the [current matrix](trust-journey-verification.md); E002 remains open while retained runtime gates are incomplete.
+S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.

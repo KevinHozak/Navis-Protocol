@@ -1,10 +1,10 @@
-ï»¿---
+﻿---
 depends_on: []
 id: "NAVIS-E002"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "in_progress"
+status: "done"
 title: "Make Navis trustworthy at a glance"
 type: "epic"
 ---
@@ -25,9 +25,9 @@ Use disposable fixtures and sanitized evidence. Do not mutate personal Vault rec
 ## Acceptance criteria
 
 - [x] Audit identifies existing coverage, confirmed defects, proposals and unverified runtime gaps separately, with prioritized evidence and affected journeys.
-- [ ] Only confirmed gaps receive repairs, with disposition of already-satisfied or overlapping candidates.
-- [ ] Relevant checks and representative web and packaged-desktop journeys establish trustworthy freshness, data states, persistence, evidence navigation and partial-failure recovery without logs; any unavailable runtime checks remain explicit blockers.
-- [ ] All retained child acceptance and verification evidence is reconciled before completion; creating records does not complete the epic.
+- [x] Only confirmed gaps receive repairs, with disposition of already-satisfied or overlapping candidates.
+- [x] Relevant checks and representative web and packaged-desktop journeys establish trustworthy freshness, data states, persistence, evidence navigation and partial-failure recovery without logs; any unavailable runtime checks remain explicit blockers.
+- [x] All retained child acceptance and verification evidence is reconciled before completion; creating records does not complete the epic.
 
 ## Stories
 
@@ -55,3 +55,15 @@ S012 is accepted after PR #20 merged at `3751f2c` and its packaged 1.11.23 fixtu
 clean-machine installation, personal Drive races and dependency limits stay open.
 
 S015 is running integrated trust journeys and repairing confirmed status-source/receipt gaps; see the [integrated matrix](../docs/trust-journey-verification.md). Remaining affected acceptance blocks epic completion.
+
+
+## Post-S015 reassessment - 2026-10-27
+
+PR #22 merged at 32cd24b6e0e7797e4e47b9869123177349ab4a7d. S009-S015 are done and the issue runner reports 7/7 accepted direct children, no incomplete children and no unresolved dependencies. Confirmed gaps were repaired by PRs #17-#22 and retained representative web/packaged journeys passed. The user accepted clean-machine installation and physical Drive/production integration as untested limits; these are explicit exceptions to earlier unavailable-runtime blockers, not passing checks. Independent external review remains unavailable; final primary-agent review found no actionable findings.
+
+No retained implementation or child acceptance remains. This epic is eligible for formal closeout under the accepted limits; its status remains in_progress because the current request closes S015 and asks for this reassessment. No new repair story is warranted by an accepted unknown alone. Historical open-gate statements above are superseded by this checkpoint.
+
+
+## Epic closeout - 2026-10-27
+
+The user requested formal closeout after accepting the documented limits. E002 is done: all seven direct children (S009-S015) have completed retained acceptance, and PRs #16-#22 delivered the audit, repairs and integrated verification. PR #22 merged at 32cd24b6e0e7797e4e47b9869123177349ab4a7d. No retained implementation or child acceptance remains. Clean-machine installation and physical Drive/production integration remain accepted untested limits; independent external review remains unavailable. This closeout supersedes earlier in-progress checkpoints without claiming those limits passed.

@@ -4,7 +4,7 @@ id: "NAVIS-S015"
 parent: ["NAVIS-E002"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Verify trust journeys across web and packaged desktop"
 type: "enhancement"
 ---
@@ -21,9 +21,9 @@ Integrated audit matrix and retained repair stories; packaged runtime evidence a
 ## Acceptance criteria
 
 - [x] Reconcile audit findings and repair dispositions; select representative retained freshness/data-state, journal/task save, Holocron evidence and partial-sync journeys.
-- [ ] Demonstrate that the user can recognize stale/unavailable data, verify a saved change, inspect source support and understand failure/recovery without logs.
-- [ ] Record relevant automated results and separate web and packaged-desktop manual observations, with build/version and fixture details; source tests alone cannot pass packaged acceptance.
-- [ ] Verify no duplicate writes/awards, false-zero displays or false completion under selected failure cases. Any unavailable runtime or unresolved confirmed defect remains explicit and blocks affected acceptance.
+- [x] Demonstrate that the user can recognize stale/unavailable data, verify a saved change, inspect source support and understand failure/recovery without logs.
+- [x] Record relevant automated results and separate web and packaged-desktop manual observations, with build/version and fixture details; source tests alone cannot pass packaged acceptance.
+- [x] Verify no duplicate writes/awards, false-zero displays or false completion under selected failure cases. Any unavailable runtime or unresolved confirmed defect remains explicit and blocks affected acceptance.
 - [x] Retain sanitized evidence and update existing relevant verification documentation; do not create a second issue index or imply production Vault migration was exercised.
 
 ## Scope and verification
@@ -80,3 +80,8 @@ Independent external review remains unavailable. Current application source is
 unchanged from the verified release. S015 is in review; readiness does not close
 this story or E002, and merge remains a separate action. This disposition
 supersedes earlier draft/blocker statements above.
+
+
+## Delivered closeout - 2026-10-27
+
+PR #22 merged at 32cd24b6e0e7797e4e47b9869123177349ab4a7d and local main was fast-forwarded to that merge. The final review found no actionable issues; current-head CI passed before merge. Selected web and packaged journeys pass with sanitized evidence. Clean-machine installation and physical Drive/production integration coverage are user-accepted untested limits; independent external review remains unavailable. No untested limit is relabelled as passed. All retained S015 acceptance is reconciled under that disposition. Historical in-review and draft statements above are superseded.
