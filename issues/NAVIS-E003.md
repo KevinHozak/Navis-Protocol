@@ -34,3 +34,14 @@ Use disposable Vault fixtures and sanitized evidence. Keep private note content 
 - [NAVIS-S019](NAVIS-S019.md): Expose date-bounded journal and mission retrieval
 - [NAVIS-S020](NAVIS-S020.md): Trial MCP retrieval against the existing Vault workflow
 - [NAVIS-S021](NAVIS-S021.md): Add guarded journal appends after a passing read-only trial
+
+## Real-Vault pilot checkpoint — 2026-10-27
+
+All six implementation stories are merged; S021 is now done following PR #12 (3a11dc064dcd81f8234d2c03f34486e0239166f1). The requested real-Vault read-only pilot configured navis_vault_readonly in the installed Codex client and verified MCP 0.4.0 using the persisted entry. See [pilot record](../docs/vault-mcp-real-pilot.md) and [sanitized results](../docs/trials/vault-mcp-real-pilot-2026-10-27.json).
+
+The scoped pilot indexed 45 real notes and independently verified 14 sources over three repetitions, including seven journal dates and one mission with related context. Scoped source hashes remained unchanged, only four read tools were available, and no model turn or Vault write was requested. An initial broad-policy inventory exceeded a 30-second deadline; the retained configuration covers the recent journal month, Documentation and one canonical mission directory. Four mission links remain explicitly unresolved. Human correction time, preference, interactive desktop setup and broader real-Vault performance remain unverified. The epic remains open pending acceptance reconciliation of these limits; personal writes remain disabled.
+
+
+## Broad coverage follow-up
+
+- [NAVIS-S025](NAVIS-S025.md): Remove serial Drive inventory bottlenecks and verify broader read-only MCP coverage. The retained configuration now covers 2,160 notes across Journal, Operations and Documentation with an explicit 60-second exhaustive-scan budget (ten-second default retained). The final pilot verified 19 sources, recent and archived journal ranges, and unchanged scoped source hashes. [Performance and pilot evidence](../docs/vault-mcp-inventory-performance.md). Human effort, interactive desktop use and simultaneous-client/physical Drive concurrency remain unverified; writes remain disabled.

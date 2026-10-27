@@ -220,6 +220,34 @@ def test_timeout_returns_error_and_server_stays_responsive(vault, monkeypatch):
     anyio.run(exercise)
 
 
+def test_exhaustive_scan_budget_does_not_extend_note_deadlines(vault, monkeypatch):
+    import anyio
+    from mcp import Client
+    import navis_vault_mcp as adapter
+
+    def scan(*args, **kwargs):
+        assert kwargs["deadline"] - time.monotonic() > 0.5
+        time.sleep(0.04)
+        return {"status": "ok", "data": {"matches": []}}
+
+    def note(*args, **kwargs):
+        time.sleep(0.04)
+        return {"status": "ok", "data": {}}
+
+    monkeypatch.setenv("NAVIS_MCP_SCAN_TIMEOUT_SECONDS", "1")
+    monkeypatch.setattr(adapter, "CALL_TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(adapter, "search_vault", scan)
+    monkeypatch.setattr(adapter, "read_note", note)
+
+    async def exercise():
+        async with Client(adapter.create_server(VaultPolicy.from_env(config(vault)))) as client:
+            assert not (await client.call_tool("search_vault", {"query": "fixture"})).is_error
+            result = await client.call_tool("read_note", {"path": "Documentation/fixture.md"})
+            assert result.is_error and result.structured_content["error"]["code"] == "deadline_exceeded"
+
+    anyio.run(exercise)
+
+
 class Wire:
     """Raw stdio peer with bounded waits; protocol stdout is parsed, never printed."""
     def __init__(self, env):

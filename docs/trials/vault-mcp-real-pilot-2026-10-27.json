@@ -1,0 +1,113 @@
+{
+  "stage": "pilot_complete",
+  "server_version": "0.4.0",
+  "codex_version": "codex-cli 0.164.0-alpha.11.1",
+  "connection_ms": 1923.1,
+  "indexed_notes": 45,
+  "unique_verified_sources": 14,
+  "unexpected_omissions": 0,
+  "source_verification": "direct raw-byte digests and physical excerpts",
+  "repetitions": [
+    {
+      "repetition": 1,
+      "search_ms": 1912.231,
+      "note_ms": 44.257,
+      "mission_ms": 975.119,
+      "journal_ms": 446.159,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    },
+    {
+      "repetition": 2,
+      "search_ms": 1605.519,
+      "note_ms": 41.591,
+      "mission_ms": 945.178,
+      "journal_ms": 431.082,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    },
+    {
+      "repetition": 3,
+      "search_ms": 1679.256,
+      "note_ms": 39.587,
+      "mission_ms": 910.58,
+      "journal_ms": 405.628,
+      "journals": 7,
+      "missing_dates": 0,
+      "search_matches": 5,
+      "related_notes": 1,
+      "unresolved_links": 4
+    }
+  ],
+  "vault_source_changes_observed": 0,
+  "persistent_configuration_preserved_by_probe": true,
+  "tools": [
+    "get_journal_range",
+    "get_mission",
+    "read_note",
+    "search_vault"
+  ],
+  "write_tools_available": false,
+  "model_turns": 0,
+  "human_correction_time": "not_measured",
+  "decision": "adopt_read_only_pilot",
+  "raw_note_text_logged": false,
+  "search_query_scope": "project documentation",
+  "journal_days": 7,
+  "rpc_methods": [
+    "initialize",
+    "mcpServer/tool/call",
+    "mcpServerStatus/list",
+    "thread/start"
+  ],
+  "client_exit_code": 0,
+  "setup": {
+    "stage": "prepared",
+    "notes": 45,
+    "source_bytes": 138052,
+    "inventory_ms": 1339.878,
+    "index_build_ms": 4037.833,
+    "index_bytes": 315392,
+    "missing_roots": [],
+    "indexed_notes": 45
+  },
+  "configured_scope": [
+    "Journal/2026/10",
+    "Documentation",
+    "one canonical mission directory (private name omitted)"
+  ],
+  "initial_full_scope_attempt": {
+    "scope": [
+      "Journal",
+      "Operations",
+      "Documentation"
+    ],
+    "result": "deadline_exceeded",
+    "inventory_deadline_seconds": 30,
+    "index_built": false
+  },
+  "configuration_recovery": {
+    "observed": "Codex CLI registration removed an existing node_repl args key",
+    "remedy": "Restored only the missing key from the private backup; unrelated configuration equality verified"
+  },
+  "limits": [
+    "Full-scope search inventory exceeded deadline; current pilot scope intentionally restricted",
+    "Four explicit mission links unresolved under current scope/content",
+    "Human correction time, preference and desktop composer interaction not measured",
+    "No model turn, personal write or Claude Desktop compatibility claim"
+  ],
+  "timings_ms": {
+    "search_ms": 1679.256,
+    "note_ms": 41.591,
+    "journal_ms": 431.082,
+    "mission_ms": 945.178
+  },
+  "date": "2026-10-27",
+  "source_commit": "3a11dc064dcd81f8234d2c03f34486e0239166f1"
+}

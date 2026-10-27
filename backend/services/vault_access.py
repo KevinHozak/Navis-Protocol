@@ -167,21 +167,34 @@ def _signature(info):
     return info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns
 
 
-def _snapshot(policy, raw):
+def _snapshot(policy, raw, *, opener=None):
     path = policy.resolve(raw)
     try:
         before = path.lstat()
         if before.st_size > MAX_FILE_BYTES:
             raise VaultAccessError("file_too_large")
-        with path.open("rb") as stream:
+        with (path.open("rb") if opener is None else opener(path)) as stream:
             opened = os.fstat(stream.fileno())
             if not stat.S_ISREG(opened.st_mode) or _signature(before) != _signature(opened):
                 raise VaultAccessError("source_changed")
-            data = stream.read(MAX_FILE_BYTES + 1)
+            if opener is None:
+                data = stream.read(MAX_FILE_BYTES + 1)
+            else:
+                # Raw Windows reads may be short. Consume the bounded source
+                # completely rather than treating a short read as EOF.
+                chunks, remaining = [], min(MAX_FILE_BYTES + 1, before.st_size + 1)
+                while remaining:
+                    chunk = stream.read(remaining)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                    remaining -= len(chunk)
+                data = b"".join(chunks)
             after = os.fstat(stream.fileno())
         policy.resolve(raw)  # Recheck root identity, links and policy after opening.
         final = path.lstat()
         if (_signature(before) != _signature(after) or _signature(after) != _signature(final)
+                or len(data) != final.st_size
                 or opened.st_ctime_ns != after.st_ctime_ns or before.st_ctime_ns != final.st_ctime_ns):
             raise VaultAccessError("source_changed")
         if len(data) > MAX_FILE_BYTES:

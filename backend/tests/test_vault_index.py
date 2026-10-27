@@ -6,6 +6,8 @@ import sqlite3
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
+import threading
 
 import pytest
 
@@ -159,14 +161,14 @@ def test_unreadable_nonmatching_source_is_not_no_matches_and_failed_build_retain
     policy, state, _ = indexed
     target = policy.root / "Journal" / "two.md"
     old = (Path(state) / "vault-index.db").read_bytes()
-    original = Path.open
+    original = index._open_probe
 
-    def denied(path, *args, **kwargs):
-        if path == target and args == ("rb",):
+    def denied(path):
+        if path == target:
             raise PermissionError("SYNTHETIC_PRIVATE_ERROR")
-        return original(path, *args, **kwargs)
+        return original(path)
 
-    monkeypatch.setattr(Path, "open", denied)
+    monkeypatch.setattr(index, "_open_probe", denied)
     assert code(lambda: search(indexed, "absent")) == "source_unreadable"
     assert code(lambda: index.rebuild_index(policy, state)) == "source_unreadable"
     assert (Path(state) / "vault-index.db").read_bytes() == old
@@ -298,6 +300,97 @@ def test_search_revalidates_after_query_even_without_matches(indexed, monkeypatc
 
     monkeypatch.setattr(index, "_inventory", changing)
     assert code(lambda: search(indexed, "no-match")) == "index_stale"
+
+
+def test_inventory_parallelizes_every_readability_probe_with_bounded_work(tmp_path, monkeypatch):
+    vault = tmp_path / "vault"
+    directory = vault / "Documentation"
+    directory.mkdir(parents=True)
+    for i in range(12):
+        (directory / f"note-{i}.md").write_text("fixture", encoding="utf-8")
+    policy = VaultPolicy.from_env(config(vault, NAVIS_MCP_ALLOWED_ROOTS='["Documentation"]'))
+    monkeypatch.setattr(index, "IO_WORKERS", 4)
+    original = index._open_probe
+    barrier, lock = threading.Barrier(4), threading.Lock()
+    active = peak = opened = 0
+
+    @contextmanager
+    def observed(path):
+        nonlocal active, peak, opened
+        with original(path) as stream:
+            if path.parent == directory:
+                with lock:
+                    active += 1
+                    opened += 1
+                    peak = max(peak, active)
+                try:
+                    barrier.wait(timeout=5)
+                    yield stream
+                finally:
+                    with lock:
+                        active -= 1
+            else:
+                yield stream
+
+    monkeypatch.setattr(index, "_open_probe", observed)
+    files, _ = index._inventory(policy, time.monotonic() + 10)
+    assert len(files) == opened == 12 and peak == 4
+    assert all(metadata == index._metadata((vault / relative).lstat()) for relative, metadata in files.items())
+
+
+def test_directory_replaced_during_probe_cannot_publish_a_generation(indexed, monkeypatch):
+    policy, state, _ = indexed
+    old = (Path(state) / "vault-index.db").read_bytes()
+    directory = policy.root / "Documentation"
+    replacement = policy.root / "replacement"
+    replacement.mkdir()
+    (replacement / "one.md").write_bytes((directory / "one.md").read_bytes())
+    original = index._probe_file
+    changed = False
+
+    def replace_directory(item):
+        nonlocal changed
+        result = original(item)
+        if item[0] == "Documentation/one.md" and not changed:
+            changed = True
+            directory.rename(policy.root / "old-documents")
+            replacement.rename(directory)
+        return result
+
+    monkeypatch.setattr(index, "_probe_file", replace_directory)
+    assert code(lambda: index.rebuild_index(policy, state)) == "source_changed"
+    assert (Path(state) / "vault-index.db").read_bytes() == old
+
+
+def test_file_replaced_after_readability_open_is_detected(indexed, monkeypatch):
+    policy, _, _ = indexed
+    target = policy.root / "Documentation/one.md"
+    original = index._open_probe
+
+    @contextmanager
+    def replace_after_open(path):
+        with original(path) as stream:
+            yield stream
+        if path == target:
+            target.rename(target.with_suffix(".old"))
+            target.write_bytes(b"new fixture")
+
+    monkeypatch.setattr(index, "_open_probe", replace_after_open)
+    assert code(lambda: index._inventory(policy, time.monotonic() + 10)) == "source_changed"
+
+
+def test_inflight_inventory_deadline_fails_without_caching_a_partial_result(indexed, monkeypatch):
+    policy, _, _ = indexed
+    original = index._probe_file
+
+    def slow(item):
+        time.sleep(0.04)
+        return original(item)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(index, "_probe_file", slow)
+        assert code(lambda: index._inventory(policy, time.monotonic() + 0.01)) == "deadline_exceeded"
+    assert len(index._inventory(policy, time.monotonic() + 10)[0]) == 2
 
 
 def test_cli_and_real_stdio_search_do_not_mutate_vault_or_index(indexed):
