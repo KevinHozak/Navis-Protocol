@@ -72,8 +72,8 @@ Inspected at base `bc391a48bd85dee91c939c664e4572c8cff21604`:
 
 ## Process lifecycle and configuration
 
-Proposed entrypoint: `backend/navis_vault_mcp.py`, using an absolute interpreter
-and script path in client configuration. This file does not exist yet. Each
+S017 entrypoint: `backend/navis_vault_mcp.py`, using an absolute interpreter
+and script path in client configuration. See the [operating guide](vault-mcp.md). Each
 client owns its stdio child. Closing stdin/disconnecting terminates it cleanly;
 reconnect starts a new child with freshly loaded configuration. Reserve stdout
 for MCP framing; diagnostics go to stderr. Do not launch background services or
@@ -86,6 +86,8 @@ install client configuration automatically.
   directories, defaulting to `Journal`, `Operations`, `Codex`, `Documentation`.
   Missing individual allowed directories are explicit coverage metadata. Add
   other knowledge areas only by deliberate local configuration, not discovery.
+- S017 adds `NAVIS_MCP_DENIED_PATHS`, a JSON array of relative subtree/file
+  exclusions, defaulting to empty; these override allowed roots.
 - Proposed `NAVIS_MCP_TIMEZONE` is an IANA timezone, explicitly set for the
   trial (America/Chicago). Invalid/missing configuration fails startup rather
   than silently taking the host timezone. Return it in journal responses.
@@ -154,7 +156,7 @@ with `matches: []`; unreadable coverage cannot produce that answer.
 | Tool | Inputs | Bounded output and behavior |
 | --- | --- | --- |
 | `search_vault` | `query` (1–512 characters), optional `root` within allowlist, `limit` (default 10, 1–20) | Literal keyword terms with quoted phrases; AND between terms, no raw SQL/FTS operators. At most 500 characters per snippet, with source line ranges. Return index generation/time and freshness coverage. No pagination in v1; `truncated` signals additional matches and caller may narrow the query. |
-| `read_note` | `path`, optional exact `section` heading text, `start_line` (default 1), `max_lines` (default 100, 1–200) | Lines from the live file. `start_line` always means a physical file line, including when section is set; intersect with the selected heading and its subtree. Repeated matching headings are an invalid argument requiring a line-based read; missing heading is `section_not_found`. Return `next_line` when limited by lines/bytes; never split a UTF-8 character. |
+| `read_note` | `path`, optional exact `section` heading text, `start_line` (default 1), `start_column` (default 0), `max_lines` (default 100, 1–200) | Lines from the live file. `start_line` always means a physical file line, including when section is set; intersect with the selected heading and its subtree. Repeated matching headings are an invalid argument requiring a line-based read; missing heading is `section_not_found`. Return continuation `start_line`/`start_column` when limited by lines/bytes; the zero-based character offset permits lossless continuation inside a long line. Never split a UTF-8 character. |
 | `get_journal_range` | inclusive `start_date`, `end_date` in strict YYYY-MM-DD, optional `section`, `max_chars_per_day` (default 4,000, 1–8,000) | At most 31 days, ordered oldest first, canonical paths only. Return configured timezone, each day's excerpt/provenance, explicit `missing_dates`, and per-day truncation. Missing dates are legitimate only after readable root/Journal checks. Global byte budget yields `next_date`; a truncated day can be resumed through `read_note`. No creation, rollover, sync or XP. |
 | `get_mission` | exact `name` or canonical `path` (exactly one), optional `region` and `mission_type` (Main/Side) with name, `related_limit` (default 3, 0–5) | Read matching `Mission.md` under Operations; include Main and Side. Multiple name matches return `ambiguous_mission` with bounded allowed relative candidates (maximum 20, explicit truncation). Mission excerpt at most 8,000 characters; related notes at most 2,000 each. Only explicit internal Markdown/wiki links resolved by the same policy; no recursive graph expansion. Ambiguous links are reported unresolved; excluded links disclose no target. |
 

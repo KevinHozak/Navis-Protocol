@@ -1,5 +1,6 @@
 # Install into an isolated test venv; runtime dependencies used by main.py
 # are included explicitly because requirements.txt does not cover all imports.
+-r requirements-mcp.txt
 pytest>=8,<10
 ruff==0.4.5
 fastapi>=0.115,<1

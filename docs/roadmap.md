@@ -22,8 +22,9 @@ Reconciled against merged `origin/main` at `fd3efb4` on 2026-10-02. **Implemente
 
 Navis-Vault MCP ([NAVIS-E003](../issues/NAVIS-E003.md)): the S016
 [access contract](vault-mcp-contract.md) selects a standalone stdio adapter and
-defines bounded retrieval, provenance and access policy. Server implementation
-(S017), retrieval (S018–S019), client/adoption trial (S020) and gated journal
+defines bounded retrieval, provenance and access policy. S017 implements the
+[stdio server and read boundary](vault-mcp.md), verified with disposable fixtures.
+Search/retrieval (S018–S019), client/adoption trial (S020) and gated journal
 appends (S021) remain open. No client connection or personal-data write capability
 is certified by the design record.
 

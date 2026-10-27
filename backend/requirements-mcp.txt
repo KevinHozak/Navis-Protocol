@@ -1,0 +1,3 @@
+# Standalone adapter environment; do not install over the portal environment.
+mcp==2.3.0
+tzdata==2026.5
