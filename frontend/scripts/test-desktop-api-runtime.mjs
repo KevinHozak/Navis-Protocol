@@ -17,7 +17,7 @@ async function runtime({ native = false, hostname = 'example.invalid', invoke, f
   };
   const context = vm.createContext({
     process: { env: { NEXT_PUBLIC_API_URL: 'https://fixture.invalid' } },
-    window, navigator: { userAgent: 'Windows' }, Error, DOMException, Event, Headers,
+    window, navigator: { userAgent: 'Windows' }, Error, DOMException, Event, Headers, URLSearchParams,
     fetch: fetch || ((...args) => { throw new Error(`Unexpected HTTP call: ${args[0]}`); }),
   });
   const module = new vm.SourceTextModule(source, {
@@ -206,6 +206,22 @@ test('sync and rollover return native job envelopes and publish progression refr
     { command: 'start_sync_operation', args: { operation: 'rollover' } },
   ]);
   assert.equal(events.length, 2);
+});
+
+test('native sync preserves request identity on retry and status/review remain separate', async () => {
+  const { api, calls } = await runtime({ native: true, invoke: () => ({ job_id: 'same-request' }) });
+  await api.apiFetch('/api/sync?run_async=true&request_id=same-request', { method: 'POST' });
+  await api.apiFetch('/api/sync?run_async=true&request_id=same-request', { method: 'POST' });
+  await api.apiFetch('/api/ops/jobs/same-request');
+  await api.apiFetch('/api/ops/jobs/same-request/review', { method: 'POST' });
+  assert.deepEqual(calls.slice(0, 2), [
+    { command: 'start_sync_operation', args: { operation: 'sync', requestId: 'same-request' } },
+    { command: 'start_sync_operation', args: { operation: 'sync', requestId: 'same-request' } },
+  ]);
+  assert.deepEqual(calls.slice(2).map(call => [call.command, call.args.path, call.args.method]), [
+    ['vault_request', '/api/ops/jobs/same-request', 'GET'],
+    ['vault_request', '/api/ops/jobs/same-request/review', 'POST'],
+  ]);
 });
 
 test('hosted polish fails before transport; desktop polish preserves entry and section', async () => {

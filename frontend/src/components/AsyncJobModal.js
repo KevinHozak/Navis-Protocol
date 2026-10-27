@@ -2,23 +2,38 @@
 import { useState, useEffect, useRef } from 'react';
 import { apiFetch, cancelSyncOperation, isTauriRuntime, listenNativeEvent, OPERATION_EVENT } from '../lib/desktopApi';
 
-export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRetry }) {
+export default function AsyncJobModal({ jobId, title, onClose, onComplete, operation }) {
+  const structuredOperation = operation === 'sync' || operation === 'rollover';
   const [jobStatus, setJobStatus] = useState('running');
   const [outputLog, setOutputLog] = useState('Initializing connection...');
   const [waitingForNativeEvents, setWaitingForNativeEvents] = useState(false);
+  const [outcome, setOutcome] = useState(null);
+  const [reviewing, setReviewing] = useState(false);
+  const [reviewError, setReviewError] = useState('');
   const [retryToken, setRetryToken] = useState(0);
   const scrollRef = useRef(null);
   const statusRef = useRef('running');
+  const outcomeRef = useRef(null);
+  const completeRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     let isMounted = true;
     let timeoutId;
     let unlisten;
+    let attempts = 0;
 
     const applyStatus = (data) => {
       if (!isMounted || (data.job_id && data.job_id !== jobId)) return;
       setWaitingForNativeEvents(false);
-      const status = data.status || 'running';
+      // Durable step reports take precedence over coarse native process events.
+      if (Array.isArray(data.steps)) {
+        outcomeRef.current = data;
+        setOutcome(data);
+      }
+      const durable = outcomeRef.current;
+      const status = durable && (durable.status !== 'running' || durable.record_job_id !== jobId) ? durable.status : (data.status || 'running');
       statusRef.current = status;
       setJobStatus(status);
       if (data.output) {
@@ -31,34 +46,49 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRet
           return `${prev}\n${data.message}`;
         });
       }
-      if (status === 'completed') {
+      if (status === 'completed' && (!durable || !durable.record_job_id || durable.record_job_id === jobId)
+          && (!isTauriRuntime() || !structuredOperation || Array.isArray(data.steps))) {
         window.dispatchEvent(new Event('navis:progression-changed'));
-        if (onComplete) onComplete(data);
+        if (completeRef.current !== jobId) {
+          completeRef.current = jobId;
+          onCompleteRef.current?.(data);
+        }
       }
     };
 
     const pollStatus = async () => {
-      if (!isMounted || statusRef.current !== 'running') return;
+      if (!isMounted) return;
+      attempts++;
       try {
-        const res = await apiFetch(`/api/ops/jobs/${jobId}`);
-        if (res.ok) applyStatus(await res.json());
+        const target = outcomeRef.current?.record_job_id || jobId;
+        const res = await apiFetch(`/api/ops/jobs/${target}`);
+        const value = res.ok ? await res.json() : null;
+        if (structuredOperation && (!value || (!value.steps && value.status === 'failed'))) {
+          const latest = await apiFetch('/api/ops/latest');
+          if (!latest.ok) throw new Error('Saved operation status unavailable');
+          const previous = await latest.json();
+          applyStatus({ ...previous, record_job_id: previous.job_id, job_id: jobId });
+        }
+        else if (res.ok) applyStatus(Array.isArray(value.steps) ? { ...value, record_job_id: value.job_id, job_id: jobId } : value);
         else if (!isTauriRuntime()) throw new Error('Failed to fetch job status');
+        else if (attempts >= 5 && !outcomeRef.current) throw new Error('Saved operation status unavailable');
       } catch (err) {
         if (!isMounted) return;
-        if (!isTauriRuntime()) {
-          statusRef.current = 'failed';
-          setJobStatus('failed');
+        if (!isTauriRuntime() || attempts >= 5) {
+          statusRef.current = 'unavailable';
+          setJobStatus('unavailable');
           setOutputLog(prev => `${prev}\n\n[POLLING ERROR] ${err.message}`);
           return;
         }
         setWaitingForNativeEvents(true);
       }
-      if (isMounted && statusRef.current === 'running') timeoutId = setTimeout(pollStatus, 2000);
+      if (isMounted && (statusRef.current === 'running' || (isTauriRuntime() && structuredOperation && !outcomeRef.current && attempts < 5))) timeoutId = setTimeout(pollStatus, 2000);
     };
 
     const setup = async () => {
       if (isTauriRuntime()) {
-        unlisten = await listenNativeEvent(OPERATION_EVENT, applyStatus);
+        try { unlisten = await listenNativeEvent(OPERATION_EVENT, applyStatus); }
+        catch { setWaitingForNativeEvents(true); }
       }
       pollStatus();
     };
@@ -69,7 +99,7 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRet
       clearTimeout(timeoutId);
       if (unlisten) unlisten();
     };
-  }, [jobId, onComplete, retryToken]);
+  }, [jobId, retryToken, structuredOperation]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -78,20 +108,36 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRet
   const retry = () => {
     statusRef.current = 'running';
     setJobStatus('running');
-    setOutputLog('Retrying operation status connection...');
+    setOutputLog(prev => `${prev}\nReconnecting status...`);
     setWaitingForNativeEvents(false);
     setRetryToken(token => token + 1);
-    if (onRetry) onRetry();
+    // This reconnects reads only. Never replay possibly committed mutations.
   };
 
   const cancel = async () => {
-    if (!isTauriRuntime() || !jobId.startsWith('native-')) return;
+    if (!isTauriRuntime()) return;
     try {
-      await cancelSyncOperation(jobId);
+      await cancelSyncOperation(outcomeRef.current?.record_job_id || jobId);
       setOutputLog(prev => `${prev}\nCancellation requested...`);
     } catch (error) {
       setOutputLog(prev => `${prev}\nCancellation failed: ${error.message || error}`);
     }
+  };
+
+  const confirmReview = async () => {
+    if (reviewing || !window.confirm('Confirm you reviewed the saved changes. This will not repeat any steps.')) return;
+    setReviewing(true);
+    setReviewError('');
+    try {
+      const target = outcomeRef.current?.record_job_id || jobId;
+      const response = await apiFetch(`/api/ops/jobs/${target}/review`, { method: 'POST' });
+      if (!response.ok) throw new Error('Review could not be recorded. Reconnect status before trying again.');
+      const value = await response.json();
+      const reviewed = { ...value, record_job_id: value.job_id, job_id: jobId };
+      outcomeRef.current = reviewed;
+      setOutcome(reviewed);
+    } catch (error) { setReviewError(error.message || 'Review unavailable.'); }
+    finally { setReviewing(false); }
   };
 
   return (
@@ -106,9 +152,25 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRet
             {jobStatus === 'running' && <span className="text-accent text-[10px] uppercase tracking-widest animate-pulse">Running</span>}
             {jobStatus === 'completed' && <span className="text-green-400 text-[10px] uppercase tracking-widest font-bold">✔️ Completed</span>}
             {jobStatus === 'failed' && <span className="text-red-400 text-[10px] uppercase tracking-widest font-bold">❌ Failed</span>}
+            {jobStatus === 'partial' && <span role="status" className="text-amber-300 text-xs">Partially completed</span>}
+            {jobStatus === 'interrupted' && <span role="status" className="text-amber-300 text-xs">Interrupted — review saved changes</span>}
+            {jobStatus === 'cancelled' && <span role="status" className="text-amber-300 text-xs">Cancelled — changes may have saved</span>}
+            {jobStatus === 'unavailable' && <span role="alert" className="text-amber-300 text-xs">Status unavailable — saved changes unknown</span>}
           </div>
         </div>
         <div ref={scrollRef} className="bg-black/60 border border-white/5 p-4 rounded h-72 overflow-y-auto font-mono text-xs text-white/70 whitespace-pre-wrap leading-relaxed">{outputLog}</div>
+        {outcome?.steps && (
+          <section aria-label="Operation outcomes" className="space-y-2 text-xs">
+            {outcome.record_job_id && outcome.record_job_id !== jobId && <p className="text-amber-200">Showing the previous operation. This request did not start.</p>}
+            <ul className="space-y-1">
+              {outcome.steps.map((step, index) => <li key={`${step.id}-${index}`} className="flex justify-between gap-3">
+                <span>{step.label}</span><span>{step.status.replaceAll('_', ' ')}{step.persistence === 'confirmed' ? ' · saved' : ''}</span>
+              </li>)}
+            </ul>
+            {outcome.recovery === 'review_saved_changes' && <p role="alert" className="text-amber-200">{outcome.reviewed ? 'Review recorded. No steps were repeated.' : 'Changes may already be saved. Review the listed steps before starting another operation. No steps will be repeated automatically.'}</p>}
+            {reviewError && <p role="alert" className="text-red-300">{reviewError}</p>}
+          </section>
+        )}
         {waitingForNativeEvents && (
           <div role="status" aria-live="polite" className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-accent/70">
             <span className="relative flex h-2 w-2" aria-hidden="true">
@@ -122,8 +184,9 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, onRet
           </div>
         )}
         <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-          {jobStatus === 'failed' && <button onClick={retry} className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded text-white text-xs font-bold uppercase tracking-[0.2em]">Retry</button>}
-          {jobStatus !== 'running' ? <button onClick={onClose} className="px-6 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/40 rounded text-accent text-xs font-bold uppercase tracking-[0.2em]">Close Bridge</button> : jobId.startsWith('native-') ? <button onClick={cancel} className="px-6 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 rounded text-red-300 text-xs font-bold uppercase tracking-[0.2em]">Cancel operation</button> : <button disabled className="px-6 py-2 bg-white/5 border border-white/10 rounded text-white/30 text-xs font-bold uppercase tracking-[0.2em] cursor-not-allowed">Sequence Lock Active</button>}
+          {['failed', 'partial', 'interrupted', 'cancelled', 'unavailable'].includes(jobStatus) && <button onClick={retry} className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/20 rounded text-white text-xs font-bold uppercase tracking-[0.2em]">Reconnect status</button>}
+          {outcome?.recovery === 'review_saved_changes' && !outcome.reviewed && <button onClick={confirmReview} disabled={reviewing} className="px-4 py-2 bg-amber-500/10 border border-amber-400/30 rounded text-amber-200 text-xs">{reviewing ? 'Recording review...' : 'Confirm review'}</button>}
+          {jobStatus !== 'running' ? <button onClick={onClose} className="px-6 py-2 bg-accent/10 hover:bg-accent/20 border border-accent/40 rounded text-accent text-xs font-bold uppercase tracking-[0.2em]">Close Bridge</button> : isTauriRuntime() ? <button onClick={cancel} className="px-6 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/40 rounded text-red-300 text-xs font-bold uppercase tracking-[0.2em]">Cancel operation</button> : <button disabled className="px-6 py-2 bg-white/5 border border-white/10 rounded text-white/30 text-xs font-bold uppercase tracking-[0.2em] cursor-not-allowed">Sequence Lock Active</button>}
         </div>
       </div>
     </div>

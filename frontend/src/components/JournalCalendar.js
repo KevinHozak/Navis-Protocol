@@ -2,7 +2,7 @@
 
 import { journalDay } from "@/lib/journalDay";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncJobModal from './AsyncJobModal';
 import { apiFetch } from '@/lib/desktopApi';
 
@@ -51,6 +51,7 @@ function buildCalendarGrid(year, month) {
 const getLocalDateStr = journalDay;
 
 export default function JournalCalendar({ onDateSelect, selectedDate, onRolloverComplete }) {
+  const requestId = useRef(null);
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1); // 1-indexed
@@ -83,6 +84,7 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
       console.error("Failed to fetch new status after rollover:", e);
     } finally {
       setActiveJob(null);
+      requestId.current = null;
     }
   };
 
@@ -136,7 +138,8 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
 
     setIsRollingOver(true);
     try {
-      const res = await apiFetch(`/api/journal/rollover?run_async=true`, {
+      requestId.current ??= crypto.randomUUID();
+      const res = await apiFetch(`/api/journal/rollover?run_async=true&request_id=${requestId.current}`, {
         method: 'POST',
       });
       if (!res.ok) {
@@ -281,7 +284,8 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
         <AsyncJobModal 
           jobId={activeJob.id} 
           title={activeJob.title} 
-          onClose={() => setActiveJob(null)}
+          operation="rollover"
+          onClose={() => { setActiveJob(null); requestId.current = null; }}
           onComplete={completeRollover}
         />
       )}

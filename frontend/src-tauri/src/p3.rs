@@ -33,6 +33,10 @@ pub fn journal_entry_request(backend: &std::path::Path, body: Option<Value>) -> 
     python_mutation(backend, "/api/journal/entry", body, "native_journal_entry.py")
 }
 
+pub fn operation_status_request(backend: &std::path::Path, path: &str, method: &str) -> Result<ApiResponse, String> {
+    python_mutation(backend, path, Some(json!({"method": method})), "native_operation_status.py")
+}
+
 fn python_mutation(backend: &std::path::Path, path: &str, body: Option<Value>, script: &str) -> Result<ApiResponse, String> {
     let runtime = crate::command::resolve_python_runtime(backend, !cfg!(debug_assertions))?;
     let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
@@ -255,6 +259,30 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
 #[cfg(test)]
 mod tests {
     static ENV: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    #[test]
+    fn operation_status_and_review_use_durable_records_without_replay() {
+        let _guard = ENV.lock().unwrap();
+        let original = std::env::var_os("NAVIS_ROOT");
+        let root = std::env::temp_dir().join(format!("navis-outcome-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("Bridge/.navis_operations")).unwrap();
+        std::fs::create_dir_all(root.join("Journal")).unwrap();
+        std::env::set_var("NAVIS_ROOT", &root);
+        let backend = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+        let record = root.join("Bridge/.navis_operations/job.json");
+        std::fs::write(&record, r#"{"job_id":"job","operation":"sync","status":"partial","steps":[],"reviewed":false}"#).unwrap();
+        let first = super::operation_status_request(&backend, "/api/ops/jobs/job", "GET").unwrap();
+        assert_eq!(first.status, 200);
+        assert_eq!(first.body["status"], "partial");
+        let invalid = super::operation_status_request(&backend, "/api/ops/jobs/job/review", "GET").unwrap();
+        assert_eq!(invalid.status, 503);
+        let reviewed = super::operation_status_request(&backend, "/api/ops/jobs/job/review", "POST").unwrap();
+        assert_eq!(reviewed.body["reviewed"], true);
+        assert_eq!(reviewed.body["status"], "partial");
+        assert_eq!(std::fs::read_dir(root.join("Journal")).unwrap().count(), 0);
+        match original { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn journal_bridge_preserves_bytes_and_retries_pending_xp_without_http() {

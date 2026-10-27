@@ -22,6 +22,7 @@ const scripts = [
   'test-combat-synergies.mjs',
   'test-vault-change-event.mjs',
   'test-reactive-client-invalidation.mjs',
+  'test-operation-outcomes.cjs',
   'test-tasks-cockpit.mjs',
   'test-e2e-sector-boards.mjs',
   'test-constellation-talents.mjs',

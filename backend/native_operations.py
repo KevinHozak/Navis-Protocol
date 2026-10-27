@@ -80,7 +80,7 @@ def _failed_result_lines(result):
     return [
         line
         for line in result.splitlines()
-        if "❌" in line or line.strip().lower().startswith(failure_prefixes)
+        if "❌" in line or "⚠" in line or line.strip().lower().startswith(failure_prefixes)
     ]
 
 
@@ -134,50 +134,27 @@ def main(operation):
         emit("Native vault watcher stopped.")
         return 0
 
-    from services.sync_engine import execute_git_backup, run_midnight_rollover
+    from services.operation_outcomes import run_operation
+    import uuid
 
-    if operation == "sync":
-        emit("Initializing Synchronization Sequence...")
-        backup_result = execute_git_backup(log_callback=emit)
-        failures = _failed_result_lines(backup_result)
-        if failures:
-            raise RuntimeError("; ".join(failures))
-        if not os.path.isdir(vault_root / ".git") and os.environ.get("NAVIS_NATIVE_FIXTURE_MODE") != "1":
-            raise RuntimeError("Vault Git repository is unavailable; initialize or reconnect the Vault before sync.")
-        cache_path = os.path.join(
-            str(vault_root),
-            "Bridge",
-            ".navis_cache",
-            "sector_cache.json",
-        )
-        if os.path.exists(cache_path):
-            try:
-                os.remove(cache_path)
-            except OSError as error:
-                raise RuntimeError("sector cache invalidation failed") from error
-        emit("Synchronization sequence complete.")
-        return 0
-
-    if operation == "rollover":
-        emit("Starting Daily Rollover Sequence...")
-        # Keep the approved web workflow ordering: backup before rollover.
-        backup_result = execute_git_backup(log_callback=emit)
-        failures = _failed_result_lines(backup_result)
-        if failures:
-            raise RuntimeError("; ".join(failures))
-        if not os.path.isdir(vault_root / ".git") and os.environ.get("NAVIS_NATIVE_FIXTURE_MODE") != "1":
-            raise RuntimeError("Vault Git repository is unavailable; initialize or reconnect the Vault before rollover.")
-        emit("---")
-        emit("Running Daily Rollover...")
-        rollover_result = run_midnight_rollover(log_callback=emit)
-        failures = _failed_result_lines(rollover_result)
-        if failures:
-            raise RuntimeError("; ".join(failures))
-        emit("Daily rollover sequence complete.")
-    return 0
+    job_id = os.environ.get("NAVIS_OPERATION_ID") or "native-" + uuid.uuid4().hex
+    result = run_operation(vault_root, operation, job_id, log=emit)
+    emit("Operation completed." if result["status"] == "completed" else
+         "Operation incomplete. Review saved changes before starting another operation.")
+    return 0 if result["status"] == "completed" else 1
 
 
 if __name__ == "__main__":
+    if len(sys.argv) in (3, 4) and sys.argv[1] == "review":
+        from services.operation_outcomes import acknowledge, read_operation
+        if len(sys.argv) == 4 and sys.argv[3] != "--acknowledge":
+            raise SystemExit("usage: native_operations.py review JOB_ID [--acknowledge]")
+        try:
+            action = acknowledge if len(sys.argv) == 4 else read_operation
+            print(json.dumps(action(resolve_vault_root(), sys.argv[2])))
+        except Exception:
+            raise SystemExit("Operation review unavailable; no steps were repeated") from None
+        raise SystemExit(0)
     if len(sys.argv) != 2:
         raise SystemExit("usage: native_operations.py [sync|rollover|watch]")
     try:

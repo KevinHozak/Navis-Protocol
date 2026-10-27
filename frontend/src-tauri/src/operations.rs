@@ -23,10 +23,11 @@ pub struct SyncOperationState {
 impl SyncOperationState {
     fn register(&self, id: String) -> Result<Arc<AtomicBool>, String> {
         let cancel = Arc::new(AtomicBool::new(false));
-        self.jobs
-            .lock()
-            .map_err(|_| "operation state unavailable")?
-            .insert(id, cancel.clone());
+        let mut jobs = self.jobs.lock().map_err(|_| "operation state unavailable")?;
+        if !jobs.is_empty() {
+            return Err("an operation is already running".into());
+        }
+        jobs.insert(id, cancel.clone());
         Ok(cancel)
     }
 
@@ -387,6 +388,7 @@ pub fn start_sync_operation(
     app: AppHandle,
     state: State<'_, SyncOperationState>,
     operation: String,
+    request_id: Option<String>,
 ) -> Result<Value, String> {
     if !NATIVE_OPERATIONS.contains(&operation.as_str()) {
         return Err("unsupported native synchronization operation".into());
@@ -394,7 +396,7 @@ pub fn start_sync_operation(
     let backend = backend_root(&app)?;
     let vault_root = configured_vault_root()?;
     let runtime = crate::command::resolve_python_runtime(&backend, !cfg!(debug_assertions))?;
-    let job_id = format!(
+    let generated_id = format!(
         "native-{}-{}",
         operation,
         std::time::SystemTime::now()
@@ -402,6 +404,10 @@ pub fn start_sync_operation(
             .map_err(|error| error.to_string())?
             .as_nanos()
     );
+    let job_id = request_id.unwrap_or(generated_id);
+    if job_id.is_empty() || job_id.len() > 96 || !job_id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_') {
+        return Err("invalid operation identity".into());
+    }
     let cancel = state.register(job_id.clone())?;
     let state = state.inner().clone();
     let app2 = app.clone();
@@ -428,6 +434,7 @@ pub fn start_sync_operation(
             }
         }
         command
+            .env("NAVIS_OPERATION_ID", &job2)
             .env("NAVIS_ROOT", &vault_root)
             .env("PYTHONPATH", &backend)
             .env("PYTHONIOENCODING", "utf-8");
