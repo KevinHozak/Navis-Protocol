@@ -29,6 +29,10 @@ pub fn task_toggle_request(backend: &std::path::Path, body: Option<Value>) -> Re
     python_mutation(backend, "/api/tasks/toggle", body, "native_task_toggle.py")
 }
 
+pub fn journal_entry_request(backend: &std::path::Path, body: Option<Value>) -> Result<ApiResponse, String> {
+    python_mutation(backend, "/api/journal/entry", body, "native_journal_entry.py")
+}
+
 fn python_mutation(backend: &std::path::Path, path: &str, body: Option<Value>, script: &str) -> Result<ApiResponse, String> {
     let runtime = crate::command::resolve_python_runtime(backend, !cfg!(debug_assertions))?;
     let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
@@ -251,6 +255,31 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
 #[cfg(test)]
 mod tests {
     static ENV: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    #[test]
+    fn journal_bridge_preserves_bytes_and_retries_pending_xp_without_http() {
+        let _guard = ENV.lock().unwrap();
+        let original = std::env::var_os("NAVIS_ROOT");
+        let root = std::env::temp_dir().join(format!("navis-journal-{}-{}", std::process::id(),
+            super::SystemTime::now().duration_since(super::UNIX_EPOCH).unwrap().as_nanos()));
+        std::fs::create_dir_all(root.join("Journal/2026/10")).unwrap();
+        std::env::set_var("NAVIS_ROOT", &root);
+        let backend = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+        let journal = root.join("Journal/2026/10/2026-10-26.md");
+        std::fs::write(&journal, "## 🏰 The Sanctum\r\nOriginal 雪\r\n").unwrap();
+        let body = Some(serde_json::json!({"date":"2026-10-26", "section":"sanctum", "entry":"Fixture café"}));
+        let first = super::journal_entry_request(&backend, body.clone()).unwrap();
+        assert_eq!(first.status, 200);
+        assert_eq!(first.body["xp_status"], "pending");
+        let saved = std::fs::read(&journal).unwrap();
+        assert!(!saved.starts_with(&[0xef, 0xbb, 0xbf]));
+        assert!(String::from_utf8(saved.clone()).unwrap().contains("Original 雪\r\n\r\n- [x] Fixture café\r\n"));
+        let retry = super::journal_entry_request(&backend, body).unwrap();
+        assert_eq!(retry.body["replayed"], true);
+        assert_eq!(std::fs::read(&journal).unwrap(), saved);
+        match original { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn directive_bridge_retains_history_and_replays() {

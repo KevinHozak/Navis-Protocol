@@ -5,7 +5,6 @@ import asyncio
 import hmac
 import os
 import sys
-import tempfile
 
 
 def load_hermes_env():
@@ -32,7 +31,6 @@ from pydantic import BaseModel, Field, StrictBool, field_validator, model_valida
 from typing import List, Optional
 import re
 import glob
-from datetime import datetime
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from urllib.parse import quote
 from services.recurrence import calculate_next_due, journal_day, validate_date
@@ -671,6 +669,8 @@ class JournalEntryRequest(BaseModel):
     date: str
     section: str
     entry: str
+    request_id: str | None = None
+    expected_sha256: str | None = None
 
 
 JOURNAL_SECTION_HEADINGS = {
@@ -734,19 +734,8 @@ def format_polished_journal_entry(suggestion: str, entry: str, section: str) -> 
     return f"{emoji} {content}"
 
 
-def checked_journal_list_item(entry: str) -> str:
-    entry = entry.strip()
-    checklist_match = re.match(
-        r"^(?:[-*+][ \t]*)?\[(?: |/|x|X)\][ \t]*(.*)$",
-        entry,
-        flags=re.DOTALL,
-    )
-    if checklist_match:
-        text = checklist_match.group(1)
-    else:
-        bullet_match = re.match(r"^[-*+][ \t]+(.*)$", entry, flags=re.DOTALL)
-        text = bullet_match.group(1) if bullet_match else entry
-    return f"- [x] {text}"
+from services.journal_entry import checked_journal_list_item as checked_journal_list_item
+
 
 
 @app.post("/api/journal/entry/polish")
@@ -855,97 +844,16 @@ async def polish_journal_entry(req: JournalEntryPolishRequest):
 
 @app.post("/api/journal/entry")
 async def append_journal_entry(req: JournalEntryRequest):
+    from services.journal_entry import append, JournalError
+    from services.vault_access import VaultAccessError
     try:
-        parsed_date = datetime.strptime(req.date, "%Y-%m-%d").date()
-    except ValueError:
-        raise HTTPException(status_code=422, detail="Date must use YYYY-MM-DD format.")
-    if parsed_date.isoformat() != req.date:
-        raise HTTPException(status_code=422, detail="Date must use YYYY-MM-DD format.")
-
-    heading = JOURNAL_SECTION_HEADINGS.get(req.section)
-    if not heading:
-        raise HTTPException(status_code=422, detail="Choose a valid journal section.")
-    entry = req.entry.strip()
-    if not entry:
-        raise HTTPException(status_code=422, detail="Journal entry cannot be empty.")
-    if len(entry) > 10000:
-        raise HTTPException(status_code=422, detail="Journal entry must be 10,000 characters or fewer.")
-
-    relative_path = (
-        f"Journal/{parsed_date.year:04d}/{parsed_date.month:02d}/"
-        f"{parsed_date.isoformat()}.md"
-    )
-    full_path = resolve_vault_path(relative_path)
-    root_real = os.path.realpath(NAVIS_ROOT)
-    target_real = os.path.realpath(full_path)
-    if os.path.commonpath([root_real, target_real]) != root_real:
-        raise HTTPException(status_code=400, detail="Journal path must stay inside the Vault.")
-    if not os.path.isfile(full_path):
-        raise HTTPException(status_code=404, detail="The selected journal file does not exist.")
-
-    temporary_path = None
-    try:
-        with open(full_path, "r", encoding="utf-8-sig", newline="") as journal_file:
-            original = journal_file.read()
-
-        newline = "\r\n" if "\r\n" in original else "\n"
-        lines = original.splitlines(keepends=True)
-        section_start = None
-        offset = 0
-        insert_at = None
-        for index, line in enumerate(lines):
-            stripped = line.rstrip("\r\n").strip()
-            if section_start is None and stripped == heading:
-                section_start = index
-                insert_at = offset + len(line)
-                offset += len(line)
-                continue
-            if section_start is not None:
-                if stripped.startswith("## ") or stripped == "---":
-                    break
-                if stripped:
-                    insert_at = offset + len(line)
-            offset += len(line)
-
-        if section_start is None:
-            raise HTTPException(status_code=422, detail="The selected section is missing from this journal.")
-
-        # Insert after the last non-empty line in the selected section, keeping
-        # existing blank spacing and any following section/document separator.
-        insertion = max(insert_at or 0, sum(len(line) for line in lines[:section_start + 1]))
-        prefix = "" if insertion == 0 or original[:insertion].endswith(newline * 2) else newline
-        normalized_entry = checked_journal_list_item(entry)
-        normalized_entry = normalized_entry.replace("\r\n", "\n").replace("\r", "\n").replace("\n", newline)
-        updated = original[:insertion] + prefix + normalized_entry + newline + original[insertion:]
-
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8-sig",
-            newline="",
-            dir=os.path.dirname(full_path),
-            prefix=".journal-entry-",
-            suffix=".tmp",
-            delete=False,
-        ) as temp_file:
-            temporary_path = temp_file.name
-            temp_file.write(updated)
-            temp_file.flush()
-            os.fsync(temp_file.fileno())
-        os.replace(temporary_path, full_path)
-        temporary_path = None
-        return {
-            "status": "success",
-            "date": req.date,
-            "path": relative_path,
-            "content": updated,
-        }
-    except HTTPException:
-        raise
-    except Exception as error:
-        raise HTTPException(status_code=500, detail=f"Unable to save journal entry: {error}")
-    finally:
-        if temporary_path and os.path.exists(temporary_path):
-            os.unlink(temporary_path)
+        return await asyncio.to_thread(append, NAVIS_ROOT, req.model_dump(exclude_none=True))
+    except JournalError as error:
+        raise HTTPException(status_code=error.status, detail=error.code) from None
+    except VaultAccessError as error:
+        raise HTTPException(status_code=404 if error.code == "not_found" else 503, detail=error.code) from None
+    except (OSError, ValueError):
+        raise HTTPException(status_code=503, detail="append_outcome_unknown_retry_same_request") from None
 
 
 @app.post("/api/journal/rollover")

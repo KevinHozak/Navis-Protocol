@@ -4,7 +4,7 @@ id: "NAVIS-S021"
 parent: ["NAVIS-E003"]
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "in_review"
 title: "Add guarded journal appends after a passing read-only trial"
 type: "enhancement"
 ---
@@ -26,8 +26,18 @@ Parent: [NAVIS-E003](NAVIS-E003.md).
 
 ## Acceptance criteria
 
-- [ ] Proceed only after the trial records adoption and the journal mutation design reuses authoritative Navis services; otherwise retain this story open with an explicit scope decision.
-- [ ] Expose only an explicitly enabled append_journal_entry operation with validated date/section and existing-file-only behavior; generic overwrite, delete and periodic-note creation remain unavailable.
-- [ ] Preserve user content, UTF-8 BOM and line endings; detect conflicting edits, reject duplicate submissions and use atomic persistence with read-back verification.
-- [ ] Reuse required ledger/sync semantics without duplicate XP or a competing write authority; report partial persistence accurately and provide safe retry/recovery behavior.
-- [ ] Verify concurrent edits, retries, unavailable Drive, interrupted writes and encoding preservation in disposable fixtures before enabling writes on personal data.
+- [x] Proceed only after the trial records adoption and the journal mutation design reuses authoritative Navis services; otherwise retain this story open with an explicit scope decision.
+- [x] Expose only an explicitly enabled append_journal_entry operation with validated date/section and existing-file-only behavior; generic overwrite, delete and periodic-note creation remain unavailable.
+- [x] Preserve user content, UTF-8 BOM and line endings; detect conflicting edits, reject duplicate submissions and use atomic persistence with read-back verification.
+- [x] Reuse required ledger/sync semantics without duplicate XP or a competing write authority; report partial persistence accurately and provide safe retry/recovery behavior.
+- [x] Verify concurrent edits, retries, unavailable Drive, interrupted writes and encoding preservation in disposable fixtures before enabling writes on personal data.
+
+## Verification and delivery
+
+S020's adoption gate is recorded in docs/vault-mcp-trial-results.md and merged PR #11 (99266467f2c9c5927f2fafe19e7b8de8461808aa).
+
+Implemented one shared HTTP/desktop/MCP append service, disabled-by-default MCP opt-in, hash conflicts, durable intent/replay recovery, byte-preserving insertion and read-back, and canonical RPG/ledger reconciliation with explicit saved_xp_pending. See docs/vault-mcp-journal-appends.md for operation, recovery and noncooperating-writer limits. No personal-data enablement or installer deployment occurred.
+
+Verification: 188 affected Python tests passed, including real ledger projection failure/retry and real stdio writes on synthetic fixtures. All 71 native library tests passed with --test-threads=1; the parallel suite races on existing process-wide environment changes. Corrected an existing provider-redaction test fixture to establish War Room's required active squad while retaining its empty-squad 400 assertion. Frontend unit/regression suite, lint (existing warnings), backend Ruff and diff whitespace checks passed. Desktop version prepared as 1.11.18. Build and PR checks are recorded separately after completion; independent external review remains unavailable unless observed.
+
+Desktop frontend production build (npm --prefix frontend run build:desktop) passed. Source-level delivery audit found no remaining actionable findings. Personal Vault writes, packaged installer execution, real Drive synchronization races and independent external review were not exercised; writes remain opt-in and disabled in the delivered configuration.

@@ -786,136 +786,6 @@ fn journal_month(path: &str) -> Result<Value, String> {
     Ok(json!({"dates": dates}))
 }
 
-fn checked_journal_list_item(entry: &str) -> String {
-    let entry = entry.trim();
-    let checklist_prefixes = [
-        "- [ ] ", "- [/] ", "- [x] ", "- [X] ", "* [ ] ", "* [/] ", "* [x] ",
-        "* [X] ", "+ [ ] ", "+ [/] ", "+ [x] ", "+ [X] ", "[ ] ", "[/] ",
-        "[x] ", "[X] ", "- ", "* ", "+ ",
-    ];
-    let text = checklist_prefixes
-        .iter()
-        .find_map(|prefix| entry.strip_prefix(prefix))
-        .unwrap_or(entry);
-    format!("- [x] {text}")
-}
-
-fn append_journal_entry(body: &Value) -> Result<Value, String> {
-    let date = body
-        .get("date")
-        .and_then(Value::as_str)
-        .ok_or("date required")?;
-    let section = body
-        .get("section")
-        .and_then(Value::as_str)
-        .ok_or("section required")?;
-    let entry = body
-        .get("entry")
-        .and_then(Value::as_str)
-        .ok_or("entry required")?
-        .trim();
-    if entry.is_empty() {
-        return Err("Journal entry cannot be empty".into());
-    }
-    if entry.chars().count() > 10_000 {
-        return Err("Journal entry must be 10,000 characters or fewer".into());
-    }
-
-    let date_parts: Vec<_> = date.split('-').collect();
-    if date_parts.len() != 3
-        || date_parts[0].len() != 4
-        || date_parts[1].len() != 2
-        || date_parts[2].len() != 2
-        || !date.chars().enumerate().all(|(index, character)| {
-            if index == 4 || index == 7 {
-                character == '-'
-            } else {
-                character.is_ascii_digit()
-            }
-        })
-    {
-        return Err("Date must use YYYY-MM-DD format".into());
-    }
-    let year: i32 = date_parts[0].parse().map_err(|_| "Invalid journal date")?;
-    let month: u32 = date_parts[1].parse().map_err(|_| "Invalid journal date")?;
-    let day: u32 = date_parts[2].parse().map_err(|_| "Invalid journal date")?;
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-    if year == 0 {
-        return Err("Invalid journal date".into());
-    }
-    let month_days = match month {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 if leap => 29,
-        2 => 28,
-        _ => return Err("Invalid journal date".into()),
-    };
-    if day == 0 || day > month_days {
-        return Err("Invalid journal date".into());
-    }
-
-    let heading = match section {
-        "sanctum" => "## 🏰 The Sanctum",
-        "domestic" => "## 🏠 The Domestic Breach",
-        "front" => "## ⚔️ The High-Velocity Front",
-        "gauntlet" => "## ⚖️ The Bureaucratic Gauntlet",
-        "outland" => "## 🥾 The Kinetic Outland",
-        _ => return Err("Choose a valid journal section".into()),
-    };
-    let relative_path = format!("Journal/{year:04}/{month:02}/{date}.md");
-    let path = resolve_relative_path(&relative_path)?;
-    if !path.is_file() {
-        return Err("The selected journal file does not exist".into());
-    }
-
-    let original = text(&path)?;
-    let newline = if original.contains("\r\n") { "\r\n" } else { "\n" };
-    let mut offset = 0;
-    let mut section_start = None;
-    let mut insert_at = None;
-    let mut section_end = original.len();
-    for line in original.split_inclusive('\n') {
-        let stripped = line.trim_end_matches(['\r', '\n']).trim();
-        if section_start.is_none() && stripped == heading {
-            section_start = Some(offset);
-            insert_at = Some(offset + line.len());
-            offset += line.len();
-            continue;
-        }
-        if section_start.is_some() {
-            if stripped.starts_with("## ") || stripped == "---" {
-                section_end = offset;
-                break;
-            }
-            if !stripped.is_empty() {
-                insert_at = Some(offset + line.len());
-            }
-        }
-        offset += line.len();
-    }
-    let start = section_start.ok_or("The selected section is missing from this journal")?;
-    let insertion = insert_at.unwrap_or(start);
-    let insertion = insertion.min(section_end);
-    let prefix = if insertion == 0
-        || original[..insertion].ends_with(&format!("{newline}{newline}"))
-    {
-        String::new()
-    } else {
-        newline.to_string()
-    };
-    let normalized_entry = checked_journal_list_item(entry)
-        .replace("\r\n", "\n")
-        .replace('\r', "\n")
-        .replace('\n', newline);
-    let updated = format!(
-        "{}{}{}{}{}",
-        &original[..insertion], prefix, normalized_entry, newline, &original[insertion..]
-    );
-    atomic(&path, &updated)?;
-
-    Ok(json!({"status":"success","date":date,"path":relative_path,"content":updated}))
-}
-
 fn markdown_section(content: &str, heading: &str) -> Option<String> {
     let heading = heading.to_ascii_lowercase();
     let mut in_section = false;
@@ -2133,7 +2003,7 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
         ("GET", "/api/navigation") | ("GET", "/api/navigation/pillars") => navigation()?,
         ("GET", "/api/readiness") => read_json("Bridge/readiness.json", json!({}))?,
         ("GET", "/api/journal/month") => journal_month(path)?,
-        ("POST", "/api/journal/entry") => append_journal_entry(&body)?,
+        ("POST", "/api/journal/entry") => return Err("Journal appends require the canonical journal bridge".into()),
         ("GET", "/api/ops") => ops()?,
         ("GET", "/api/entities") => list_entities(&query(path, "sectorId").unwrap_or_default())?,
         ("GET", "/api/holocron/weekly/manifest") => holocron_manifest()?,
@@ -2647,89 +2517,8 @@ mod tests {
     }
 
     #[test]
-    fn journal_entry_route_appends_in_section_and_preserves_utf8_bom_and_crlf() {
-        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
-        let root = std::env::temp_dir().join(format!("navis-journal-entry-{}", std::process::id()));
-        let journal = root.join("Journal/2026/09");
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(&journal).expect("journal directory");
-        fs::write(
-            journal.join("2026-09-21.md"),
-            "\u{feff}# Journal\r\n\r\n## 🏰 The Sanctum\r\n- [ ] Existing item\r\n\r\n## 🏠 The Domestic Breach\r\n- [ ] House task\r\n",
-        )
-        .expect("journal fixture");
-        std::env::set_var("NAVIS_ROOT", &root);
-
-        let response = super::request(
-            "/api/journal/entry",
-            "POST",
-            Some(json!({
-                "date":"2026-09-21",
-                "section":"sanctum",
-                "entry":"Plain text from the UI"
-            })),
-        )
-        .expect("journal entry append");
-
-        let content = response.body["content"].as_str().expect("updated content");
-        assert!(content.contains("- [ ] Existing item\r\n\r\n- [x] Plain text from the UI\r\n"));
-        assert!(content.contains("## 🏠 The Domestic Breach\r\n- [ ] House task"));
-        assert_eq!(response.body["path"], "Journal/2026/09/2026-09-21.md");
-        let bytes = fs::read(journal.join("2026-09-21.md")).expect("saved journal");
-        assert!(bytes.starts_with(&[0xEF, 0xBB, 0xBF]));
-        assert!(bytes.windows(2).any(|window| window == b"\r\n"));
-
-        let _ = fs::remove_dir_all(&root);
-    }
-
-    #[test]
-    fn journal_entry_route_rejects_invalid_dates_and_missing_files() {
-        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
-        let root = std::env::temp_dir().join(format!("navis-journal-entry-invalid-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
-        fs::create_dir_all(&root).expect("vault fixture");
-        std::env::set_var("NAVIS_ROOT", &root);
-
-        let invalid_date = super::request(
-            "/api/journal/entry",
-            "POST",
-            Some(json!({"date":"2026-02-30","section":"sanctum","entry":"Entry"})),
-        );
-        assert!(invalid_date.is_err());
-
-        let missing_file = super::request(
-            "/api/journal/entry",
-            "POST",
-            Some(json!({"date":"2026-09-21","section":"sanctum","entry":"Entry"})),
-        );
-        assert!(missing_file.is_err());
-        assert!(!root.join("Journal/2026/09/2026-09-21.md").exists());
-
-        let _ = fs::remove_dir_all(&root);
-    }
-
-    #[test]
-    fn checked_journal_list_item_normalizes_plain_and_marked_entries() {
-        assert_eq!(
-            super::checked_journal_list_item("Plain journal text"),
-            "- [x] Plain journal text"
-        );
-        assert_eq!(
-            super::checked_journal_list_item("- [ ] Unchecked item"),
-            "- [x] Unchecked item"
-        );
-        assert_eq!(
-            super::checked_journal_list_item("- [x] Already checked"),
-            "- [x] Already checked"
-        );
-        assert_eq!(
-            super::checked_journal_list_item("* [/] In progress"),
-            "- [x] In progress"
-        );
-        assert_eq!(
-            super::checked_journal_list_item("- Existing list item"),
-            "- [x] Existing list item"
-        );
+    fn journal_append_cannot_bypass_canonical_bridge() {
+        assert!(super::request("/api/journal/entry", "POST", Some(json!({}))).is_err());
     }
 
     #[test]

@@ -1014,6 +1014,12 @@ mod tests {
             ("POST", "/api/neural/warroom/chat", json!({"message": "Hello War Room"})),
         ];
         for (method, path, body) in cases {
+            if path == "/api/neural/warroom/chat" {
+                // War Room validates its active squad before calling a provider.
+                let empty = request(path, method, Some(body.clone())).expect("empty squad validation");
+                assert_eq!(empty.status, 400);
+                std::fs::write(root.join("Bridge/status.json"), r#"{"squad":[{"name":"Fixture Companion"}],"current_realm":"Unknown"}"#).expect("valid squad fixture");
+            }
             let result = request(path, method, Some(body)).expect("route should be handled");
             assert_eq!(result.status, 503, "{method} {path}");
             assert_eq!(result.body["code"], "native_dependency_unavailable");

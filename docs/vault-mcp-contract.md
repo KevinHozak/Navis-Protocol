@@ -1,5 +1,11 @@
 # Navis-Vault MCP access contract
 
+S016 evaluation snapshot: descriptions of existing writers and the pending S021
+gate below are historical. S020 recorded controlled read-only adoption; S021's
+shared writer, opt-in behavior, verified scope and recovery limits are documented
+in [guarded journal appends](vault-mcp-journal-appends.md). Personal-data writes
+remain disabled in this delivery.
+
 Decision record for NAVIS-S016, 2026-10-26. This specifies the S017–S020
 implementation; it does not claim a running server or verified client connection.
 
