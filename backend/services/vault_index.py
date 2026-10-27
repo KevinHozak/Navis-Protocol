@@ -10,12 +10,11 @@ import sqlite3
 import stat
 import tempfile
 import time
-from urllib.parse import quote
 import uuid
 
 from services.vault_access import (
     MAX_DATA_BYTES, MAX_FILE_BYTES, VaultAccessError, _headings, _is_link,
-    _no_links, _note_lines, _parts, _signature, _snapshot, _under,
+    _no_links, _note_lines, _parts, _path_input, _signature, _snapshot, _under,
 )
 
 SCHEMA = 1
@@ -61,7 +60,7 @@ def _inventory(policy, deadline):
             _check(deadline)
             directory = pending.pop()
             relative = directory.relative_to(policy.root).as_posix()
-            parts = _parts(quote(relative, safe="/"))
+            parts = _parts(_path_input(relative))
             key = os.path.normcase(relative)
             if not policy.allows(parts) or key in visited:
                 continue
@@ -74,7 +73,7 @@ def _inventory(policy, deadline):
                     if entries > MAX_ENTRIES:
                         raise VaultAccessError("inventory_limit_exceeded")
                     rel = Path(entry.path).relative_to(policy.root).as_posix()
-                    raw = quote(rel, safe="/")
+                    raw = _path_input(rel)
                     try:
                         components = _parts(raw)
                     except VaultAccessError:
@@ -166,7 +165,7 @@ def rebuild_index(policy, state_directory, *, deadline=None):
             db.execute("CREATE VIRTUAL TABLE notes USING fts5(path UNINDEXED, content, tokenize='unicode61')")
             for relative, expected in sorted(files.items()):
                 _check(deadline)
-                _, text, digest, info = _snapshot(policy, quote(relative, safe="/"))
+                _, text, digest, info = _snapshot(policy, _path_input(relative))
                 if _metadata(info) != expected:
                     raise VaultAccessError("source_changed")
                 db.execute("INSERT INTO files VALUES (?, ?, ?, ?, ?, ?)", (relative, *expected, digest))
@@ -317,7 +316,7 @@ def search_vault(policy, state_directory, arguments, *, deadline=None):
                 if relative not in files:
                     raise VaultAccessError("index_unavailable")
                 try:
-                    _, text, digest, info = _snapshot(policy, quote(relative, safe="/"))
+                    _, text, digest, info = _snapshot(policy, _path_input(relative))
                 except VaultAccessError as error:
                     if error.code in {"source_changed", "not_found"}:
                         raise VaultAccessError("index_stale") from None

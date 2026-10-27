@@ -1,8 +1,8 @@
 # Standalone Vault MCP server
 
-S017–S018 implement a local **stdio** process, independent of Obsidian, FastAPI and
-the Tauri application. Advertised tools are `read_note` and `search_vault`.
-Journal and mission tools are S019. Client adoption is S020;
+S017–S019 implement a local **stdio** process, independent of Obsidian, FastAPI and
+the Tauri application. Advertised tools are `read_note`, `search_vault`,
+`get_journal_range` and `get_mission`. Client adoption is S020;
 no write tools are enabled. See the [access contract](vault-mcp-contract.md).
 
 ## Install and launch
@@ -87,6 +87,58 @@ personal Vault remains an S020 trial, not a performance claim here.
 
 ## Tool and results
 
+`get_journal_range` accepts inclusive `start_date`/`end_date` in strict
+YYYY-MM-DD format, optional exact `section`, and `max_chars_per_day` (default
+4,000, maximum 8,000). The range is at most 31 days. Dates resolve literally to
+`Journal/YYYY/MM/YYYY-MM-DD.md`; the configured timezone is returned without
+applying the recurring-task 03:00 cutoff or converting dates through host time.
+
+The response lists chronological `journals` with source metadata and per-note
+truncation/continuation, plus explicit `missing_dates`. The Journal directory
+must be readable; a missing year/month/day is ordinary absence, while denied,
+linked or unreadable paths remain errors. A missing selected section is
+`section_not_found`, not a missing day. No journal is created. When the aggregate
+byte budget fills, `continuation.next_date` identifies the first unprocessed
+date: start a new range there, retaining the original end date. Per-day content
+may also be truncated by the shared 200-line/byte limit; use that day's
+`read_note` continuation for the remaining content. Empty journals retain empty
+content with null source line ranges.
+
+`get_mission` accepts exactly one of `name` or canonical `path`. Name lookup
+uses exact directory names under
+`Operations/<region>/{Main,Side}/<name>/Mission.md`; optional exact `region` and
+`mission_type` narrow that lookup. Path lookup requires that canonical structure
+and cannot be combined with name/region/type. `related_limit` defaults to 3 and
+is bounded to 0–5. Names and regions are individual path components, not fuzzy
+searches. Both Main and Side missions are supported, without building the
+portal's sector cache.
+
+Multiple matching missions return MCP `isError` with `ambiguous_mission`, a
+bounded list of allowed relative `candidates` (maximum 20), and a candidate
+`truncated` flag. Nothing is selected automatically. No matching allowed mission
+is `not_found`. A missing/unreadable Operations area during name discovery is
+`source_unreadable`; a missing explicit mission path is `not_found`. Discovery
+is bounded by the shared deadline and 50,000 inspected directory entries.
+
+Mission responses include the selected mission's source excerpt (at most 8,000
+characters), source-linked `related` notes (at most 2,000 characters each),
+`unresolved_links` and `related_truncated`. All excerpts also retain shared
+line/byte limits and continuation metadata. Related context comes only from
+recognized Markdown links or Obsidian wiki links in the **returned mission
+excerpt**, excluding fenced/inline code. Anchors/aliases do not change the
+linked note read. Simple Markdown targets, including angle-bracket targets with
+spaces, are recognized; this is not a full CommonMark reference-link parser.
+
+Path links are checked relative to the mission folder and Vault root; different
+allowed matches are ambiguous. Bare note names are matched across a bounded,
+live allowed-file inventory without requiring an index. Ambiguous links are
+reported unresolved. Denied/missing/external links disclose no additional target
+in the unresolved metadata, only a recognized-link index and safe code. No
+external URL is fetched, and related notes' own links are never expanded. Duplicate
+and self links are not read twice. `related_truncated` reports omitted recognized
+links; a truncated mission excerpt may contain additional uninspected links.
+Setting `related_limit: 0` avoids related-note inventory/reads entirely.
+
 `search_vault` accepts `query` (1–512 characters), optional allowed relative
 `root`, and `limit` (default 10, maximum 20). Whitespace-separated keyword terms
 are ANDed; double quotes group a phrase. FTS5 unicode61 tokenization handles case
@@ -131,7 +183,7 @@ from tool errors. Unavailable Vaults are not reported as empty notes. Other
 errors include `not_found`, `source_unreadable`, `source_changed`,
 `unsupported_encoding`, `file_too_large`, `section_not_found`,
 `deadline_exceeded`, `inventory_limit_exceeded`, `index_unavailable`,
-`index_stale` and `internal_error`.
+`index_stale`, `ambiguous_mission` and `internal_error`.
 
 ## Access and process ownership
 
@@ -177,15 +229,24 @@ excluded text absence from SQLite, Unicode snippet budgets and real CLI/stdio
 searches. It also fixes plural credential/secret-name exclusions and preserves
 heading names such as C# and headings after fenced code.
 
+S019 adds fixture acceptance for inclusive month/year/leap-day ranges, maximum
+calendar dates, missing journals versus denied/unreadable paths, range byte
+pagination, source continuations, Main/Side missions, duplicate names, bounded
+ambiguous candidates, internal-only related notes, Unicode paths, no recursion
+and real stdio retrieval without an index. Fixture journals, XP-state sentinels
+and other existing Vault bytes remain unchanged. Internal path handling now
+protects literal percent escapes without inflating Unicode paths through URL
+encoding before applying character-count bounds.
+
 Run with the isolated interpreter:
 
 ```powershell
-& .tools/mcp-venv/Scripts/python.exe -m pytest backend/tests/test_vault_index.py backend/tests/test_vault_mcp.py backend/tests/test_task_toggle_safety.py backend/tests/test_journal_entry.py -q
+& .tools/mcp-venv/Scripts/python.exe -m pytest backend/tests/test_vault_retrieval.py backend/tests/test_vault_index.py backend/tests/test_vault_mcp.py backend/tests/test_task_toggle_safety.py backend/tests/test_journal_entry.py -q
 ```
 
 This verifies the server transport and shared HTTP behavior. It does not certify
 Codex or Claude Desktop configuration, personal Drive availability, cross-client
-adoption, real-Vault search quality or any write-integrity gate. Those remain S019–S021.
+adoption, real-Vault retrieval quality or any write-integrity gate. Those remain S020–S021.
 
 SDK references consulted with Firecrawl on 2026-10-26:
 [low-level server](https://py.sdk.modelcontextprotocol.io/advanced/low-level-server/),
