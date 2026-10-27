@@ -26,9 +26,11 @@ defines bounded retrieval, provenance and access policy. S017 implements the
 [stdio server and read boundary](vault-mcp.md), verified with disposable fixtures.
 S018 adds policy-scoped FTS5 search, explicit local rebuilds and checked freshness.
 S019 adds inclusive journal ranges and canonical mission retrieval with bounded
-internal-note context and ambiguity handling. Client/adoption trial (S020) and
-gated journal appends (S021) remain open. No client connection or personal-data write capability
-is certified by the design record.
+internal-note context and ambiguity handling. The S020
+[read-only trial](vault-mcp-trial-results.md) verifies the desktop-bundled Codex
+runtime on synthetic data and adopts a controlled pilot. Personal-Vault/UI setup
+and human usability remain unverified. Gated journal appends (S021) remain open;
+no write capability is enabled.
 
 These retain the original product direction without treating an existing component as completion of its entire initiative.
 

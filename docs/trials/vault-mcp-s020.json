@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "fixture_only": true,
+  "codex_version": "0.164.0-alpha.11.1",
+  "python_version": "3.14.8",
+  "sqlite_version": "3.50.4",
+  "platform": "win32",
+  "source_identity": [
+    {
+      "sha256": "7ebfe5f0c3ecc760db34113f1861cb59aac213499362929e2546492ffb3b8544",
+      "path": "backend/scripts/vault_mcp_trial.py"
+    },
+    {
+      "sha256": "e2a778477f3af354ff301947ed6d05fc298863b735e34e182e0fbaaf26b30af5",
+      "path": "backend/navis_vault_mcp.py"
+    },
+    {
+      "sha256": "2bc220ef8351b03a31a1f88191cec366c8a3a1aca6b02fe98e7700f0ce4bbd96",
+      "path": "backend/services/vault_access.py"
+    },
+    {
+      "sha256": "8776cf28a523aa53a10014c2f481eedd6bca3d9892d81d5936fb3bd804514977",
+      "path": "backend/services/vault_index.py"
+    },
+    {
+      "sha256": "77956fe321460fcfa67f720a06a5dd222246e28064cd56a57f2f6c18cc1a61a3",
+      "path": "backend/services/vault_retrieval.py"
+    },
+    {
+      "sha256": "161a61f4232612fa066c8ba192ffe8ddd5f756044bbcc6d91dd1295c702cc961",
+      "path": "backend/services/vault_paths.py"
+    },
+    {
+      "sha256": "cf398d1dfb3386d8949230f1775205fd556cffcaa7bce184b19bae68c1b33447",
+      "path": "backend/services/recurrence.py"
+    }
+  ],
+  "primary_runtime": {
+    "runtime_status": "connected",
+    "server_info": {
+      "name": "navis-vault",
+      "title": null,
+      "version": "0.3.0",
+      "description": null,
+      "icons": null,
+      "websiteUrl": null
+    },
+    "tools": [
+      "get_journal_range",
+      "get_mission",
+      "read_note",
+      "search_vault"
+    ]
+  },
+  "ephemeral_context_path_is_null": true,
+  "baseline": {
+    "samples_ms": [
+      98.831,
+      89.763,
+      88.511,
+      91.829,
+      89.991
+    ],
+    "median_ms": 89.991,
+    "p95_ms": 98.831
+  },
+  "codex_mcp": {
+    "samples_ms": [
+      439.669,
+      497.331,
+      524.515,
+      513.406,
+      506.678
+    ],
+    "median_ms": 506.678,
+    "p95_ms": 524.515
+  },
+  "index_build_ms": 357.248,
+  "client_connect_ms": 3327.289,
+  "correct_sources_per_repetition": 10,
+  "unexpected_omissions": 0,
+  "repetitions": 5,
+  "stale_rejected": true,
+  "scripted_recovery_ms": 597.045,
+  "recovery_operator_actions": 2,
+  "human_correction_time": null,
+  "integrity": "only deliberately changed decision differs",
+  "rpc_methods_used": [
+    "initialize",
+    "mcpServer/tool/call",
+    "mcpServerStatus/list",
+    "thread/start"
+  ],
+  "secondary_client": "Claude Desktop unverified; unsupported in this trial's adoption scope",
+  "desktop_ui": "not exercised; desktop-bundled app-server runtime is recorded separately",
+  "client_exit_code": 0,
+  "persistent_mcp_config_unchanged": true,
+  "gates": {
+    "primary_codex_runtime": true,
+    "source_correctness": true,
+    "zero_omissions": true,
+    "freshness": true,
+    "integrity": true,
+    "fixture_latency": true
+  },
+  "decision": "adopt_read_only_pilot",
+  "adoption_scope": "Verified desktop-bundled Codex app-server runtime on synthetic corpus; UI setup, human quality and personal-Vault scale unverified. No write enablement."
+}
