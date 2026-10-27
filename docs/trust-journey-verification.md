@@ -10,7 +10,7 @@ repairs and keeps unavailable runtime acceptance explicit.
 | T01/T02 Holocron facts and availability | S013, PR #18; S011, PR #19 | [Evidence](holocron-evidence.md), [availability](journal-availability.md). Earlier packaged source inspection, missing-source handling and exact source navigation passed. Real browser now confirms 2/2 checked items, unavailable readiness/combat/focus, and keyboard source navigation. |
 | T03/T04 wrong week and silent refresh failure | S010, PR #21 | [Freshness](refresh-freshness.md). Mounted race checks and packaged 1.11.24 failure/retry passed. New real browser status failure exposed S015-F01 below. |
 | T05 late journal save | S012, PR #20 | [Save contract](journal-save-verification.md). Packaged 1.11.23 source/XP recovery passed. New real browser uses a three-second post-commit response delay and proves B remains displayed while A's saved receipt arrives. |
-| T06/T07 operation outcomes and retry | S014, PR #17 | [Operations](sync-operation-outcomes.md). Packaged 1.11.20 actual partial pipeline, reconnect, restart, cancel and active-close passed. Physical web counterpart remains unrun. |
+| T06/T07 operation outcomes and retry | S014, PR #17 | [Operations](sync-operation-outcomes.md). Packaged 1.11.20 actual partial pipeline, reconnect, restart, cancel and active-close passed. Fresh physical web counterpart passed below; web exposes a running lock rather than cancellation. |
 
 ## New confirmed gaps and repairs
 
@@ -67,8 +67,8 @@ Prior packaged observations above keep their original build versions; they are
 not relabelled as 1.11.25 observations. Fresh runtime evidence is recorded in the
 [sanitized trial record](trials/s015-trust-journeys-2026-10-27.json).
 
-Remaining gates include physical web partial-sync/cancel/close and clean-machine
-installer execution. The fresh packaged delayed-response check below passed. This host does not provide
+The web partial-sync/dismissal/close gate now passes. Remaining gates include
+clean-machine installer execution. The fresh packaged delayed-response check below passed. This host does not provide
 an isolated clean Windows machine; no installer was run over the user's installed
 application. Physical Drive races and production integrations remain unexercised.
 Independent external review is unavailable. S015 and E002 must remain open until
@@ -122,3 +122,32 @@ the temporary IAB tab was also blocked by the confirmation tooling. S015/E002
 remain open and PR #22 remains draft. Clean-machine installer execution, physical
 Drive races, production integrations and independent external review retain
 their existing unavailable/unexercised dispositions. No production source changed.
+
+## Web confirmation resolution and completed checks
+
+The earlier browser-tool blocker is superseded by a fresh Edge InPrivate session
+using native window controls. The local fixture URL and real confirmation were
+visually verified. Cancel dismissed that confirmation with no sync POST or backup
+hook entry. No production confirmation code or automatic acceptance was added.
+
+One subsequent accepted Sync ran the real canonical pipeline against a new
+synthetic Vault and isolated Git directory. A fixture pre-commit hook held the
+backup step while the UI showed work completed/saved, XP completed, watch skipped
+and backup running. The web's disabled Sequence Lock Active control did not
+dismiss the operation when clicked; actual web cancellation is not offered.
+After releasing the hook to fail, the UI showed Partially completed, the failed
+backup and the warning to review saved changes before starting another operation.
+
+Reconnect status retained the same job and partial outcome. Close Bridge removed
+the modal. Readback before and after reconnect/close showed an unchanged journal
+hash and complete ledger, one merged work item, one 14-XP Keeper row, one backup
+hook entry, one operation receipt (plus its latest pointer) and one sync POST.
+The partial receipt remained unreviewed; closing did not acknowledge or replay it.
+The InPrivate window was closed and owned backend/Next fixture process trees
+were stopped, with no dedicated listeners remaining.
+
+This closes the selected web runtime gap without changing application source or
+rebuilding 1.11.25. Clean-machine installer execution remains unavailable; physical
+Drive races and production integrations remain unexercised, and independent
+external review remains unavailable. S015/E002 stay open and PR #22 stays draft
+pending retained acceptance or explicit disposition of those remaining limits.

@@ -51,4 +51,20 @@ writes. Do not infer whole-epic acceptance from the S014 subset.
 
 Real browser freshness/offline/reconnect, delayed journal-save navigation, keyboard saved-source/XP recovery, checkbox feedback and Holocron source inspection passed with isolated fixtures. Confirmed unavailable-status and false startup-catchup completion gaps and stale composer XP feedback are repaired with regression evidence. Prior packaged evidence keeps its original versions. Clean-machine installation and remaining physical runtime journeys are explicit blockers; this story is not complete.
 
-Final selected 1.11.25 packaged check passed XP recovery/message reconciliation with one entry, one 12-XP award and preserved journal bytes. 94 Python, 51 adapter/full frontend regression and 76 native unit/one parity checks passed. Fresh packaged delayed-navigation now passes: A completed before its response was held, B was visibly selected before release, and A receipt left B unchanged; one append/12-XP row and preserved BOM/CRLF were verified. Fresh web partial-sync/cancel/close remains blocked at the real confirmation by browser tooling; no sync POST occurred. Fixture process trees were cleaned up. Clean-machine installation remains incomplete. Keep the PR draft.
+Final selected 1.11.25 packaged check passed XP recovery/message reconciliation with one entry, one 12-XP award and preserved journal bytes. 94 Python, 51 adapter/full frontend regression and 76 native unit/one parity checks passed. Fresh packaged delayed-navigation now passes: A completed before its response was held, B was visibly selected before release, and A receipt left B unchanged; one append/12-XP row and preserved BOM/CRLF were verified. The earlier web confirmation blocker is superseded by the fresh passing checkpoint below. Fixture process trees were cleaned up. Clean-machine installation remains incomplete. Keep the PR draft.
+
+
+## Fresh web checkpoint
+
+The confirmation blocker was resolved with a fresh Edge InPrivate window and
+native controls; production confirmation behavior is unchanged. Real confirmation
+dismissal, running lock, partial-sync outcome, reconnect and Close Bridge passed
+on a fresh isolated synthetic Vault. One sync POST, one work merge, one 14-XP
+row and one backup-hook entry remained unchanged through reconnect and close.
+The partial receipt stayed unreviewed. The isolated browser window and owned
+fixture services were closed. Earlier blocked web attempts are superseded.
+
+Remaining: clean-machine installation, physical Drive races/production integration
+coverage and independent external review retain their documented limits. Keep
+S015 and E002 open and PR #22 draft until affected acceptance passes or is
+explicitly dispositioned. See the integrated report and sanitized JSON record.

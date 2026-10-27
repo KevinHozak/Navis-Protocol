@@ -47,7 +47,6 @@
   },
   "remaining": [
     "Selected final packaged 1.11.25 smoke and native checks passed; broader acceptance remains open",
-    "Physical web partial-sync/cancel/close blocked by browser confirmation control",
     "Clean-machine installer execution unavailable in current host",
     "Physical Drive races and production integrations not exercised",
     "Independent external review unavailable"
@@ -96,5 +95,25 @@
     "result": "blocked before sync submission",
     "observation": "Real sync confirmation opened. Dialog API returned undefined; documented CDP dialog handling timed out in focus setup. No POST /api/sync in backend log and no hook entry. No partial/cancel/close pass claimed.",
     "cleanup": "Owned backend and Next process trees stopped; dedicated listeners absent. Tab close also blocked by dialog tooling; agent-created IAB tab is temporary."
+  },
+  "web_confirmation_followup": {
+    "result": "passed",
+    "fixture": "fresh synthetic Vault, real FastAPI and Next renderer; lifespan disabled; dedicated loopback ports 18015/18016",
+    "browser": "fresh Edge InPrivate window, native coordinate controls after verifying local URL; no production confirmation change or injected auto-accept",
+    "source_version": "1.11.25 unchanged",
+    "confirmation_dismissal": "Cancel dismissed real browser dialog; no sync POST, operation or backup-hook entry before acceptance",
+    "running": "Work completed and saved, XP completed, watch skipped, backup running; disabled Sequence Lock Active remained open when clicked; no web cancellation offered",
+    "partial": "Real fixture git pre-commit hook failed after release; UI showed Partially completed, work saved, XP completed, backup failed and review-before-retry warning",
+    "reconnect": "Same job and partial result retained, no replay",
+    "close": "Close Bridge removed modal without replay; InPrivate window then closed",
+    "sync_posts": 1,
+    "operation_receipts": 1,
+    "hook_entries": 1,
+    "merged_work_item_count": 1,
+    "keeper_ledger_rows": 1,
+    "keeper_xp": 14,
+    "journal_hash_and_full_ledger_unchanged_after_reconnect_close": true,
+    "cleanup": "Owned fixture backend/Next trees stopped; dedicated listeners absent; isolated InPrivate window closed",
+    "limits": "No lifespan/watchers, provider integration, real Drive race or clean-machine install certification"
   }
 }
