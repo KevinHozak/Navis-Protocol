@@ -2163,13 +2163,8 @@ pub fn holocron_request(
     method: &str,
     body: Option<Value>,
 ) -> Result<ApiResponse, String> {
-    if method == "GET" && path != "/api/holocron/weekly/current" {
-        if let Ok(res) = request(path, method, body.clone()) {
-            if path != "/api/holocron/weekly/manifest" || res.body.as_array().map_or(false, |a| !a.is_empty()) {
-                return Ok(res);
-            }
-        }
-    }
+    // Revalidate sources in the shared engine, including for concluded cycles
+    // and HTML. Legacy cached telemetry cannot establish current evidence.
     python_holocron(backend, path, method, body)
 }
 
@@ -2243,6 +2238,31 @@ fn python_holocron(
 #[cfg(test)]
 mod tests {
     use std::fs;
+
+    #[test]
+    fn holocron_reads_revalidate_in_python_instead_of_trusting_cached_files() {
+        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let root = std::env::temp_dir().join(format!("navis-holocron-evidence-{}", uuid::Uuid::new_v4()));
+        let backend = root.join("backend");
+        fs::create_dir_all(&backend).unwrap();
+        fs::create_dir_all(root.join("Bridge/Holocron/Weekly")).unwrap();
+        fs::write(root.join("Bridge/Holocron/Weekly/2026-W40.json"), r#"{"legacy":true}"#).unwrap();
+        fs::write(root.join("Bridge/Holocron/Weekly/2026-W40.html"), "legacy HTML").unwrap();
+        fs::write(backend.join("native_holocron.py"), "import json,sys\nr=json.load(sys.stdin)\nprint(json.dumps({'status':200,'body':{'revalidated':r['path']}}))\n").unwrap();
+        let real_backend = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+        let runtime = crate::command::resolve_python_runtime(&real_backend, false).unwrap();
+        let old_root = std::env::var_os("NAVIS_ROOT");
+        let old_python = std::env::var_os("NAVIS_PYTHON");
+        std::env::set_var("NAVIS_ROOT", &root);
+        std::env::set_var("NAVIS_PYTHON", runtime);
+        for path in ["/api/holocron/weekly/2026-W40", "/api/holocron/weekly/2026-W40/html", "/api/holocron/weekly/2026-W40/evidence/journal-2026-09-28"] {
+            let result = super::holocron_request(&backend, path, "GET", None).unwrap();
+            assert_eq!(result.body["revalidated"], path);
+        }
+        match old_root { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        match old_python { Some(value) => std::env::set_var("NAVIS_PYTHON", value), None => std::env::remove_var("NAVIS_PYTHON") }
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[cfg(windows)]
     #[test]

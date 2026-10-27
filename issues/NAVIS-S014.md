@@ -4,7 +4,7 @@ id: "NAVIS-S014"
 parent: ["NAVIS-E002"]
 priority: "high"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Explain partial sync failures and offer safe recovery"
 type: "enhancement"
 ---
@@ -82,3 +82,9 @@ The watcher shutdown and Windows receipt-sharing defects exposed by smoke were
 fixed and verified. See [acceptance and retained limits](../docs/sync-operation-outcomes.md#packaged-fixture-acceptance---2026-10-27-11120).
 Status remains in_review pending PR #17 acceptance; clean-machine installation and
 production/Drive checks are retained under S015.
+
+## Accepted merge - 2026-10-27
+
+User-authorized PR #17 merged as `cf23ca7bac5daf657909d0cbddd2d9d8b1612d65`.
+Local main was fast-forwarded and verified clean at the same commit. The fixture
+acceptance above closes S014; the explicitly retained S015 limits still apply.

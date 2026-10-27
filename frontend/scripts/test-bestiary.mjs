@@ -21,6 +21,12 @@ const source = await readFile(new URL('../src/components/CodexBestiaryView.js', 
 const code = swc.transformSync(source, { filename: 'CodexBestiaryView.js', jsc: { parser: { syntax: 'ecmascript', jsx: true }, transform: { react: { runtime: 'classic' } } }, module: { type: 'es6' } }).code;
 const component = new vm.SourceTextModule(code, { context });
 const linker = async name => {
+  if (name === './HolocronEvidence') {
+    const evidenceSource = await readFile(new URL('../src/components/HolocronEvidence.js', import.meta.url), 'utf8');
+    const evidenceCode = swc.transformSync(evidenceSource, { filename: 'HolocronEvidence.js', jsc: { parser: { syntax: 'ecmascript', jsx: true }, transform: { react: { runtime: 'classic' } } }, module: { type: 'es6' } }).code;
+    const evidence = new vm.SourceTextModule(evidenceCode, { context });
+    await evidence.link(linker); return evidence;
+  }
   const values = name === 'react' ? { default: React, useState: React.useState, useRef: React.useRef, useEffect: React.useEffect }
     : name === 'framer-motion' ? { motion: { article: 'article', div: 'div' } }
       : { apiFetch: async path => {

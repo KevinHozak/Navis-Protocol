@@ -3,8 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { apiFetch } from '@/lib/desktopApi';
+import HolocronEvidence from './HolocronEvidence';
 
-export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
+const measured = (value, suffix = '') => value == null ? 'Unavailable' : `${value}${suffix}`;
+
+export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpenJournal }) {
   const [data, setData] = useState(null);
   const [manifest, setManifest] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState(activeWeekId || null);
@@ -150,7 +153,8 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
       setData(prev => ({
         ...prev,
         tactical_debrief: result.tactical_debrief,
-        debrief_source: result.debrief_source
+        debrief_source: result.debrief_source,
+        evidence: result.holocron?.evidence || prev.evidence
       }));
       setExportNotice(result.debrief_source === 'ollama' ? '✨ Tactical Sage debrief synthesized by Ollama!' : '⚠️ Ollama offline. Retained rule-based debrief.');
       setTimeout(() => setExportNotice(null), 4000);
@@ -291,35 +295,38 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
             {synthesizingAi ? '✨ Synthesizing...' : '✨ AI Tactical Debrief'}
           </button>
         </div>
+        <p className="text-xs text-zinc-400">{data.debrief_source === 'ollama' ? 'AI interpretation; not verified conclusions.' : 'Deterministic summary of observed inputs.'}</p>
         <p className="text-sm leading-relaxed text-zinc-200">
           {tactical_debrief}
         </p>
       </section>
 
+      <HolocronEvidence weekId={data.week_id} evidence={data.evidence} onOpenJournal={onOpenJournal} />
+
       {/* Headline Metric Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl space-y-1 shadow-lg">
           <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Precision Clearance</div>
-          <div className="text-3xl font-black text-cyan-400 tracking-tight">{summary.precision_rate}%</div>
-          <div className="text-xs text-zinc-400 font-mono">{summary.completed_tasks} / {summary.total_tasks} Mandates Cleared</div>
+          <div className="text-3xl font-black text-cyan-400 tracking-tight">{measured(summary.precision_rate, '%')}</div>
+          <div className="text-xs text-zinc-400 font-mono">{measured(summary.completed_tasks)} / {measured(summary.total_tasks)} Mandates Cleared</div>
         </div>
 
         <div className="p-5 rounded-xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl space-y-1 shadow-lg">
           <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Progression Yield</div>
-          <div className="text-3xl font-black text-purple-400 tracking-tight">+{summary.total_xp_gained?.toLocaleString()} <span className="text-sm font-normal">XP</span></div>
-          <div className="text-xs text-zinc-400 font-mono">Sovereign Level {summary.current_level}</div>
+          <div className="text-3xl font-black text-purple-400 tracking-tight">{summary.total_xp_gained == null ? 'Unavailable' : summary.total_xp_gained.toLocaleString()} <span className="text-sm font-normal">XP</span></div>
+          <div className="text-xs text-zinc-400 font-mono">Sovereign Level {measured(summary.current_level)}</div>
         </div>
 
         <div className="p-5 rounded-xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl space-y-1 shadow-lg">
           <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Threat Neutralization</div>
-          <div className="text-3xl font-black text-rose-400 tracking-tight">{summary.threats_neutralized} <span className="text-sm font-normal">Slayings</span></div>
-          <div className="text-xs text-zinc-400 font-mono">{summary.battles_fought} Battles Fought</div>
+          <div className="text-3xl font-black text-rose-400 tracking-tight">{measured(summary.threats_neutralized)} <span className="text-sm font-normal">Slayings</span></div>
+          <div className="text-xs text-zinc-400 font-mono">{measured(summary.battles_fought)} Battles Fought</div>
         </div>
 
         <div className="p-5 rounded-xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl space-y-1 shadow-lg">
           <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">System Readiness</div>
-          <div className="text-3xl font-black text-emerald-400 tracking-tight">{summary.avg_readiness}%</div>
-          <div className="text-xs text-zinc-400 font-mono">{summary.deep_work_hours} Hrs Deep Focus</div>
+          <div className="text-3xl font-black text-emerald-400 tracking-tight">{measured(summary.avg_readiness, '%')}</div>
+          <div className="text-xs text-zinc-400 font-mono">{measured(summary.deep_work_hours)} measured focus hours</div>
         </div>
       </section>
 
@@ -351,7 +358,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
                 return (
                   <div key={day.date} className={`flex-1 flex flex-col items-center justify-end h-full gap-2 ${isUpcoming ? 'opacity-40' : ''}`}>
                     <span className="text-[11px] font-mono text-zinc-300">
-                      {isUpcoming ? '—' : `${Math.round(day.precision)}%`}
+                      {isUpcoming ? '—' : measured(day.precision == null ? null : Math.round(day.precision), '%')}
                     </span>
                     <div className={`w-full max-w-[36px] bg-white/5 rounded-md h-full flex flex-col justify-end overflow-hidden border ${isActive ? 'border-cyan-400 shadow-[0_0_10px_rgba(0,212,255,0.35)]' : isUpcoming ? 'border-dashed border-white/10' : 'border-white/5'}`}>
                       <div
@@ -401,7 +408,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
 
         </div>
 
-        {/* Right Col: Threat Neutralization, Honors & Vanguard MVP */}
+        {/* Right Col: Threat Neutralization, Honors & Squad Mentions */}
         <div className="space-y-6">
 
           {/* Threat Neutralization */}
@@ -410,7 +417,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
               <h2 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
                 <span>👾</span> Threat Neutralization
               </h2>
-              <span className="text-xs font-mono text-rose-400">{combat.beasts_neutralized?.length || 0} Neutralized</span>
+              <span className="text-xs font-mono text-rose-400">{measured(combat.victories)} verified victories</span>
             </div>
 
             <div className="space-y-2.5">
@@ -423,23 +430,24 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
                     <button type="button" onClick={() => onOpenBestiary?.(beast.bestiary_name || beast.name)} className="text-xs font-bold text-amber-400 hover:underline" aria-label={`Open ${beast.name} in Bestiary`}>{beast.name} ↗</button>
                     <div className="text-[10px] font-mono text-zinc-400">{beast.category || 'Threat'} {'//'} {beast.difficulty || 'Elite'}</div>
                   </div>
-                  <span className="text-xs font-mono font-bold text-amber-400">+{beast.xp_awarded || 300} XP</span>
+                  <span className="text-xs font-mono font-bold text-amber-400">{measured(beast.xp_awarded)} XP</span>
                 </div>
               ))}
 
               {(!combat.beasts_neutralized || combat.beasts_neutralized.length === 0) && (
                 <div className="text-center py-6 text-xs text-zinc-500 font-mono uppercase tracking-widest">
-                  No critical adversaries logged.
+                  No verified victory records are aggregated.
                 </div>
               )}
+              {(combat.mentioned_beasts || []).map((beast, index) => <div key={`mention-${index}`} className="text-xs text-zinc-400">Journal mention: {beast.name} · outcome unverified</div>)}
             </div>
           </section>
 
-          {/* Honors & Vanguard MVP */}
+          {/* Honors & Squad Mentions */}
           <section className="p-6 rounded-xl border border-white/10 bg-zinc-950/60 backdrop-blur-xl space-y-4 shadow-xl">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <h2 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                <span>🏅</span> Honors & Vanguard MVP
+                <span>🏅</span> Honors & Squad Mentions
               </h2>
             </div>
 
@@ -460,10 +468,10 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary }) {
             {squad_mvp && (
               <div className="p-3.5 rounded-lg border border-cyan-400/30 bg-cyan-950/20 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] font-mono uppercase text-cyan-300 tracking-wider">Active Vanguard MVP</div>
+                  <div className="text-[10px] font-mono uppercase text-cyan-300 tracking-wider">Most journal mentions</div>
                   <div className="text-sm font-extrabold text-white">{squad_mvp.name} {'//'} {squad_mvp.role}</div>
                 </div>
-                <div className="text-xs font-mono font-bold text-cyan-400">{squad_mvp.deployments} Deployments</div>
+                <div className="text-xs font-mono font-bold text-cyan-400">{squad_mvp.deployments} Journal mentions</div>
               </div>
             )}
           </section>

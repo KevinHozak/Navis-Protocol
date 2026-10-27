@@ -29,3 +29,7 @@ backend/services/holocron_engine.py, Weekly Holocron UI/export and native bridge
 ## Evaluation, privacy and scope
 
 Follow the parent epic's evaluation record, privacy requirements and trial gates. This issue records planned work only. Conditional implementation requires separately selected work after passing evidence; no trial results are claimed.
+
+S013 implements the shared [evidence schema, panel and export contract](../docs/holocron-evidence.md)
+for factual trust corrections. Reuse that presentation after the S005 gate;
+S013 does not satisfy this issue's trial or decision-feature criteria.

@@ -298,7 +298,7 @@ def test_weekly_holocron_highlights_talent_contributions(tmp_path):
     conn = sqlite3.connect(db_path)
     conn.execute("""
         CREATE TABLE xp_ledger (
-            award_id TEXT PRIMARY KEY, local_date TEXT NOT NULL,
+            entity_id TEXT NOT NULL, award_id TEXT PRIMARY KEY, local_date TEXT NOT NULL,
             source_type TEXT NOT NULL, amount INTEGER NOT NULL,
             reason TEXT
         )
@@ -310,10 +310,10 @@ def test_weekly_holocron_highlights_talent_contributions(tmp_path):
         )
     """)
     # Add regular tasks, combat, and talent perk awards
-    conn.execute("INSERT INTO xp_ledger VALUES ('AW-1', '2026-09-28', 'task', 100, 'daily_tasks')")
-    conn.execute("INSERT INTO xp_ledger VALUES ('AW-2', '2026-09-29', 'combat_critical', 50, 'critical')")
-    conn.execute("INSERT INTO xp_ledger VALUES ('AW-3', '2026-09-30', 'talent_perk', 25, 'talent_perk:high_velocity_xp_bonus')")
-    conn.execute("INSERT INTO xp_ledger VALUES ('AW-4', '2026-10-01', 'talent_perk', 15, 'talent_perk:daily_outland_surge')")
+    conn.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-1', '2026-09-28', 'task', 100, 'daily_tasks')")
+    conn.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-2', '2026-09-29', 'combat_critical', 50, 'critical')")
+    conn.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-3', '2026-09-30', 'talent_perk', 25, 'talent_perk:high_velocity_xp_bonus')")
+    conn.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-4', '2026-10-01', 'talent_perk', 15, 'talent_perk:daily_outland_surge')")
     conn.commit()
     conn.close()
 
@@ -333,7 +333,7 @@ def test_weekly_holocron_highlights_talent_contributions(tmp_path):
     assert payload["progression"]["xp_breakdown"]["talents"] == 40
 
     # Verify tactical debrief highlights talent contributions
-    assert "Constellation perks amplified operational yields by +40 XP" in payload["tactical_debrief"]
+    assert "Recorded talent-perk contribution: 40 XP" in payload["tactical_debrief"]
 
     # Verify standalone HTML dashboard contains constellation yields chip
     html = export_standalone_html(payload)

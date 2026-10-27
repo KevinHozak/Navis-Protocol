@@ -50,6 +50,8 @@ def test_build_weekly_holocron_isolated(tmp_path):
     """Verify full aggregation pipeline with an isolated mock vault."""
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     
     # 1. Create Daily Journals
     jdir = vault / "Journal" / "2026" / "09"
@@ -81,6 +83,7 @@ def test_build_weekly_holocron_isolated(tmp_path):
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE xp_ledger (
+            entity_id TEXT NOT NULL,
             award_id TEXT PRIMARY KEY,
             local_date TEXT NOT NULL,
             source_type TEXT NOT NULL,
@@ -95,8 +98,8 @@ def test_build_weekly_holocron_isolated(tmp_path):
             date_achieved TEXT NOT NULL
         )
     """)
-    cur.execute("INSERT INTO xp_ledger VALUES ('AW-1', '2026-09-28', 'task', 300)")
-    cur.execute("INSERT INTO xp_ledger VALUES ('AW-2', '2026-09-28', 'combat', 500)")
+    cur.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-1', '2026-09-28', 'task', 300)")
+    cur.execute("INSERT INTO xp_ledger VALUES ('keeper', 'AW-2', '2026-09-28', 'combat', 500)")
     cur.execute("INSERT INTO achievements VALUES ('TEST_ACH', 'Test Honor', 'Achieved in test', '2026-09-28')")
     conn.commit()
     conn.close()
@@ -115,9 +118,10 @@ def test_build_weekly_holocron_isolated(tmp_path):
     assert payload["progression"]["xp_breakdown"]["tasks"] == 300
     assert payload["progression"]["xp_breakdown"]["combat"] == 500
     assert len(payload["progression"]["achievements_unlocked"]) == 1
-    assert payload["combat"]["beasts_neutralized"][0]["name"] == "Syntax Wyrm"
+    assert payload["combat"]["beasts_neutralized"] == []
+    assert payload["combat"]["mentioned_beasts"][0]["name"] == "Syntax Wyrm"
     assert payload["squad_mvp"]["name"] == "Lyra"
-    assert "Syntax Wyrm" in payload["tactical_debrief"]
+    assert "do not establish combat outcomes" in payload["tactical_debrief"]
 
     # Verify persistence
     saved_file = vault / "Bridge" / "Holocron" / "Weekly" / "2026-W40.json"
@@ -127,14 +131,16 @@ def test_build_weekly_holocron_isolated(tmp_path):
     assert manifest_file.exists()
     
     manifest = get_holocron_manifest(str(vault))
-    assert len(manifest) == 1
-    assert manifest[0]["week_id"] == "2026-W40"
+    assert any(item["week_id"] == "2026-W40" for item in manifest)
+    assert any(item["week_id"] == get_current_iso_week() and item["is_in_flight"] for item in manifest)
 
 
 def test_api_holocron_endpoints(monkeypatch, tmp_path):
     """Verify FastAPI Holocron endpoints return proper schema."""
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     
     # Pre-populate a synthetic week
     holocron_dir = vault / "Bridge" / "Holocron" / "Weekly"
@@ -172,14 +178,14 @@ def test_api_holocron_endpoints(monkeypatch, tmp_path):
     assert res.status_code == 200
     data = res.json()
     assert data["week_id"] == "2026-W40"
-    assert data["summary"]["precision_rate"] == 80.0
+    assert data["summary"]["precision_rate"] is None  # Legacy cache is not current evidence.
 
     # Test Manifest
     res = client.get("/api/holocron/weekly/manifest")
     assert res.status_code == 200
     manifest = res.json()
-    assert len(manifest) == 1
-    assert manifest[0]["week_id"] == "2026-W40"
+    assert any(item["week_id"] == "2026-W40" for item in manifest)
+    assert any(item["week_id"] == get_current_iso_week() and item["is_in_flight"] for item in manifest)
 
     # Test HTML Endpoint
     res = client.get("/api/holocron/weekly/2026-W40/html")
@@ -238,7 +244,11 @@ def test_startup_holocron_catchup(tmp_path):
     
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     # Run catchup when file does not exist
     msg = check_startup_holocron_catchup(str(vault))
     prev_week = get_previous_iso_week()
@@ -256,6 +266,8 @@ def test_wtd_in_flight_telemetry(tmp_path):
     """Verify in-flight Week-to-Date telemetry assigns day statuses and elapsed metrics."""
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     current_week = get_current_iso_week()
 
     payload = build_weekly_holocron(str(vault), week_id=current_week, force=True)
@@ -410,6 +422,8 @@ def test_api_current_and_ai_debrief(monkeypatch, tmp_path):
     """Verify GET /api/holocron/weekly/current and POST debrief/ai endpoints."""
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     monkeypatch.setattr("main.NAVIS_ROOT", str(vault))
 
     from services import ai_provider
@@ -443,6 +457,8 @@ def test_native_holocron_adapter(monkeypatch, tmp_path):
     """Verify native_holocron adapter dispatches correctly for desktop app."""
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
     monkeypatch.setenv("NAVIS_ROOT", str(vault))
 
     import native_holocron
@@ -483,6 +499,7 @@ def test_year_boundary_iso_week():
 def test_corrupted_manifest_recovery(tmp_path):
     """Verify corrupted weekly_manifest.json degrades gracefully without unhandled exceptions."""
     vault = tmp_path / "Navis-Vault"
+    (vault / "Journal").mkdir(parents=True)
     manifest_dir = vault / "Bridge" / "Holocron"
     manifest_dir.mkdir(parents=True)
     corrupted_file = manifest_dir / "weekly_manifest.json"
@@ -521,6 +538,8 @@ def test_native_holocron_cli_piping(tmp_path):
 
     vault = tmp_path / "Navis-Vault"
     vault.mkdir()
+    (vault / "Bridge").mkdir(exist_ok=True)
+    (vault / "Journal").mkdir(exist_ok=True)
 
     backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     script_path = os.path.join(backend_dir, "native_holocron.py")

@@ -1891,7 +1891,7 @@ dependencies = [
 
 [[package]]
 name = "navis-protocol"
-version = "1.11.20"
+version = "1.11.21"
 dependencies = [
  "base64 0.22.1",
  "chrono",

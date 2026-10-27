@@ -9,6 +9,11 @@ import os
 import re
 import json
 import sqlite3
+from html import escape
+import hashlib
+from pathlib import Path
+
+from services.holocron_evidence import journal_source, source_path, share_safe
 from datetime import date, datetime, timedelta, timezone
 from collections import Counter, defaultdict
 from typing import Dict, List, Optional, Any, Tuple
@@ -91,12 +96,12 @@ def find_journal_file(vault_root: str, date_str: str) -> Optional[str]:
     if len(parts) == 3:
         year, month, _ = parts
         candidate = os.path.join(vault_root, "Journal", year, month, f"{date_str}.md")
-        if os.path.isfile(candidate):
+        if source_path(vault_root, os.path.relpath(candidate, vault_root)) and os.path.isfile(candidate):
             return candidate
     
     # Flat journal fallback
     flat_candidate = os.path.join(vault_root, "Journal", f"{date_str}.md")
-    if os.path.isfile(flat_candidate):
+    if source_path(vault_root, os.path.relpath(flat_candidate, vault_root)) and os.path.isfile(flat_candidate):
         return flat_candidate
     
     return None
@@ -180,6 +185,8 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
     """Query Keeper/navis_progression.db for weekly XP breakdown and unlocked achievements."""
     db_path = os.path.join(vault_root, "Keeper", "navis_progression.db")
     result = {
+        "availability": "missing",
+        "fingerprint": None,
         "total_xp": 0,
         "xp_breakdown": {
             "tasks": 0,
@@ -196,21 +203,26 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
         }
     }
     
-    if not os.path.isfile(db_path):
+    if not source_path(vault_root, "Keeper/navis_progression.db") or not os.path.isfile(db_path):
         return result
         
+    conn = None
+    result["availability"] = "unavailable"
     try:
-        conn = sqlite3.connect(db_path, timeout=5)
+        conn = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True, timeout=5)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         
+        columns = [c[1] for c in cur.execute("PRAGMA table_info(xp_ledger)").fetchall()]
+        if "entity_id" not in columns:
+            raise sqlite3.DatabaseError("Unscoped legacy ledger")
+        entity_filter = " AND lower(entity_id) = 'keeper'"
         # XP Ledger aggregation
         cur.execute("""
             SELECT local_date, source_type, SUM(amount) as xp_sum
             FROM xp_ledger
             WHERE local_date >= ? AND local_date <= ?
-            GROUP BY local_date, source_type
-        """, (start_date, end_date))
+        """ + entity_filter + " GROUP BY local_date, source_type", (start_date, end_date))
         
         for row in cur.fetchall():
             ldate = row["local_date"]
@@ -231,6 +243,7 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
             else:
                 result["xp_breakdown"]["tasks"] += amount
 
+        result["availability"] = "available"
         # Query distinct talent perk contributions if table supports it
         try:
             columns = [c[1] for c in cur.execute("PRAGMA table_info(xp_ledger)").fetchall()]
@@ -240,8 +253,7 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
                     FROM xp_ledger
                     WHERE local_date >= ? AND local_date <= ?
                       AND (reason LIKE 'talent_perk:%' OR source_type = 'talent_perk')
-                    GROUP BY reason
-                """, (start_date, end_date))
+                """ + entity_filter + ' GROUP BY reason', (start_date, end_date))
                 perks_list = []
                 total_talent_sum = 0
                 for row in cur.fetchall():
@@ -263,6 +275,7 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
         except Exception:
             pass
 
+        result["fingerprint"] = hashlib.sha256(json.dumps({"total": result["total_xp"], "daily": result["daily_xp"], "breakdown": result["xp_breakdown"]}, sort_keys=True).encode()).hexdigest()
         # Achievements unlocked
         cur.execute("""
             SELECT code, name, description, date_achieved
@@ -285,6 +298,9 @@ def query_progression_telemetry(vault_root: str, start_date: str, end_date: str)
         # Graceful degradation if database is temporarily locked or tables differ
         pass
         
+    finally:
+        if conn is not None:
+            conn.close()
     return result
 
 
@@ -299,25 +315,10 @@ def synthesize_tactical_debrief(
     talent_bonus_xp: int = 0
 ) -> str:
     """Generate a crisp, narrative RPG tactical debrief for the Holocron."""
-    if precision_rate >= 85.0:
-        opener = f"A cycle of stellar operational precision across the {top_sector_name}."
-    elif precision_rate >= 70.0:
-        opener = f"Steady operational cadence maintained with strong focus anchored in {top_sector_name}."
-    else:
-        opener = f"Tactical friction and operational drift encountered; recovery efforts rallied in {top_sector_name}."
-
-    if threats_count > 0:
-        threat_note = f" Vanquished {threats_count} prime threats"
-        if top_beast:
-            threat_note += f", culminating in the neutralization of the {top_beast}"
-        threat_note += "."
-    else:
-        threat_note = " Defenses held with zero critical breaches."
-
-    xp_note = f" Secured +{total_xp:,} progression XP across {completed_tasks} completed mandates."
-    talent_note = f" Constellation perks amplified operational yields by +{talent_bonus_xp:,} XP." if talent_bonus_xp > 0 else ""
-
-    return f"{opener}{threat_note}{xp_note}{talent_note}"
+    precision = f"{precision_rate}% observed checklist completion" if precision_rate is not None else "Checklist completion unavailable"
+    xp = f"{total_xp:,} signed Keeper XP" if total_xp is not None else "Keeper XP unavailable"
+    talent = f" Recorded talent-perk contribution: {talent_bonus_xp:,} XP." if talent_bonus_xp else ""
+    return f"{precision}; {xp}. Journal threat mentions do not establish combat outcomes.{talent}"
 
 
 def build_weekly_holocron(
@@ -330,6 +331,7 @@ def build_weekly_holocron(
     Supports concluded weeks (persisted immutably) and live Week-to-Date in-flight cycles.
     """
     root = vault_root or NAVIS_ROOT
+    usable_root = all(source_path(root, part) and Path(root, part).is_dir() for part in ("Bridge", "Journal"))
     current_week = get_current_iso_week()
     target_week = week_id or get_previous_iso_week()
 
@@ -346,14 +348,9 @@ def build_weekly_holocron(
     holocron_dir = os.path.join(root, "Bridge", "Holocron", "Weekly")
     artifact_path = os.path.join(holocron_dir, f"{target_week}.json")
     
-    # Return cached artifact if already exists and force is False
-    if not force and os.path.isfile(artifact_path):
-        try:
-            with open(artifact_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-
+    # Re-read evidence on every request: deleted sources and legacy inferred caches
+    # must not be presented as current facts. Historical files remain untouched
+    # unless explicit regeneration is requested.
     start_date, end_date, date_list = get_week_date_range(target_week)
     
     # 1. Parse daily journal entries
@@ -365,12 +362,19 @@ def build_weekly_holocron(
     squad_deployments = Counter()
     manor_totals = Counter()
     days_elapsed = 0
+    sources = []
     
     day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     
     for i, date_str in enumerate(date_list):
-        jfile = find_journal_file(root, date_str)
+        source = journal_source(root, date_str)
+        sources.append(source)
+        jfile = find_journal_file(root, date_str) if source["status"] == "available" else None
         day_data = parse_daily_journal(jfile, date_str)
+        if jfile and journal_source(root, date_str).get("fingerprint") != source.get("fingerprint"):
+            source["status"] = "changed"
+            jfile = None
+            day_data = parse_daily_journal(None, date_str)
         day_name = day_names[i]
         
         if jfile:
@@ -405,7 +409,9 @@ def build_weekly_holocron(
             "completed": day_data["completed"],
             "pending": day_data["pending"],
             "total": day_data["total"],
-            "precision": day_data["precision"],
+            "precision": day_data["precision"] if jfile and day_data["total"] else None,
+            "source_status": source["status"],
+            "source_id": source["id"],
             "realm": day_data["realm"] or "Command Hub",
             "prime_beast": day_data["prime_beast"] or "None"
         })
@@ -418,7 +424,7 @@ def build_weekly_holocron(
     
     # Attach daily XP to daily records
     for record in daily_records:
-        record["xp"] = prog_data["daily_xp"].get(record["date"], 0)
+        record["xp"] = prog_data["daily_xp"].get(record["date"], 0) if prog_data["availability"] == "available" else None
 
     # 3. Compile Sector Manor distribution
     manor_order = ["HIGH_VELOCITY_FRONT", "SANCTUM", "DOMESTIC_BREACH", "BUREAUCRATIC_GAUNTLET", "KINETIC_OUTLAND"]
@@ -446,57 +452,26 @@ def build_weekly_holocron(
             "color": manor_def["color"]
         })
 
-    # 4. Resolve Sovereign Level from status.json if available
-    current_level = 1
-    level_progress_percent = 50.0
-    status_path = os.path.join(root, "Bridge", "status.json")
-    if os.path.isfile(status_path):
-        try:
-            with open(status_path, "r", encoding="utf-8-sig") as f:
-                sdata = json.load(f)
-                current_level = sdata.get("sovereign_level", sdata.get("level", 42))
-        except Exception:
-            pass
-
-    # 5. Combat summary
+    # These measures have no supported historical source in this aggregator.
+    current_level = None
+    level_progress_percent = None
     unique_beasts = list(dict.fromkeys(beasts_encountered))
     top_beast = unique_beasts[0] if unique_beasts else None
     beasts_neutralized = []
-    for b in unique_beasts:
-        beasts_neutralized.append({
-            "name": b,
-            "bestiary_name": b,
-            "category": "Adversary",
-            "difficulty": "Elite" if "Hydra" in b or "Chimera" in b else "Standard",
-            "xp_awarded": 300
-        })
-
-    # 6. Squad MVP
     squad_mvp = None
     if squad_deployments:
         top_member, dep_count = squad_deployments.most_common(1)[0]
-        squad_mvp = {
-            "name": top_member,
-            "role": "Vanguard",
-            "deployments": dep_count,
-            "avatar": f"/assets/companions/{top_member.lower()}.png"
-        }
-    else:
-        squad_mvp = {
-            "name": "Groza",
-            "role": "Tactical Command",
-            "deployments": 7,
-            "avatar": "/assets/companions/groza.png"
-        }
+        squad_mvp = {"name": top_member, "role": "Most journal mentions",
+                     "deployments": dep_count}
 
     talent_bonus_xp = prog_data.get("talent_telemetry", {}).get("total_bonus_xp", 0)
 
     # 7. Generate tactical debrief
     tactical_debrief = synthesize_tactical_debrief(
         week_id=target_week,
-        precision_rate=overall_precision,
+        precision_rate=overall_precision if logged_days and total_tasks else None,
         completed_tasks=total_completed,
-        total_xp=prog_data["total_xp"],
+        total_xp=prog_data["total_xp"] if prog_data["availability"] == "available" else None,
         threats_count=len(unique_beasts),
         top_sector_name=top_sector_name,
         top_beast=top_beast,
@@ -504,7 +479,7 @@ def build_weekly_holocron(
     )
 
     holocron_payload = {
-        "schema_version": "1.0.0",
+        "schema_version": "2.0.0",
         "week_id": target_week,
         "start_date": start_date,
         "end_date": end_date,
@@ -522,10 +497,10 @@ def build_weekly_holocron(
             "talent_bonus_xp": talent_bonus_xp,
             "current_level": current_level,
             "level_progress_percent": level_progress_percent,
-            "threats_neutralized": len(unique_beasts),
-            "battles_fought": len(unique_beasts),
-            "avg_readiness": 85.0,
-            "deep_work_hours": round(total_completed * 0.75, 1),
+            "threats_neutralized": None,
+            "battles_fought": None,
+            "avg_readiness": None,
+            "deep_work_hours": None,
             "is_in_flight": is_in_flight,
             "cycle_status": cycle_status,
             "days_elapsed": max(1, min(7, days_elapsed)) if is_in_flight else 7,
@@ -547,17 +522,64 @@ def build_weekly_holocron(
             "talent_telemetry": prog_data.get("talent_telemetry", {"total_bonus_xp": 0, "perks": []})
         },
         "combat": {
-            "battles_fought": len(unique_beasts),
-            "victories": len(unique_beasts),
-            "fled": 0,
-            "total_damage_dealt": total_completed * 350,
+            "battles_fought": None,
+            "victories": None,
+            "fled": None,
+            "total_damage_dealt": None,
+            "mentioned_beasts": [{"name": b} for b in unique_beasts],
             "beasts_neutralized": beasts_neutralized
         },
         "squad_mvp": squad_mvp
     }
 
+    summary = holocron_payload["summary"]
+    if not logged_days:
+        for key in ("total_tasks", "completed_tasks", "pending_tasks", "precision_rate"):
+            summary[key] = None
+    elif not total_tasks:
+        summary["precision_rate"] = None
+    if prog_data["availability"] != "available":
+        summary["total_xp_gained"] = None
+        summary["talent_bonus_xp"] = None
+        holocron_payload["progression"]["total_xp"] = None
+        holocron_payload["progression"]["xp_breakdown"] = None
+    journal_ids = [s["id"] for s in sources if s["status"] == "available"]
+    sources.append({"id": "keeper-ledger", "status": prog_data["availability"], "label": "Keeper XP ledger", "fingerprint": prog_data["fingerprint"]})
+    task_status = "available" if logged_days == 7 else "partial" if logged_days else "unavailable"
+    metrics = {
+        "precision_rate": {"status": task_status if total_tasks else "unavailable", "rule": "Checked items / all checklist items in readable journals; no items means unavailable.", "source_ids": journal_ids},
+        "total_xp_gained": {"status": prog_data["availability"], "rule": "Sum signed Keeper ledger amounts by local_date, inclusive; combat XP is not a victory count.", "source_ids": ["keeper-ledger"]},
+        "threats_neutralized": {"status": "unavailable", "rule": "Journal Prime Beast mentions do not prove victories.", "source_ids": []},
+        "avg_readiness": {"status": "unavailable", "rule": "No historical readiness measurements are aggregated.", "source_ids": []},
+        "deep_work_hours": {"status": "unavailable", "rule": "Checklist counts are not measured focus duration.", "source_ids": []},
+        "squad_mentions": {"status": task_status, "rule": "Count Active Squad journal mentions; not a performance ranking.", "source_ids": journal_ids},
+    }
+    holocron_payload["evidence"] = {"start_date": start_date, "end_date": end_date,
+        "logged_days": logged_days, "sources": sources, "metrics": metrics,
+        "interpretation": {"kind": "deterministic_summary", "source_ids": journal_ids + ["keeper-ledger"],
+                           "support": "References support input metrics only, not generated conclusions."}}
+    if not force and source_path(root, f"Bridge/Holocron/Weekly/{target_week}.json"):
+        try:
+            with open(artifact_path, encoding="utf-8-sig") as stream:
+                previous = json.load(stream)
+            if (previous.get("schema_version") == "2.0.0" and previous.get("summary") == summary
+                    and previous.get("evidence", {}).get("sources") == sources
+                    and previous.get("debrief_source") == "ollama"):
+                holocron_payload["tactical_debrief"] = previous["tactical_debrief"]
+                holocron_payload["debrief_source"] = "ollama"
+                holocron_payload["evidence"]["interpretation"]["kind"] = "ai_interpretation"
+        except (OSError, ValueError, KeyError):
+            pass
+    holocron_payload = share_safe(holocron_payload)
     # Persist artifact (JSON and Standalone HTML)
     try:
+        safe_outputs = all(source_path(root, relative) is not None for relative in (
+            f"Bridge/Holocron/Weekly/{target_week}.json",
+            f"Bridge/Holocron/Weekly/{target_week}.html",
+            "Bridge/Holocron/weekly_manifest.json",
+        ))
+        if not usable_root or not safe_outputs or (not force and os.path.exists(artifact_path)):
+            return holocron_payload
         os.makedirs(holocron_dir, exist_ok=True)
         with open(artifact_path, "w", encoding="utf-8") as f:
             json.dump(holocron_payload, f, indent=2, ensure_ascii=False)
@@ -573,6 +595,17 @@ def build_weekly_holocron(
 
 def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] = None) -> str:
     """Generate a self-contained, zero-dependency HTML dashboard for the Holocron."""
+    def escaped(value):
+        if isinstance(value, dict):
+            return {key: escaped(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [escaped(item) for item in value]
+        return escape(value, quote=True) if isinstance(value, str) else value
+
+    payload = escaped(share_safe(payload))
+    def display(value, suffix=""):
+        return "Unavailable" if value is None else f"{value}{suffix}"
+
     week_id = payload.get("week_id", "Unknown")
     summary = payload.get("summary", {})
     tactical_debrief = payload.get("tactical_debrief", "")
@@ -582,10 +615,16 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
     progression = payload.get("progression", {})
     mvp = payload.get("squad_mvp")
 
+    evidence = payload.get("evidence", {})
+    source_rows = "".join(f'<li id="source-{item["id"]}">{item.get("date", item.get("label", item["id"]))}: {item["status"]}</li>' for item in evidence.get("sources", []))
+    metric_rows = "".join(f'<details><summary>{key}: {item["status"]}</summary><p>{item["rule"]}</p>' +
+        " ".join(f'<a href="#source-{source_id}">{source_id}</a>' for source_id in item["source_ids"]) + '</details>' for key, item in evidence.get("metrics", {}).items())
+    evidence_html = f'<section class="panel"><h2>Evidence snapshot</h2><p>{payload.get("start_date")} to {payload.get("end_date")}; {evidence.get("logged_days", 0)} readable journal days. Source status at generation; local sources may change.</p>{metric_rows}<ul>{source_rows}</ul><p>References support metric inputs, not AI interpretations.</p></section>'
+
     # Build day chart HTML
     day_bars = []
     for day in daily:
-        prec = round(day.get("precision", 0))
+        prec = round(day.get("precision") or 0)
         status = day.get("day_status", "concluded")
         if status == "upcoming":
             h_pct = 8
@@ -596,13 +635,13 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
         elif status == "active":
             h_pct = max(10, min(100, prec))
             color = "#10b981" if prec >= 95 else ("#00d4ff" if prec >= 80 else ("#f59e0b" if prec >= 60 else "#ff4d4d"))
-            val_str = f"{prec}%"
+            val_str = display(day.get("precision"), "%")
             border = "border: 1px solid #00d4ff; box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);"
             opacity = "opacity: 1;"
         else:
             h_pct = max(10, min(100, prec))
             color = "#10b981" if prec >= 95 else ("#00d4ff" if prec >= 80 else ("#f59e0b" if prec >= 60 else "#ff4d4d"))
-            val_str = f"{prec}%"
+            val_str = display(day.get("precision"), "%")
             border = ""
             opacity = "opacity: 1;"
 
@@ -642,7 +681,7 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
               <span class="threat-name">{beast.get('name', 'Threat')}</span>
               <span class="threat-tag">{beast.get('category', 'Adversary')} // {beast.get('difficulty', 'Standard')}</span>
             </div>
-            <span class="threat-xp">+{beast.get('xp_awarded', 300)} XP</span>
+            <span class="threat-xp">+{display(beast.get('xp_awarded'))} XP</span>
           </div>""")
     if not threat_cards:
         threat_cards.append('<div style="text-align: center; padding: 1.5rem; color: #64748b; font-family: monospace; font-size: 0.75rem;">NO CRITICAL THREATS LOGGED</div>')
@@ -677,10 +716,10 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
         mvp_html = f"""
           <div style="margin-top: 0.75rem; background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.2); padding: 0.75rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
             <div>
-              <span style="font-size: 0.7rem; font-family: monospace; color: #00d4ff; text-transform: uppercase;">Active Vanguard MVP</span>
+              <span style="font-size: 0.7rem; font-family: monospace; color: #00d4ff; text-transform: uppercase;">Most journal mentions</span>
               <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">{mvp.get('name')} // {mvp.get('role', 'Vanguard')}</div>
             </div>
-            <span style="font-family: monospace; font-size: 0.85rem; color: #00d4ff; font-weight: 700;">{mvp.get('deployments', 0)} Deployments</span>
+            <span style="font-family: monospace; font-size: 0.85rem; color: #00d4ff; font-weight: 700;">{mvp.get('deployments', 0)} Journal mentions</span>
           </div>"""
 
     status_badge = '<span class="badge" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">⚡ LIVE WTD</span>' if payload.get("is_in_flight") else '<span class="badge" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); color: #94a3b8;">🔒 CONCLUDED</span>'
@@ -773,23 +812,23 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
     <section class="metrics-grid">
       <div class="metric-card">
         <span class="metric-label">Precision Clearance</span>
-        <div class="metric-value" style="color: var(--cyan);">{summary.get('precision_rate', 0)}%</div>
-        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{summary.get('completed_tasks', 0)} / {summary.get('total_tasks', 0)} Mandates Cleared</span>
+        <div class="metric-value" style="color: var(--cyan);">{display(summary.get('precision_rate'), '%')}</div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{display(summary.get('completed_tasks'))} / {display(summary.get('total_tasks'))} Mandates Cleared</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Progression Yield</span>
-        <div class="metric-value" style="color: var(--purple);">+{summary.get('total_xp_gained', 0):,} <span style="font-size: 1rem;">XP</span></div>
-        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">Sovereign Level {summary.get('current_level', 1)}</span>
+        <div class="metric-value" style="color: var(--purple);">+{summary.get('total_xp_gained') if summary.get('total_xp_gained') is not None else 'Unavailable'} <span style="font-size: 1rem;">XP</span></div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">Sovereign Level {display(summary.get('current_level'))}</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">Threats Neutralized</span>
-        <div class="metric-value" style="color: var(--crimson);">{summary.get('threats_neutralized', 0)}</div>
-        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{summary.get('battles_fought', 0)} Battles Engaged</span>
+        <div class="metric-value" style="color: var(--crimson);">{display(summary.get('threats_neutralized'))}</div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{display(summary.get('battles_fought'))} Battles Engaged</span>
       </div>
       <div class="metric-card">
         <span class="metric-label">System Readiness</span>
-        <div class="metric-value" style="color: var(--emerald);">{summary.get('avg_readiness', 0)}%</div>
-        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{summary.get('deep_work_hours', 0)} Hrs Deep Focus</span>
+        <div class="metric-value" style="color: var(--emerald);">{display(summary.get('avg_readiness'), '%')}</div>
+        <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">{display(summary.get('deep_work_hours'))} measured focus hours</span>
       </div>
     </section>
 
@@ -805,7 +844,7 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
         <section class="panel">
           <div class="panel-header">
             <span>🏰 Manor & Sector Labor Distribution</span>
-            <span style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem;">{summary.get('completed_tasks', 0)} Cleared</span>
+            <span style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.75rem;">{display(summary.get('completed_tasks'))} Cleared</span>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.9rem;">{sector_meters_html}</div>
         </section>
@@ -815,13 +854,13 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
         <section class="panel">
           <div class="panel-header">
             <span>👾 Threat Neutralization</span>
-            <span style="color: var(--crimson); font-family: var(--font-mono); font-size: 0.75rem;">{len(combat.get('beasts_neutralized', []))} Slayings</span>
+            <span style="color: var(--crimson); font-family: var(--font-mono); font-size: 0.75rem;">{display(combat.get('victories'))} verified victories</span>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.65rem;">{threat_cards_html}</div>
         </section>
         <section class="panel">
           <div class="panel-header">
-            <span>🏅 Honors & Vanguard MVP</span>
+            <span>🏅 Honors & Squad Mentions</span>
             <span style="color: var(--purple); font-family: var(--font-mono); font-size: 0.75rem;">Squad Status</span>
           </div>
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">{honors_html}</div>
@@ -830,6 +869,7 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
       </div>
     </div>
 
+    {evidence_html}
     <footer class="footer-meta">
       <span>BOUNDARY: 03:00 LOCAL // STANDALONE ARCHIVE</span>
       <span>CYCLE {week_id} // DEPLOYED</span>
@@ -848,6 +888,8 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
 
 def update_holocron_manifest(vault_root: str, latest_payload: Dict[str, Any]):
     """Update Bridge/Holocron/weekly_manifest.json with summary entries."""
+    if source_path(vault_root, "Bridge/Holocron/weekly_manifest.json") is None:
+        return
     manifest_path = os.path.join(vault_root, "Bridge", "Holocron", "weekly_manifest.json")
     manifest = []
     
@@ -891,6 +933,8 @@ def update_holocron_manifest(vault_root: str, latest_payload: Dict[str, Any]):
 def get_holocron_manifest(vault_root: Optional[str] = None, include_in_flight: bool = True) -> List[Dict[str, Any]]:
     """Retrieve the manifest list of generated weekly holocrons, including the active in-flight cycle."""
     root = vault_root or NAVIS_ROOT
+    if not Path(root, "Journal").is_dir():
+        return []
     manifest_path = os.path.join(root, "Bridge", "Holocron", "weekly_manifest.json")
     manifest = []
     if os.path.isfile(manifest_path):
@@ -931,10 +975,10 @@ def get_holocron_manifest(vault_root: Optional[str] = None, include_in_flight: b
                 "week_id": current_week,
                 "start_date": start_date,
                 "end_date": end_date,
-                "precision_rate": 0.0,
-                "total_xp": 0,
-                "completed_tasks": 0,
-                "threats_neutralized": 0,
+                "precision_rate": None,
+                "total_xp": None,
+                "completed_tasks": None,
+                "threats_neutralized": None,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "is_in_flight": True,
                 "status": "in_flight"
@@ -1019,7 +1063,7 @@ async def synthesize_ollama_debrief(holocron_payload: Dict[str, Any]) -> Tuple[s
     beasts_str = ", ".join(beasts) if beasts else "No prime adversaries logged"
 
     mvp = holocron_payload.get("squad_mvp") or {}
-    mvp_str = f"{mvp.get('name', 'Groza')} ({mvp.get('deployments', 0)} deployments)"
+    mvp_str = f"{mvp.get('name', 'Unavailable')} ({mvp.get('deployments', 0)} deployments)"
 
     cycle_desc = f"Cycle {week_id}"
     if is_in_flight:
@@ -1028,12 +1072,12 @@ async def synthesize_ollama_debrief(holocron_payload: Dict[str, Any]) -> Tuple[s
     prompt = (
         f"OPERATING TELEMETRY:\n"
         f"- Cycle: {cycle_desc}\n"
-        f"- Precision Clearance Rate: {summary.get('precision_rate', 0)}% "
-        f"({summary.get('completed_tasks', 0)} / {summary.get('total_tasks', 0)} mandates cleared)\n"
-        f"- Progression Yield: +{summary.get('total_xp_gained', 0):,} XP\n"
-        f"- Sovereign Level: {summary.get('current_level', 1)}\n"
+        f"- Precision Clearance Rate: {summary.get('precision_rate', 'Unavailable')} "
+        f"({summary.get('completed_tasks', 'Unavailable')} / {summary.get('total_tasks', 'Unavailable')} mandates cleared)\n"
+        f"- Progression Yield: +{summary.get('total_xp_gained') if summary.get('total_xp_gained') is not None else 'Unavailable'} XP\n"
+        f"- Sovereign Level: {summary.get('current_level', 'Unavailable')}\n"
         f"- Primary Focus Sector: {top_sector_name} ({top_sector_tasks} tasks)\n"
-        f"- Threat Neutralizations: {summary.get('threats_neutralized', 0)} ({beasts_str})\n"
+        f"- Threat Neutralizations: {summary.get('threats_neutralized', 'Unavailable')} ({beasts_str})\n"
         f"- Vanguard MVP: {mvp_str}\n\n"
         f"Synthesize an inspiring, concise tactical commander debrief (2-3 sentences) evaluating the Sovereign's focus, "
         f"momentum, and martial discipline for this operating cycle."

@@ -251,7 +251,10 @@ explicit, and unresolved legacy history remains visibly flagged.
 - **Purpose:** Lists all concluded weekly cycles from `Bridge/Holocron/weekly_manifest.json` plus the active in-flight cycle.
 
 ### `GET /api/holocron/weekly/{week_id}`
-- **Purpose:** Returns the cached JSON artifact for a specific ISO week (e.g. `2026-W40`), or generates it on demand.
+- **Purpose:** Revalidates source inputs for a specific ISO week (e.g. `2026-W40`), returning schema 2 metrics, unavailable states and `evidence` rules/references. Existing historical artifacts are refreshed only through explicit regeneration.
+
+### `GET /api/holocron/weekly/{week_id}/evidence/{source_id}`
+- **Purpose:** Inspects `journal-YYYY-MM-DD` within the selected week or `keeper-ledger`; arbitrary paths are rejected. Returns source status, fingerprint and bounded checklist counts or signed Keeper XP. Available journal references include a relative navigation path; journal bodies and private absolute paths are excluded. See [evidence contract](holocron-evidence.md).
 
 ### `POST /api/holocron/weekly/{week_id}/regenerate`
 - **Purpose:** Forces re-aggregation of 7-day journal evidence and Keeper progression data, updating `Bridge/Holocron/Weekly/{week_id}.json` and the manifest.
@@ -261,9 +264,9 @@ explicit, and unresolved legacy history remains visibly flagged.
 - **Response:** `{ "week_id": str, "tactical_debrief": str, "debrief_source": "ollama" | "rule_based_fallback", "holocron": dict }`.
 
 ### `GET /api/holocron/weekly/{week_id}/html`
-- **Purpose:** Generates or returns a self-contained, standalone HTML infographic dashboard for the weekly cycle.
+- **Purpose:** Generates a self-contained HTML dashboard from revalidated inputs, with escaped evidence rules and internal source-status anchors; no private filesystem links.
 
 ### Desktop Tauri IPC Bridge: Holocron Contract
 - **Invocation:** Dispatched via `invokeNative('vault_request', { path, method, body })`.
-- **Handling:** Tauri routes `/api/holocron/*` to `vault::holocron_request`. If cached files exist on disk for GET requests, it reads directly; otherwise, it executes `backend/native_holocron.py` as an allowlisted CLI subprocess communicating via UTF-8 stdio JSON without requiring an active HTTP server.
+- **Handling:** Tauri routes `/api/holocron/*` to `vault::holocron_request`, which executes `backend/native_holocron.py` as an allowlisted UTF-8 JSON subprocess without an HTTP server. GET and HTML requests use shared Python source revalidation; native cache files cannot bypass it.
 

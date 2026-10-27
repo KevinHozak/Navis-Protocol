@@ -3488,6 +3488,15 @@ async def set_active_mission(req: MissionSlotRequest):
 # Weekly Holocron Telemetry & Cockpit Endpoints
 # ---------------------------------------------------------
 
+@app.get("/api/holocron/weekly/{week_id}/evidence/{source_id}")
+async def inspect_weekly_holocron_source(week_id: str, source_id: str):
+    from services.holocron_evidence import inspect_source
+    try:
+        return inspect_source(NAVIS_ROOT, week_id, source_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Unsupported Holocron source")
+
+
 @app.get("/api/holocron/weekly/latest")
 async def get_latest_weekly_holocron():
     from services.holocron_engine import build_weekly_holocron
@@ -3550,12 +3559,15 @@ async def generate_holocron_ai_debrief(week_id: str):
         holocron_data = build_weekly_holocron(NAVIS_ROOT, week_id=week_id)
         debrief, source = await synthesize_ollama_debrief(holocron_data)
         
+        from services.holocron_evidence import share_safe, source_path
+        debrief = share_safe(debrief)
         holocron_data["tactical_debrief"] = debrief
         holocron_data["debrief_source"] = source
+        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source == "ollama" else "deterministic_summary"
         
         # Persist updated debrief in json artifact if it exists on disk
         artifact_path = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.json")
-        if os.path.isfile(artifact_path):
+        if source_path(NAVIS_ROOT, f"Bridge/Holocron/Weekly/{week_id}.json") and os.path.isfile(artifact_path):
             try:
                 with open(artifact_path, "w", encoding="utf-8") as f:
                     json.dump(holocron_data, f, indent=2, ensure_ascii=False)
@@ -3579,13 +3591,8 @@ async def get_weekly_holocron_html(week_id: str):
     from services.holocron_engine import build_weekly_holocron, export_standalone_html
     from fastapi.responses import HTMLResponse
     try:
-        html_file = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.html")
-        if os.path.isfile(html_file):
-            with open(html_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            return HTMLResponse(content=content)
         data = build_weekly_holocron(NAVIS_ROOT, week_id=week_id)
-        html_content = export_standalone_html(data, html_file)
+        html_content = export_standalone_html(data)
         return HTMLResponse(content=html_content)
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))

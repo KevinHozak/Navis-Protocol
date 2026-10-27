@@ -42,3 +42,11 @@ Use disposable fixtures and sanitized evidence. Do not mutate personal Vault rec
 ## Audit checkpoint - 2026-10-27
 
 S009 completed a source/fixture audit with seven confirmed findings and existing safeguards mapped. [Report and web/native matrix](../docs/trust-signals-audit.md). S010-S015 are narrowed to the recorded findings and runtime verification gates. Start repairs with S014 partial-operation truthfulness, then S013 evidence/metric labels; S011/S012 are also high priority. No application fixes were made. Existing Python checks have three recorded failures (two manifest assumptions, missing watchdog); packaged checks remain unrun. The epic remains in progress.
+
+## Repair checkpoint - 2026-10-27
+
+S014 is accepted after PR #17 merged at `cf23ca7`; its packaged 1.11.20 fixture
+gate passed. S013 is under implementation on `codex/holocron-evidence`, with the
+shared [evidence contract](../docs/holocron-evidence.md). Its affected manifest
+assumptions are reconciled in tests. S010-S012 and the remaining S015 journeys,
+clean-machine installation, personal Drive races and dependency limits stay open.
