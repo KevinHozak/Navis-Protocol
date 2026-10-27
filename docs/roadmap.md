@@ -35,15 +35,14 @@ human correction time, slower exhaustive searches, explicit index rebuild costs,
 reviewed mission omissions and unsupported runtime cases. This is not general
 cross-client or production-write adoption.
 
-Trust at a glance ([NAVIS-E002](../issues/NAVIS-E002.md)) is **in progress**.
+Trust at a glance ([NAVIS-E002](../issues/NAVIS-E002.md)) is **done within the accepted runtime limits**.
 [S009 audit](trust-signals-audit.md) completed source/fixture mapping and identified
 seven confirmed gaps while preserving existing persistence/error safeguards.
 S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
 and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
 accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
 S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
-see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). Remaining packaged trust journeys and dependency limits
-remain explicit under S015. Task-status enhancements (S022-S024) and evidence-gated
+see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). S015 integrated journeys were accepted after PR #22; clean-machine and Drive/integration limits remain explicitly untested. Task-status enhancements (S022-S024) and evidence-gated
 AI workflow trials (S001-S008) remain separate open workstreams.
 
 These retain the original product direction without treating an existing component as completion of its entire initiative.
@@ -75,3 +74,8 @@ These retain the original product direction without treating an existing compone
 Use issue acceptance criteria and the linked evidence records to select follow-up work. Recheck issue state before starting: merged implementation and unfinished manual verification can coexist.
 
 S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.
+
+Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 adds the
+shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
+picker; see [semantics and persistence](task-status-semantics.md). S023 completion
+timestamps and S024 Completed today remain separate open work.

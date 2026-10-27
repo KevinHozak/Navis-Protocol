@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { journalDay } from '@/lib/journalDay';
 import { useTaskBoard } from '@/lib/useTaskBoard';
 import { motion, AnimatePresence } from 'framer-motion';
+import TaskStatusPicker from './TaskStatusPicker';
 import TaskModal from '@/components/TaskModal';
 
 const MarkdownRenderer = dynamic(() => import('./MarkdownRenderer'), { ssr: false });
@@ -87,7 +88,7 @@ export default function TasksBoard({ area }) {
 }
 
 function TasksBoardArea({ area }) {
-  const { tasks, loading, listError, mutationError, pending, loaded, refresh: fetchTasks, mutate } = useTaskBoard('/api/active_tasks', area);
+  const { tasks, loading, listError, mutationError, pending, loaded, refresh: fetchTasks, mutate } = useTaskBoard('/api/active_tasks?include_completed=true', area);
   const [todayStr, setTodayStr] = useState(() => journalDay());
   useEffect(() => {
     const timer = setInterval(() => setTodayStr(journalDay()), 60000);
@@ -131,6 +132,15 @@ function TasksBoardArea({ area }) {
   };
 
 
+  const [statusMessage, setStatusMessage] = useState('');
+  const changeStatus = async (task, task_status) => {
+    setStatusMessage('Saving task…');
+    const saved = await mutate(`/api/active_tasks/${encodeURIComponent(task.id)}/complete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_status, expected_task: task }),
+    }, 'Change task status', null, items => items.some(item => item.id === task.id && (item.status === 'completed' ? 'done' : item.status || 'pending') === task_status));
+    setStatusMessage(saved ? 'Task saved' : 'Save not confirmed. Review the refreshed task before retrying.');
+  };
   const handleComplete = async (id) => {
     if (typeof setCompletingIds === 'function') {
       setCompletingIds((prev) => new Set(prev).add(id));
@@ -153,7 +163,7 @@ function TasksBoardArea({ area }) {
       <div className="flex justify-between items-center bg-zinc-900/60 p-4 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
         <div>
           <h2 className="text-lg font-bold text-white uppercase tracking-widest flex items-center gap-2">
-            <span className="text-2xl">📋</span> Active Directives
+            <span className="text-2xl">📋</span> Directives
           </h2>
           <p className="text-[10px] font-mono text-white/50 uppercase tracking-widest">Area: {String(area || '').toUpperCase()}</p>
         </div>
@@ -248,6 +258,7 @@ function TasksBoardArea({ area }) {
           </div>
         )}
         {mutationError && <p role="alert" className="text-red-400">{mutationError} Use the same action to retry.</p>}
+        <p role="status" aria-live="polite" className="text-xs text-accent">{statusMessage}</p>
         {pending && <p role="status" className="text-accent font-mono text-sm">Saving task...</p>}
         {tasks.length === 0 ? (loaded && !loading && !listError ? (
           <div className="text-center py-12 text-white/30 font-mono text-xs uppercase tracking-widest border border-white/5 border-dashed rounded-xl bg-zinc-900/30">
@@ -271,6 +282,7 @@ function TasksBoardArea({ area }) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <TaskStatusPicker label={task.text} value={task.status || 'pending'} disabled={pending || loading || !!listError} onChange={status => changeStatus(task, status)} />
                     <button 
                       disabled={pending || loading || !!listError || isCompleting}
                       onClick={() => handleComplete(task.id)}

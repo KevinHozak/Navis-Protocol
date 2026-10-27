@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-27",
+  "story": "NAVIS-S022",
+  "base": "4cf234c1cc2d6962b3104c8904f5ba693f823f16",
+  "release": "1.11.26",
+  "status": "verified_in_review",
+  "checks": {
+    "python_affected_suite": {
+      "passed": 174,
+      "command": "pytest affected task/directive/identity/sweep/combat fixture modules -q"
+    },
+    "python_additional_packaging_and_concurrency": {
+      "passed": 2,
+      "execution": "two focused tests after the clean affected-suite run"
+    },
+    "frontend": "51 adapters plus full regression runner passed; includes 76 board and 2 cockpit mounted status/race scenarios",
+    "native_unit": {
+      "passed": 76,
+      "excluded": "personal-Vault availability probe"
+    },
+    "native_parity": {
+      "passed": 1
+    },
+    "release": "production frontend, release executable and NSIS packaging succeeded"
+  },
+  "runtime": {
+    "web": "Real FastAPI + Next, dedicated loopback ports, synthetic Vault; lifespan daemons disabled. Deferred, keyboard In progress, Done, reopening Pending and recurring Cancelled passed. Saved feedback and focus readback observed.",
+    "native": "Copied release + fresh WebView profile, synthetic Vault, 39 bundled backend resources matched source. Keyboard In progress, Done, reopening Pending and recurring Cancelled passed with saved feedback and restored visible focus.",
+    "readback": {
+      "web": {
+        "active_status": "pending",
+        "completion_phase": "reopened",
+        "history_count": 1,
+        "occurrence_status": "cancelled",
+        "next_due": "2026-10-27",
+        "keeper_xp": 12,
+        "ledger_rows": 2,
+        "single_original_occurrences": true,
+        "bom_crlf_notes_preserved": true,
+        "journal_sha256": "038472f5c9458a80afd9151c7dc8d8f5ba1ab7f39b3d59bdc6669a5791dbf255"
+      },
+      "native": {
+        "active_status": "pending",
+        "completion_phase": "reopened",
+        "history_count": 1,
+        "occurrence_status": "cancelled",
+        "next_due": "2026-10-27",
+        "keeper_xp": 12,
+        "ledger_rows": 2,
+        "single_original_occurrences": true,
+        "bom_crlf_notes_preserved": true,
+        "journal_sha256": "038472f5c9458a80afd9151c7dc8d8f5ba1ab7f39b3d59bdc6669a5791dbf255"
+      }
+    },
+    "parity": "Final web/native journal SHA-256 is identical; source positions, notes and original legacy checkbox retained."
+  },
+  "findings_and_recovery": [
+    {
+      "finding": "Packaged directive entrypoint missing from resource map",
+      "repair": "Bundle native_directive.py; add resource regression; rebuild same unsealed 1.11.26 allocation",
+      "verification": "Final 39-resource copy matched source; native IPC status completion and reopening passed."
+    },
+    {
+      "observation": "One earlier existing fault-injected combat recovery case returned pending_recovery on its retry. Cause unconfirmed.",
+      "followup": "Case passed in isolation; complete affected suite subsequently passed all 174 cases. No failure or skipped case is counted as a pass."
+    }
+  ],
+  "artifacts": {
+    "exe_sha256": "0cf9e661497485aa6a2bca6b1ce106c51ba70f2123f982f58ac397d6d97090c6",
+    "nsis_sha256": "6f42144edf528a96e24af16e51c24de34135c25a241f3b1c16081d9382a16603",
+    "file_version": "1.11.26",
+    "product_version": "1.11.26"
+  },
+  "cleanup": {
+    "fixture_windows_closed": true,
+    "remaining_fixture_processes": 0,
+    "dedicated_listeners": 0
+  },
+  "limits": [
+    "No personal Vault mutation or live provider/integration test",
+    "Installer packaged, not installed on a clean machine",
+    "S023 reliable timestamp presentation and S024 Completed today remain unimplemented",
+    "Independent external review unavailable; primary-agent source review completed"
+  ]
+}

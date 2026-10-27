@@ -12,7 +12,7 @@ export function createTaskBoardStore(apiFetch, endpoint, area) {
     listeners.forEach(listener => listener(state));
   };
   const list = async () => {
-    const response = await apiFetch(`${endpoint}?area=${encodeURIComponent(area)}`);
+    const response = await apiFetch(`${endpoint}${endpoint.includes('?') ? '&' : '?'}area=${encodeURIComponent(area)}`);
     if (!response.ok) throw new Error('Unable to load tasks. Retry to reconnect.');
     const data = await response.json();
     if (!Array.isArray(data) || data.some(task => !task || typeof task !== 'object'
@@ -35,7 +35,7 @@ export function createTaskBoardStore(apiFetch, endpoint, area) {
       if (request === revision) publish({ loading: false });
     }
   };
-  const mutate = async (path, options, label, create = null) => {
+  const mutate = async (path, options, label, create = null, verify = null) => {
     if (locked || disposed || !state.loaded || state.loading || state.listError) return false;
     locked = true;
     ++revision; // A pre-write list cannot overwrite the post-write refresh.
@@ -65,6 +65,7 @@ export function createTaskBoardStore(apiFetch, endpoint, area) {
       }
       if (create) uncertainCreate = null;
       await refresh();
+      if (verify && (state.listError || !verify(state.tasks))) throw new Error('Persisted status could not be verified. Reload before retrying.');
       return !disposed;
     } catch (error) {
       publish({ mutationError: `${label}: ${error?.message || 'Request interrupted. Retry the action.'}` });

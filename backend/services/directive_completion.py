@@ -4,6 +4,7 @@ import json
 import re
 import shutil
 import uuid
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from services.combat_completion import atomic_bytes, atomic_json, battle_lock, safe_source
@@ -32,7 +33,8 @@ def complete_section_item(content, header, text, marker=None):
         match = re.fullmatch(r'(\s*[-*+]\s+\[)[ xX](\]\s+)([^\r\n]*)(\r?\n)?', lines[i])
         if match:
             label = re.sub(r'\s*<!-- navis-directive:[^>]+ -->', '', match[3])
-            if ' '.join(label.split()) == ' '.join(text.split()):
+            from services.task_toggle import STATUS_MARKER
+            if ' '.join(STATUS_MARKER.sub('', label).split()) == ' '.join(text.split()):
                 matches.append((i, match))
     if len(matches) > 1:
         raise ValueError('Directive journal occurrence ambiguous; review before retry')
@@ -89,9 +91,9 @@ def _resolve_header(task, raw_bytes):
     return header
 
 
-def complete(root, task_id, award=None, is_recurring=False):
+def complete(root, task_id, award=None, is_recurring=False, locked=False):
     root = Path(root)
-    with battle_lock(root):
+    with nullcontext() if locked else battle_lock(root):
         path = root / 'Bridge/ops_state.json'
         if not path.is_file():
             raise ValueError('Task identity missing or ambiguous')
@@ -119,6 +121,8 @@ def complete(root, task_id, award=None, is_recurring=False):
         needs_prepare = not operation or (is_recurring and operation.get('local_date') != date)
 
         if needs_prepare:
+            if operation:
+                task.setdefault('completion_history', []).append(dict(operation))
             relative = f'Journal/{date[:4]}/{date[5:7]}/{date}.md'
             journal = safe_source(root, relative)
             raw = journal.read_bytes()
@@ -159,6 +163,7 @@ def complete(root, task_id, award=None, is_recurring=False):
                 }
 
             task['completion'] = operation
+            operation['previous_schedule'] = {key: task[key] for key in ('last_done', 'next_due', 'due_date') if key in task}
             atomic_json(path, state)
 
         journal = safe_source(root, operation['journal_path'])
@@ -174,6 +179,16 @@ def complete(root, task_id, award=None, is_recurring=False):
                 raise ValueError("Journal changed during completion; retry")
             shutil.copy2(journal, journal.with_name(journal.name + f'.backup_directive_{uuid.uuid4().hex}'))
             atomic_bytes(journal, updated)
+        elif operation.get('phase') == 'reopened':
+            candidates = [i for i, line in enumerate(content.splitlines(keepends=True)) if line.rstrip('\r\n').endswith(marker)]
+            if len(candidates) != 1:
+                raise ValueError('Reopened completion evidence missing or ambiguous')
+            lines = content.splitlines(keepends=True)
+            index = candidates[0]
+            if not re.match(r'^\s*[-*+]\s+\[ \]\s+', lines[index]):
+                raise ValueError('Reopened completion evidence changed')
+            lines[index] = re.sub(r'^(\s*[-*+]\s+\[) (\])', r'\1x\2', lines[index])
+            atomic_bytes(journal, (b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b'') + ''.join(lines).encode('utf-8'))
         elif content.count(marker) != 1 or not any(re.match(r'^\s*[-*+]\s+\[[xX]\]\s+', line) and line.endswith(marker) for line in content.splitlines()):
             raise ValueError('Completion journal evidence changed; review before retry')
 
@@ -209,6 +224,7 @@ def complete(root, task_id, award=None, is_recurring=False):
             })
             if 'due_date' in targets[0]:
                 targets[0]['due_date'] = task['next_due']
+            targets[0]['occurrence_status'] = {'date': operation['local_date'], 'status': 'done'}
         else:
             targets[0].update({
                 'completion': operation,
@@ -226,4 +242,78 @@ def complete_recurring(root, task_id, award=None):
 
 def complete_active(root, task_id, award=None):
     return complete(root, task_id, award=award, is_recurring=False)
+
+
+def transition(root, task_id, desired, expected_task, is_recurring=False, award=None, locked=False):
+    """Compare-and-save a directive/occurrence without mutating its series policy."""
+    from services.task_toggle import STATES
+    if desired not in STATES:
+        raise ValueError('Unknown task status')
+    root = Path(root)
+    with nullcontext() if locked else battle_lock(root):
+        path = root / 'Bridge/ops_state.json'
+        state = json.loads(path.read_text(encoding='utf-8-sig'))
+        bucket = 'tasks' if is_recurring else 'active_tasks'
+        matches = [task for task in state.get(bucket, []) if task.get('id') == task_id]
+        if len(matches) != 1 or (expected_task != matches[0] and
+                (not is_recurring or expected_task != {**matches[0], "due_date": matches[0].get("next_due")})):
+            raise ValueError('Task changed, missing or ambiguous; reload before retrying')
+        task = matches[0]
+        date = _verify_journal_date(root)
+        if desired == 'done':
+            return complete(root, task_id, award=award, is_recurring=is_recurring, locked=True)
+        operation = task.get('completion')
+        if is_recurring and not operation and task.get('last_done') == date:
+            raise ValueError('Legacy recurring completion needs provenance review before reopening')
+        if operation and (not is_recurring or operation.get('local_date') == date):
+            if operation.get('phase') not in ('complete', 'reopened', 'reopening'):
+                raise ValueError('Finish pending completion recovery before changing status')
+            journal = safe_source(root, operation['journal_path'])
+            raw = journal.read_bytes()
+            lines = raw.decode('utf-8-sig').splitlines(keepends=True)
+            indices = [i for i, line in enumerate(lines) if line.rstrip('\r\n').endswith(operation['marker'])]
+            if len(indices) != 1 or not re.match(r'^\s*[-*+]\s+\[[ xX]\]\s+', lines[indices[0]]):
+                raise ValueError('Completion evidence changed; review before reopening')
+            if is_recurring and 'previous_schedule' not in operation:
+                raise ValueError('Legacy recurring completion needs schedule review before reopening')
+            if operation['phase'] == 'complete':
+                task.setdefault('completion_history', []).append(dict(operation))
+            operation['phase'] = 'reopening'
+            atomic_json(path, state)
+            expected_state = path.read_bytes()
+            i = indices[0]
+            lines[i] = re.sub(r'^(\s*[-*+]\s+\[)[ xX](\])', r'\1 \2', lines[i])
+            from services.task_toggle import STATUS_MARKER
+            identities = STATUS_MARKER.findall(lines[i])
+            stable_id = identities[0][0] if len(identities) == 1 else hashlib.sha256(operation['marker'].encode()).hexdigest()[:32]
+            lines[i] = STATUS_MARKER.sub('', lines[i]).replace(operation['marker'],
+                f"<!-- navis-task:{stable_id}:{desired} --> " + operation['marker'])
+            if journal.read_bytes() != raw:
+                raise ValueError('Journal changed; retry reopening')
+            atomic_bytes(journal, (b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b'') + ''.join(lines).encode('utf-8'))
+            if award is None:
+                from services.rpg_engine import calculate_and_apply_xp
+                calculate_and_apply_xp(date_override=operation['local_date'], root=root, journal_content=''.join(lines))
+            else:
+                award(date_override=operation['local_date'])
+            if path.read_bytes() != expected_state or journal.read_bytes().decode('utf-8-sig') != ''.join(lines):
+                raise ValueError('Completion sources changed during reconciliation; reload')
+            operation['phase'] = 'reopened'
+            task.pop('completed_at', None)
+            if is_recurring:
+                for key in ('last_done', 'next_due', 'due_date'):
+                    task.pop(key, None)
+                task.update(operation['previous_schedule'])
+        elif task.get('status') == 'completed' and not is_recurring:
+            raise ValueError('Legacy completion needs provenance review before reopening')
+        if is_recurring:
+            task['occurrence_status'] = {'date': date, 'status': desired}
+        else:
+            task['status'] = desired
+        atomic_json(path, state)
+        saved = json.loads(path.read_text(encoding='utf-8-sig'))
+        verified = [item for item in saved.get(bucket, []) if item.get('id') == task_id]
+        if verified != [task]:
+            raise ValueError('Task changed after save; reload')
+        return {'status': 'saved', 'saved': True, 'task': task, 'task_status': desired}
 

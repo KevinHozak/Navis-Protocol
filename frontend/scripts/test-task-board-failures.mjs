@@ -31,7 +31,7 @@ async function board(name, native) {
     return native ? result : new Response(result.text, { status: result.status });
   };
   const context = vm.createContext({ process: { env: { NEXT_PUBLIC_API_URL: 'https://fixture.invalid' } },
-    window: { __TAURI_INTERNALS__: native ? {} : undefined, location: { hostname: 'fixture.invalid' }, confirm: () => true, dispatchEvent: () => {} },
+    window: { __TAURI_INTERNALS__: native ? {} : undefined, location: { hostname: 'fixture.invalid' }, confirm: () => true, dispatchEvent: () => {}, addEventListener: () => {}, removeEventListener: () => {} },
     navigator: { userAgent: 'Windows' }, fetch: (url, options) => transport(url.replace('https://fixture.invalid', ''), options),
     Headers, Response, Error, DOMException, Event, console, setInterval: () => 1, clearInterval: () => {} });
   const modules = new Map();
@@ -65,10 +65,12 @@ async function board(name, native) {
     });
     modules.set(path, mod);
     await mod.link(async specifier => {
-      if (specifier === 'react') return synthetic('react', { default: React, useState: React.useState, useEffect: React.useEffect });
+      if (specifier === 'react') return synthetic('react', { default: React, useState: React.useState, useEffect: React.useEffect, useMemo: React.useMemo, useCallback: React.useCallback });
       if (specifier === 'framer-motion') return synthetic('motion', { motion: { div: 'div', form: 'form' }, AnimatePresence: ({ children }) => children });
       if (specifier === 'next/dynamic') return synthetic('next/dynamic', { default: () => ({ content }) => React.createElement('div', null, content) });
       if (specifier.startsWith('@/')) return load(specifier.slice(2) + '.js');
+      if (specifier === './TaskModal') return load('components/TaskModal.js');
+      if (specifier === './TaskStatusPicker') return load('components/TaskStatusPicker.js');
       if (specifier === './taskBoardStore.mjs') return load('lib/taskBoardStore.mjs');
       throw new Error(`Unexpected import: ${specifier}`);
     });
@@ -101,6 +103,23 @@ for (const native of [false, true]) for (const name of ['TasksBoard', 'Recurring
     assert.match(b.text(), /No active directives|No recurring mandates/);
     await b.unmount(); scenarios++;
   }
+  // S022: the real picker sends the full expected identity snapshot, preserves
+  // labels, and exposes only the confirmed persisted status after refresh.
+  const picker = await board(name, native);
+  picker.replies.push(packet([task])); await picker.render('Home');
+  const control = picker.root.findByType('select');
+  assert.match(control.props['aria-label'], /Status:/);
+  assert.equal(control.findAllByType('option').length, 5);
+  const updated = name === 'TasksBoard' ? { ...task, status: 'deferred' } : { ...task, occurrence_status: { date: '2026-10-26', status: 'deferred' } };
+  picker.replies.push(packet({saved:true, task:updated}), packet([updated]));
+  await act(async () => { await control.props.onChange({ target: { value: 'deferred' } }); });
+  const write = picker.calls.find(call => call.method === 'POST');
+  const sent = typeof write.body === 'string' ? JSON.parse(write.body) : write.body;
+  assert.equal(sent.task_status, 'deferred');
+  assert.deepEqual(JSON.parse(JSON.stringify(sent.expected_task)), task);
+  assert.match(picker.text(), /Task saved/);
+  await picker.unmount(); scenarios++;
+
   // Failed create preserves the draft; double-submit cannot duplicate the POST.
   const b = await board(name, native);
   b.replies.push(packet([task])); await b.render('Home'); await b.add();
@@ -191,3 +210,22 @@ for (const staleResult of [{ ok: true, json: async () => [task] }, { ok: false }
   store.dispose(); scenarios++;
 }
 console.log(`Passed ${scenarios} task-board interaction and race scenarios through web/native adapters.`);
+
+// S022 cockpit selects must send the canonical record, not its augmented view.
+for (const native of [false, true]) {
+  const c = await board('TasksCockpit', native);
+  const record = { ...task, status: 'pending', due_date: '2026-10-27', area: 'world' };
+  c.replies.push(packet([record]), packet([])); await c.render('Home');
+  const picker = c.root.findAllByType('select').find(control => control.props['aria-label']?.startsWith('Status:'));
+  assert.ok(picker);
+  const updated = { ...record, status: 'deferred' };
+  c.replies.push(packet({saved:true, task:updated}), packet([updated]), packet([updated]), packet([]));
+  await act(async () => { await picker.props.onChange({ target: { value: 'deferred' } }); });
+  const write = c.calls.find(call => call.method === 'POST');
+  const body = typeof write.body === 'string' ? JSON.parse(write.body) : write.body;
+  assert.deepEqual(JSON.parse(JSON.stringify(body.expected_task)), record);
+  assert.equal(body.task_status, 'deferred');
+  assert.match(c.text(), /Task saved/);
+  await c.unmount();
+}
+console.log('Passed 2 additional cockpit status readback scenarios across web/native adapters.');
