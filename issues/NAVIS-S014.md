@@ -2,7 +2,7 @@
 depends_on: ["NAVIS-S009"]
 id: "NAVIS-S014"
 parent: ["NAVIS-E002"]
-priority: "medium"
+priority: "high"
 schema_version: 1
 status: "open"
 title: "Explain partial sync failures and offer safe recovery"
@@ -27,4 +27,11 @@ Audit-selected sync/rollover orchestration, operation progress/result reporting 
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. Current deficiencies are unconfirmed until the audit establishes them. Issue creation authorizes persistence only; no audit execution or application implementation is performed now.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+
+
+## S009 audit disposition - 2026-10-27
+
+T06/T07: propagate per-step committed/failed/skipped outcomes through web jobs and native exit/events; handle warning-prefixed failures and distinguish status reconnect from operation retry. Preserve progress, process supervision and canonical idempotency. Establish safe step-specific reconciliation before any restart.
+
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.

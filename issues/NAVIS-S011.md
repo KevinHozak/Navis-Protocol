@@ -2,7 +2,7 @@
 depends_on: ["NAVIS-S009"]
 id: "NAVIS-S011"
 parent: ["NAVIS-E002"]
-priority: "medium"
+priority: "high"
 schema_version: 1
 status: "open"
 title: "Distinguish unavailable data from valid empty and zero results"
@@ -27,4 +27,11 @@ Only confirmed response/UI gaps in affected backend/native contracts and consume
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. Current deficiencies are unconfirmed until the audit establishes them. Issue creation authorizes persistence only; no audit execution or application implementation is performed now.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+
+
+## S009 audit disposition - 2026-10-27
+
+T02: distinguish missing/unreadable/partial Holocron journal and progression inputs from valid zero; retain day/source coverage. Repair calendar HTTP/error handling so unavailable months do not appear empty. Preserve command readiness and task-board unavailable/zero handling already implemented.
+
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.

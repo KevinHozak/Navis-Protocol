@@ -27,4 +27,11 @@ Only dashboard, Holocron and related data paths identified by the audit.
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. Current deficiencies are unconfirmed until the audit establishes them. Issue creation authorizes persistence only; no audit execution or application implementation is performed now.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+
+
+## S009 audit disposition - 2026-10-27
+
+T03/T04: protect Holocron selected-week identity against out-of-order replies; expose dashboard failed refresh and last successful read separately from operational/source timestamps. Reuse current loading/error/retry UI and generated_at; do not infer source freshness from render time.
+
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.

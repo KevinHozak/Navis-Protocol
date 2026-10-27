@@ -2,6 +2,10 @@
 
 Reconciled against merged `origin/main` at `fd3efb4` on 2026-10-02. **Implemented** means source is merged. **Partial** means a bounded feature exists with remaining scope. **Planned** means the broader capability is not established by the inspected implementation. **Awaiting runtime verification** is independent of implementation: no status here certifies a personal Vault migration, live provider/device connection or clean-machine installation.
 
+S009 follow-up (2026-10-27, source `279a614`): MCP adoption, native checkbox
+bridge and trust-audit backlog below are updated. Other release/manual-verification
+entries retain their linked historical evidence and are not newly certified.
+
 ## Delivered work and remaining verification
 
 | Workstream | Implementation state | Evidence and remaining work |
@@ -15,22 +19,31 @@ Reconciled against merged `origin/main` at `fd3efb4` on 2026-10-02. **Implemente
 | Interactive map (#75, #76–78) | Implemented rendering/navigation; partial telemetry | Validated node selection and realm hop; measured-coordinate overlays and stale/mismatch omission. Coordinate production is not supplied by navigation. See [telemetry contract and pending web/native smoke](map-telemetry.md). |
 | Combat hand and linked tasks (#85–88) | Implemented; awaiting packaged verification | Battle state UI, exact task binding, durable recovery, duplicate-link rejection and native/web parity fixtures; [verification](combat-task-verification.md), [link constraint](combat-link-constraint.md). Full tactical buffs and turn rules remain partial. |
 | Local-first AI (#91–95) | Implemented provider boundary and bounded workflows; partial native coverage | Guarded opt-in online generation, local banter, Forge proposal approval and synthetic benchmark; [AI guide](local-first-ai.md), [Forge](forge-local-generation.md), [benchmarks](benchmarks/README.md). Native general chat/War Room and hosted accounting remain unavailable. Bounded live synthetic comparison results are recorded; they do not establish companion/creative quality or general reliability. |
-| Journal entry composer | Implemented | Checked-item append and local optional polishing; no missing-journal creation. See [API contracts](api_endpoints.md). Native general toggle still lacks web XP synchronization. |
+| Journal entry composer | Implemented | Checked-item append and local optional polishing; no missing-journal creation. See [API contracts](api_endpoints.md). Native checkbox requests now use the shared Python task/completion bridge and pending-XP contract; packaged UX verification remains open. |
 | Regression/test infrastructure (#131, #136) | Implemented | Isolated state/recovery tests and pre-aborted transport guard; [test audit](testing-audit.md). Source tests do not replace release smoke. |
 
 ## Broader product backlog
 
-Navis-Vault MCP ([NAVIS-E003](../issues/NAVIS-E003.md)): the S016
-[access contract](vault-mcp-contract.md) selects a standalone stdio adapter and
-defines bounded retrieval, provenance and access policy. S017 implements the
-[stdio server and read boundary](vault-mcp.md), verified with disposable fixtures.
-S018 adds policy-scoped FTS5 search, explicit local rebuilds and checked freshness.
-S019 adds inclusive journal ranges and canonical mission retrieval with bounded
-internal-note context and ambiguity handling. The S020
-[read-only trial](vault-mcp-trial-results.md) verifies the desktop-bundled Codex
-runtime on synthetic data and adopts a controlled pilot. Personal-Vault/UI setup
-and human usability remain unverified. Gated journal appends (S021) remain open;
-no write capability is enabled.
+Navis-Vault MCP ([NAVIS-E003](../issues/NAVIS-E003.md)) is **done within
+explicitly accepted controlled read-only limits** following merged PR #15.
+The installed local Codex connection is verified on real Vault data; source-linked
+search/note/journal/mission retrieval and scoped freshness are delivered.
+[S021 guarded appends](vault-mcp-journal-appends.md) are implemented and
+fixture-verified, but personal writes remain disabled. The user accepted the
+[real-workflow adoption record](vault-mcp-real-workflow.md), including unmeasured
+human correction time, slower exhaustive searches, explicit index rebuild costs,
+reviewed mission omissions and unsupported runtime cases. This is not general
+cross-client or production-write adoption.
+
+Trust at a glance ([NAVIS-E002](../issues/NAVIS-E002.md)) is **in progress**.
+[S009 audit](trust-signals-audit.md) completed source/fixture mapping and identified
+seven confirmed gaps while preserving existing persistence/error safeguards.
+Recommended first repairs: S014 truthful partial-sync outcomes and recovery,
+then S013 factual metric labels/evidence, followed by S011 availability, S012
+late-save isolation and S010 refresh/selection state. Packaged trust journeys
+and existing test/dependency failures remain explicit under S015. No fixes are
+claimed by the audit. Task-status enhancements (S022-S024) and evidence-gated
+AI workflow trials (S001-S008) remain separate open workstreams.
 
 These retain the original product direction without treating an existing component as completion of its entire initiative.
 

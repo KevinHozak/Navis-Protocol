@@ -2,7 +2,7 @@
 depends_on: ["NAVIS-S009"]
 id: "NAVIS-S013"
 parent: ["NAVIS-E002"]
-priority: "medium"
+priority: "high"
 schema_version: 1
 status: "open"
 title: "Make Holocron metrics and interpretations traceable to evidence"
@@ -27,4 +27,11 @@ Audit-selected Holocron payload/UI/export and source navigation; coordinate with
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. Current deficiencies are unconfirmed until the audit establishes them. Issue creation authorizes persistence only; no audit execution or application implementation is performed now.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+
+
+## S009 audit disposition - 2026-10-27
+
+T01: replace or explicitly label fixed readiness, estimated deep-work/damage, invented squad fallback and inferred combat outcomes/XP; expose genuine contributing evidence and rules in UI and HTML export. Do not manufacture source references. Share evidence presentation with S006, but factual corrections do not wait for its AI trial.
+
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.
