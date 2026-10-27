@@ -510,7 +510,7 @@ export default function Home() {
   const checkboxPending = useRef(false);
   const selectedEntityRef = useRef(activeEntity?.id);
   selectedEntityRef.current = activeEntity?.id;
-  const handleToggleCheckbox = async (targetText, isChecked, lineNumber, expectedContent = sourceContentRef.current) => {
+  const handleToggleCheckbox = async (targetText, isChecked, lineNumber, expectedContent = sourceContentRef.current, taskStatus) => {
     console.log("DEBUG: handleToggleCheckbox called with:", { targetText, isChecked, lineNumber });
     if (!activeEntity || (activeEntity.type !== 'file' && activeEntity.type !== 'directory')) {
       console.log("DEBUG: No valid file activeEntity is selected.");
@@ -540,7 +540,7 @@ export default function Home() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(20000),
         body: JSON.stringify({ file_path: entityId, target_text: targetText,
-          is_checked: isChecked, line_number: lineNumber, expected_content: expectedContent })
+          is_checked: isChecked, task_status: taskStatus, line_number: lineNumber, expected_content: expectedContent })
       });
       const result = await res.json();
       const authoritative = res.ok ? result : result.detail;
@@ -550,7 +550,7 @@ export default function Home() {
       }
       if (!res.ok) throw new Error(authoritative?.message || result.detail || 'Task update failed');
       if (result.xp_status === 'pending') {
-        setPendingCheckboxXP({ entityId, targetText, isChecked, lineNumber, expectedContent: result.source_content ?? result.content });
+        setPendingCheckboxXP({ entityId, targetText, isChecked, lineNumber, taskStatus, expectedContent: result.source_content ?? result.content });
       } else { setPendingCheckboxXP(null); }
       refreshStatus().catch(err => console.warn('Status refresh failed after task save', err));
       return { ok: true, result };
@@ -748,7 +748,7 @@ export default function Home() {
         {pendingCheckboxXP && pendingCheckboxXP.entityId === activeEntity?.id && (
           <div role="status" className="fixed bottom-4 right-4 z-50 rounded border border-amber-400/40 bg-zinc-950/90 p-3 text-sm text-amber-200 backdrop-blur-md">
             Task saved. XP pending.
-            <button className="ml-3 underline" onClick={() => handleToggleCheckbox(pendingCheckboxXP.targetText, pendingCheckboxXP.isChecked, pendingCheckboxXP.lineNumber, pendingCheckboxXP.expectedContent)}>Retry XP</button>
+            <button className="ml-3 underline" onClick={() => handleToggleCheckbox(pendingCheckboxXP.targetText, pendingCheckboxXP.isChecked, pendingCheckboxXP.lineNumber, pendingCheckboxXP.expectedContent, pendingCheckboxXP.taskStatus)}>Retry XP</button>
           </div>
         )}
         <JournalSaveNotice receipt={journalSaveReceipt} retrying={retryingJournalXP}

@@ -830,7 +830,7 @@ def sync_active_tasks():
 
                 for line in tasks_content:
                     match = re.match(r"^\s*-\s*\[[xX]\]\s*(.*)", line)
-                    if match:
+                    if match and "<!-- navis-task:" not in line:
                         completed_tasks.append(match.group(1).strip())
                     else:
                         new_tasks_content.append(line)
@@ -882,9 +882,17 @@ def sync_active_tasks():
                     continue
 
                 escaped_text = re.escape(task_text)
-                completion_pattern = rf"^\s*-\s*\[[xX]\]\s*{escaped_text}(?:\s+<!-- navis-directive:[^>]+ -->)?[ \t]*\r?$"
+                completion_pattern = rf"^\s*-\s*\[[xX]\]\s*{escaped_text}(?:\s+<!-- navis-task:[^>]+ -->)?(?:\s+<!-- navis-directive:[^>]+ -->)?[ \t]*\r?$"
 
-                if re.search(completion_pattern, daily_content, re.MULTILINE):
+                matched = re.search(completion_pattern, daily_content, re.MULTILINE)
+                if matched and '<!-- navis-task:' in matched[0]:
+                    # Managed rows belong to an explicit occurrence, never a
+                    # same-text mandate guessed by this legacy sweep.
+                    import hashlib
+                    identity = hashlib.sha256(f"{task.get('id')}:{target_date}".encode()).hexdigest()
+                    if f'<!-- navis-directive:{identity} -->' not in matched[0]:
+                        matched = None
+                if matched:
                     if task.get("last_done") != target_date:
                         next_due = calculate_next_due(task["frequency"], target_date)
                         task["last_done"] = target_date

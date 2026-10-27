@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { journalDay } from '@/lib/journalDay';
 import { apiFetch, subscribeVaultStream } from '@/lib/desktopApi';
 import TaskModal from './TaskModal';
+import TaskStatusPicker from './TaskStatusPicker';
 
 const MarkdownRenderer = dynamic(() => import('./MarkdownRenderer'), { ssr: false });
 
@@ -139,13 +140,55 @@ export default function TasksCockpit() {
     return () => clearInterval(timer);
   }, []);
 
+  const [statusMessage, setStatusMessage] = useState('');
+  const [includeCompleted, setIncludeCompleted] = useState(false);
+  const statusPending = React.useRef(false);
+  const statusFocus = React.useRef(null);
+  useEffect(() => {
+    if (!loading && !statusPending.current && statusFocus.current) {
+      if (typeof document !== 'undefined') document.getElementById(statusFocus.current)?.focus();
+      statusFocus.current = null;
+    }
+  }, [loading, completingIds]);
+  const changeTaskStatus = async (task, desired) => {
+    if (statusPending.current) return;
+    statusPending.current = true;
+    statusFocus.current = `cockpit-status-${task.isRecurring ? 'recurring' : 'active'}-${task.id}`;
+    setStatusMessage('Saving task…');
+    setCompletingIds(previous => new Set(previous).add(task.id));
+    try {
+      const snapshot = (task.isRecurring ? recurringTasks : activeTasks).find(item => item.id === task.id);
+      if (!snapshot) throw new Error('Task unavailable. Reload before retrying.');
+      const endpoint = task.isRecurring ? '/api/recurring' : '/api/active_tasks';
+      const response = await apiFetch(`${endpoint}/${encodeURIComponent(task.id)}/complete`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({task_status: desired, expected_task: snapshot}),
+      });
+      if (!response.ok) throw new Error('Status save not confirmed. Reload before retrying.');
+      const readback = await apiFetch(task.isRecurring ? endpoint : `${endpoint}?include_completed=true`);
+      if (!readback.ok) throw new Error('Status readback unavailable. Reload before retrying.');
+      const saved = (await readback.json()).find(item => item.id === task.id);
+      const actual = task.isRecurring ? saved?.occurrence_status?.status : (saved?.status === 'completed' ? 'done' : saved?.status || 'pending');
+      if (!saved || actual !== desired) throw new Error('Persisted status changed. Reload before retrying.');
+      if (desired === 'done') setIncludeCompleted(true);
+      await fetchAllTasks();
+      setStatusMessage('Task saved');
+    } catch (error) {
+      setStatusMessage(error.message || 'Save not confirmed. Reload before retrying.');
+      await fetchAllTasks();
+    } finally {
+      statusPending.current = false;
+      setCompletingIds(previous => { const next = new Set(previous); next.delete(task.id); return next; });
+    }
+  };
+
   // Fetch all tasks from backend
   const fetchAllTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const [activeRes, recRes] = await Promise.all([
-        apiFetch('/api/active_tasks'),
+        apiFetch('/api/active_tasks?include_completed=true'),
         apiFetch('/api/recurring'),
       ]);
 
@@ -192,7 +235,7 @@ export default function TasksCockpit() {
 
   // Combine and normalize all tasks
   const allTasks = useMemo(() => {
-    const active = activeTasks.map((t) => ({
+    const active = activeTasks.filter(task => includeCompleted || task.status !== 'completed').map((t) => ({
       ...t,
       isRecurring: false,
       normalizedArea: normalizeArea(t.area),
@@ -211,7 +254,7 @@ export default function TasksCockpit() {
     }));
 
     return [...active, ...recurring];
-  }, [activeTasks, recurringTasks]);
+  }, [activeTasks, recurringTasks, includeCompleted]);
 
   // Extract all active labels across loaded tasks
   const availableLabels = useMemo(() => {
@@ -387,10 +430,13 @@ export default function TasksCockpit() {
         className="group bg-zinc-950/80 hover:bg-zinc-900/90 border border-white/10 hover:border-cyan-400/30 rounded-xl p-3.5 transition-all shadow-md backdrop-blur-sm space-y-2.5"
       >
         <div className="flex items-start gap-3.5">
+          <TaskStatusPicker id={`cockpit-status-${task.isRecurring ? 'recurring' : 'active'}-${task.id}`} label={task.text} disabled={isCompleting || statusPending.current}
+            value={task.isRecurring ? (task.occurrence_status?.date === todayStr ? task.occurrence_status.status : task.last_done === todayStr ? 'done' : 'pending') : task.status || 'pending'}
+            onChange={status => changeTaskStatus(task, status)} />
           {/* Priority-Colored Check Ring */}
           <button
             type="button"
-            disabled={isCompleting}
+            disabled={isCompleting || statusPending.current}
             onClick={() => handleCompleteTask(task)}
             title={`Complete directive (${pTheme.label} ${pTheme.name})`}
             className={`w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${pTheme.ringBorder} ${pTheme.ringHover} ${
@@ -729,6 +775,12 @@ export default function TasksCockpit() {
 
       {/* Main Task List Viewport */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <div className="flex items-center gap-3 text-xs text-cyan-400">
+          <button type="button" aria-pressed={includeCompleted} onClick={() => setIncludeCompleted(value => !value)} className="rounded border border-white/10 bg-zinc-950/90 px-2 py-1 focus-visible:outline focus-visible:outline-2">
+            {includeCompleted ? 'Hide completed' : 'Show completed'}
+          </button>
+          <span role="status" aria-live="polite">{statusMessage}</span>
+        </div>
         {error && (
           <div role="alert" className="p-4 bg-red-950/40 border border-red-500/40 rounded-xl text-sm text-red-300 flex items-center justify-between">
             <span>⚠️ {error}</span>

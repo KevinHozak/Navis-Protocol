@@ -186,7 +186,9 @@ async fn vault_request(
         let id = percent_encoding::percent_decode_str(id).decode_utf8().map_err(|e| e.to_string())?.into_owned();
         let app_handle = app.clone();
         return tauri::async_runtime::spawn_blocking(move || {
-            let result = p3::directive_request(&backend, endpoint, Some(serde_json::json!({"task_id": id})))?;
+            let mut payload = body.unwrap_or(serde_json::json!({}));
+            payload["task_id"] = serde_json::json!(id);
+            let result = p3::directive_request(&backend, endpoint, Some(payload))?;
             if result.status >= 200 && result.status < 300 {
                 let _ = vault::emit_vault_change(&app_handle, &vault::VaultChangeEvent {
                     r#type: "bridge".to_string(),

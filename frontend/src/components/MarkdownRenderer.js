@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import TaskStatusPicker from './TaskStatusPicker';
 import remarkGfm from 'remark-gfm';
 
 import rehypeRaw from 'rehype-raw';
@@ -31,6 +32,13 @@ export default function MarkdownRenderer({ content = '', onToggleCheckbox, onHop
   const [optimisticOverrides, setOptimisticOverrides] = useState({});
 
   const pendingRef = useRef(false);
+  const focusAfterSave = useRef(null);
+  useEffect(() => {
+    if (!pending && focusAfterSave.current) {
+      if (typeof document !== 'undefined') document.getElementById(focusAfterSave.current)?.focus();
+      focusAfterSave.current = null;
+    }
+  });
   const [pending, setPending] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -126,16 +134,21 @@ export default function MarkdownRenderer({ content = '', onToggleCheckbox, onHop
         const itemKey = startLine != null ? `line_${startLine}` : `text_${textContent}`;
         const effectiveChecked = itemKey in optimisticOverrides ? optimisticOverrides[itemKey] : isChecked;
 
-        const handleCheckboxChange = async () => {
+        const marker = (content.split(/\r?\n/)[(startLine || 1) - 1] || '').match(/<!-- navis-task:[a-f0-9]{32}:(pending|in_progress|deferred|cancelled|done) -->/);
+        const taskStatus = isChecked ? 'done' : (marker?.[1] === 'done' ? 'pending' : marker?.[1] || 'pending');
+        const handleCheckboxChange = async (selectedStatus) => {
           if (!onToggleCheckbox || pendingRef.current) return;
           pendingRef.current = true;
           setPending(true);
           setSaveMessage('Saving task…');
-          const nextChecked = !effectiveChecked;
+          const desired = typeof selectedStatus === 'string' ? selectedStatus : (effectiveChecked ? 'pending' : 'done');
+          const nextChecked = desired === 'done';
+          focusAfterSave.current = `task-status-${startLine}`;
           setOptimisticOverrides(prev => ({ ...prev, [itemKey]: nextChecked }));
           try {
-            const res = await onToggleCheckbox(textContent, nextChecked, startLine);
-            setSaveMessage(res?.ok ? 'Task saved' : 'Save not confirmed. Review the reloaded task and retry.');
+            const sourceLabel = (content.split(/\r?\n/)[(startLine || 1) - 1] || '').match(/^\s*[-*+]\s+\[[ xX]\]\s+(.*)$/)?.[1] || textContent;
+            const res = await onToggleCheckbox(sourceLabel, nextChecked, startLine, undefined, desired);
+            setSaveMessage(res?.ok ? (res.result?.xp_status === 'pending' ? 'Task saved. XP sync pending.' : 'Task saved') : 'Save not confirmed. Review the reloaded task and retry.');
           } catch (err) {
             setSaveMessage('Save not confirmed. Reload the journal and retry.');
           } finally {
@@ -159,6 +172,8 @@ export default function MarkdownRenderer({ content = '', onToggleCheckbox, onHop
               onChange={handleCheckboxChange}
               className="w-4 h-4 shrink-0 mt-1 cursor-pointer accent-[#00d4ff]"
             />
+            <TaskStatusPicker id={`task-status-${startLine}`} label={textContent}
+              value={taskStatus} disabled={pending || !onToggleCheckbox} onChange={handleCheckboxChange} />
             <div
               className={`transition-colors duration-200 flex-1 [&>p:last-child]:mb-0 ${
                 effectiveChecked ? 'text-[#888] font-normal' : 'text-white/80'

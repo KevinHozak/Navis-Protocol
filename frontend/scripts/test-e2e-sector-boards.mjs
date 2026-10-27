@@ -148,6 +148,7 @@ async function createComponent(componentName, tasksFixture) {
       if (specifier === 'framer-motion') return synthetic('motion', { motion: { div: 'div', form: 'form' }, AnimatePresence: ({ children }) => children });
       if (specifier === 'next/dynamic') return synthetic('next/dynamic', { default: () => ({ content }) => React.createElement('div', null, content) });
       if (specifier.startsWith('@/')) return load(specifier.slice(2) + '.js');
+      if (specifier === './TaskStatusPicker') return load('components/TaskStatusPicker.js');
       if (specifier === './taskBoardStore.mjs') return load('lib/taskBoardStore.mjs');
       throw new Error(`Unexpected import: ${specifier}`);
     });
@@ -166,7 +167,7 @@ await act(async () => {
   tasksRenderer = TestRenderer.create(React.createElement(TasksBoard, { area: 'World' }));
 });
 const renderedTasksText = JSON.stringify(tasksRenderer.toJSON());
-assert.ok(renderedTasksText.includes('Active Directives'), 'TasksBoard must render active directives header');
+assert.ok(renderedTasksText.includes('Directives'), 'TasksBoard must render directives header');
 assert.ok(renderedTasksText.includes('P1') || renderedTasksText.includes('P2') || renderedTasksText.includes('P4'), 'TasksBoard must render priority badges');
 
 // Render RecurringBoard with all recurring tasks

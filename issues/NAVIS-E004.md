@@ -4,7 +4,7 @@ id: "NAVIS-E004"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "in_progress"
 title: "Add task status controls, completion timestamps and a Completed today view"
 type: "epic"
 ---
@@ -32,3 +32,7 @@ Source inspection found binary checkbox handling in backend/services/task_toggle
 - [NAVIS-S022](NAVIS-S022.md): Accessible status picker and shared transitions
 - [NAVIS-S023](NAVIS-S023.md): Reliable completion timestamps
 - [NAVIS-S024](NAVIS-S024.md): Completed today view
+
+## S022 checkpoint
+
+S022 implements the shared status contract and picker with isolated web/native verification. Completion timestamps (S023) and the read-only Completed today view (S024) remain separate, unimplemented stories. See [task status semantics](../docs/task-status-semantics.md).

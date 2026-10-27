@@ -1990,9 +1990,13 @@ fn canonical_task_area(area: &str) -> String {
 }
 
 fn task_list(state: &Value, collection: &str, area: Option<&str>) -> Value {
+    task_list_view(state, collection, area, false)
+}
+
+fn task_list_view(state: &Value, collection: &str, area: Option<&str>, include_completed: bool) -> Value {
     let tasks = state.get(collection).and_then(Value::as_array).cloned().unwrap_or_default();
     let area = area.map(canonical_task_area).filter(|a| !a.is_empty());
-    json!(tasks.into_iter().filter(|t| collection != "active_tasks" || t.get("status").and_then(Value::as_str) != Some("completed")).filter(|t| area.as_ref().map_or(true, |a|
+    json!(tasks.into_iter().filter(|t| include_completed || collection != "active_tasks" || t.get("status").and_then(Value::as_str) != Some("completed")).filter(|t| area.as_ref().map_or(true, |a|
         canonical_task_area(t.get("area").and_then(Value::as_str).unwrap_or("")) == *a
     )).collect::<Vec<_>>())
 }
@@ -2116,7 +2120,7 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
         ("POST", "/api/realm/hop") => execute_realm_hop(&body)?,
         ("GET", r) if r.starts_with("/api/entity/") => entity_profile(path)?,
         ("GET", "/api/recurring") => task_list(&ops()?, "tasks", query(path, "area").as_deref()),
-        ("GET", "/api/active_tasks") => task_list(&ops()?, "active_tasks", query(path, "area").as_deref()),
+        ("GET", "/api/active_tasks") => task_list_view(&ops()?, "active_tasks", query(path, "area").as_deref(), query(path, "include_completed").as_deref() == Some("true")),
         ("GET", "/api/vault/") => json!({}),
         ("GET", r) if r.starts_with("/api/vault/") => {
             vault_file(r.trim_start_matches("/api/vault/"))?

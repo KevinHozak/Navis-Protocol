@@ -18,8 +18,12 @@ const context = vm.createContext({console});
 const source = await readFile(new URL('../src/components/MarkdownRenderer.js', import.meta.url), 'utf8');
 const code = swc.transformSync(source, {filename: 'MarkdownRenderer.js', jsc: {parser: {syntax: 'ecmascript', jsx: true}, transform: {react: {runtime: 'classic'}}}, module: {type: 'es6'}}).code;
 const mod = new vm.SourceTextModule(code, {context});
+const pickerModule = { exports: {} };
+const pickerCode = swc.transformSync(await readFile(new URL('../src/components/TaskStatusPicker.js', import.meta.url), 'utf8'), {filename:'TaskStatusPicker.js', jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'classic'}}},module:{type:'commonjs'}}).code;
+vm.runInNewContext(pickerCode, {module: pickerModule, exports: pickerModule.exports, require: () => React});
 await mod.link(async name => {
-  const values = name === 'react' ? {default: React, useState: React.useState, useRef: React.useRef}
+  const values = name === 'react' ? {default: React, useState: React.useState, useRef: React.useRef, useEffect: React.useEffect}
+    : name === './TaskStatusPicker' ? {default: pickerModule.exports.default}
     : name === 'react-markdown' ? {default: ReactMarkdown}
     : name === 'remark-gfm' ? {default: remarkGfm}
     : name === 'rehype-raw' ? {default: rehypeRaw} : {apiUrl: path => path};

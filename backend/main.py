@@ -1449,10 +1449,10 @@ async def delete_recurring_task(task_id: str):
 
 
 @app.post("/api/recurring/{task_id}/complete")
-async def complete_recurring_task(task_id: str):
-    from services.directive_completion import complete_recurring
+async def complete_recurring_task(task_id: str, payload: Optional[dict] = None):
+    from services.directive_completion import complete_recurring, transition
     try:
-        result = complete_recurring(NAVIS_ROOT, task_id)
+        result = ( transition(NAVIS_ROOT, task_id, payload["task_status"], payload.get("expected_task"), is_recurring=True) if payload and "task_status" in payload else complete_recurring(NAVIS_ROOT, task_id))
         if "task" in result:
             result["task"] = recurring_task_view(result["task"])
         return result
@@ -1464,12 +1464,12 @@ async def complete_recurring_task(task_id: str):
 
 # --- Active Tasks API ---
 @app.get("/api/active_tasks")
-async def get_active_tasks(area: Optional[str] = None):
+async def get_active_tasks(area: Optional[str] = None, include_completed: bool = False):
     ops_path = get_ops_state_path()
     if not os.path.exists(ops_path):
         return []
     state = load_json(ops_path) or {}
-    tasks = [t for t in state.get("active_tasks", []) if t.get("status") != "completed"]
+    tasks = [t for t in state.get("active_tasks", []) if include_completed or t.get("status") != "completed"]
     return filter_task_area(tasks, area)
 
 
@@ -1498,10 +1498,10 @@ async def create_active_task(req: ActiveTaskCreate):
 
 
 @app.post("/api/active_tasks/{task_id}/complete")
-async def complete_active_task(task_id: str):
-    from services.directive_completion import complete
+async def complete_active_task(task_id: str, payload: Optional[dict] = None):
+    from services.directive_completion import complete, transition
     try:
-        return complete(NAVIS_ROOT, task_id)
+        return (transition(NAVIS_ROOT, task_id, payload["task_status"], payload.get("expected_task")) if payload and "task_status" in payload else complete(NAVIS_ROOT, task_id))
     except (ValueError, FileNotFoundError) as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
     except Exception as error:
@@ -2470,7 +2470,8 @@ async def set_vanguard(req: SquadActionRequest):
 class TaskToggleRequest(BaseModel):
     file_path: str
     target_text: str
-    is_checked: bool
+    is_checked: Optional[bool] = None
+    task_status: Optional[str] = None
     line_number: Optional[int] = None
     expected_content: Optional[str] = None
 
@@ -2532,6 +2533,8 @@ async def toggle_task(req: TaskToggleRequest):
         return result
     except ToggleConflict as error:
         raise HTTPException(status_code=409, detail={"saved": False, "content": error.content, "message": str(error)})
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail={"saved": False, "message": str(error)})
     except Exception as error:
         raise HTTPException(status_code=500, detail={"saved": False, "message": str(error)})
 
