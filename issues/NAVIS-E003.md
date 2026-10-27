@@ -45,3 +45,8 @@ The scoped pilot indexed 45 real notes and independently verified 14 sources ove
 ## Broad coverage follow-up
 
 - [NAVIS-S025](NAVIS-S025.md): Remove serial Drive inventory bottlenecks and verify broader read-only MCP coverage. The retained configuration now covers 2,160 notes across Journal, Operations and Documentation with an explicit 60-second exhaustive-scan budget (ten-second default retained). The final pilot verified 19 sources, recent and archived journal ranges, and unchanged scoped source hashes. [Performance and pilot evidence](../docs/vault-mcp-inventory-performance.md). Human effort, interactive desktop use and simultaneous-client/physical Drive concurrency remain unverified; writes remain disabled.
+
+
+## Live scoped-search follow-up
+
+- [NAVIS-S026](NAVIS-S026.md): Explicit-root queries now validate their own subtree and report current_for_scope with unvalidated roots. A live pre-fix Documentation retry took 31.25 seconds; a fresh actual Codex connection with the candidate took 248–291 ms with source provenance verified. The current chat's post-restart check remains pending. [Contract and evidence](../docs/vault-mcp-live-search.md). Unfiltered searches retain exhaustive validation and their existing latency/deadline limits.

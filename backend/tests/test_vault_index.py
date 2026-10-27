@@ -60,6 +60,112 @@ def test_keyword_phrase_and_source_spans(indexed):
     assert (Path(state) / "vault-index.db").is_file()
 
 
+def test_explicit_scope_never_probes_unrelated_drive_trees(indexed, monkeypatch):
+    policy, _, _ = indexed
+    original = index._open_probe
+    opened = []
+
+    def probe(path):
+        assert path.is_relative_to(policy.root / "Documentation"), "unrelated Drive I/O"
+        opened.append(path)
+        return original(path)
+
+    monkeypatch.setattr(index, "_open_probe", probe)
+    result = search(indexed, "red", root="Documentation")
+    coverage = result["coverage"]
+    assert len(opened) == 2  # Both freshness passes, including nonmatches.
+    assert coverage["index_state"] == "current_for_scope"
+    assert coverage["validated_roots"] == ["Documentation"]
+    assert set(coverage["unvalidated_roots"]) == {"Journal", "Operations", "Codex"}
+    assert coverage["requested_root"] == "Documentation"
+
+
+def test_out_of_scope_edit_is_explicitly_unvalidated_not_globally_current(indexed):
+    policy, _, _ = indexed
+    (policy.root / "Journal/two.md").write_text("changed outside scope", encoding="utf-8")
+    result = search(indexed, "red", root="Documentation")
+    assert result["coverage"]["index_state"] == "current_for_scope"
+    assert "Journal" in result["coverage"]["unvalidated_roots"]
+    assert result["data"]["matches"][0]["path"] == "Documentation/one.md"
+    assert code(lambda: search(indexed, "red")) == "index_stale"
+
+
+def test_unreadable_nonmatch_in_scope_fails_but_other_scopes_are_independent(indexed, monkeypatch):
+    policy, _, _ = indexed
+    original = index._open_probe
+    target = policy.root / "Journal/two.md"
+    def denied(path):
+        if path == target:
+            raise PermissionError("synthetic denial")
+        return original(path)
+    monkeypatch.setattr(index, "_open_probe", denied)
+    assert search(indexed, "absent", root="Documentation")["data"]["matches"] == []
+    assert code(lambda: search(indexed, "absent", root="Journal")) == "source_unreadable"
+    assert code(lambda: search(indexed, "absent")) == "source_unreadable"
+
+
+@pytest.mark.parametrize("mutation", ["edit", "add", "remove"])
+def test_scoped_changes_still_reject_stale_results(indexed, mutation):
+    policy, _, _ = indexed
+    path = policy.root / "Documentation/one.md"
+    if mutation == "edit":
+        path.write_text("changed", encoding="utf-8")
+    elif mutation == "add":
+        path.with_name("added.md").write_text("new red", encoding="utf-8")
+    else:
+        path.unlink()
+    assert code(lambda: search(indexed, "red", root="Documentation")) == "index_stale"
+
+
+def test_scoped_search_revalidates_after_query_and_keeps_file_filters(indexed, monkeypatch):
+    policy, _, _ = indexed
+    assert search(indexed, "red", root="Documentation/one.md")["data"]["matches"][0]["path"] == "Documentation/one.md"
+    original = index._inventory
+    calls = 0
+    def changed(scoped_policy, deadline):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            (policy.root / "Documentation/one.md").write_text("changed", encoding="utf-8")
+        return original(scoped_policy, deadline)
+    monkeypatch.setattr(index, "_inventory", changed)
+    assert code(lambda: search(indexed, "absent", root="Documentation")) == "index_stale"
+
+
+def test_nested_missing_scope_and_markdown_named_root_keep_policy_boundaries(tmp_path):
+    vault = tmp_path / "vault"
+    directory = vault / "scope.md"
+    directory.mkdir(parents=True)
+    (directory / "note.md").write_text("red fixture", encoding="utf-8")
+    (vault / "outside.md").write_text("red outside", encoding="utf-8")
+    policy = VaultPolicy.from_env(config(vault, NAVIS_MCP_ALLOWED_ROOTS='["scope.md"]'))
+    state = str(tmp_path / "state")
+    index.rebuild_index(policy, state)
+    result = index.search_vault(policy, state, {"query": "red", "root": "SCOPE.MD"})
+    assert [m["path"] for m in result["data"]["matches"]] == ["scope.md/note.md"]
+    assert result["coverage"]["validated_roots"] == ["scope.md"]
+    missing = index.search_vault(policy, state, {"query": "red", "root": "scope.md/missing/leaf"})
+    assert missing["data"]["matches"] == []
+    assert missing["coverage"]["missing_roots"] == ["scope.md/missing/leaf"]
+
+
+@pytest.mark.skipif(os.name == "nt", reason="distinct case aliases require a case-sensitive directory")
+def test_scoped_search_includes_case_aliases_and_detects_new_alias_files(tmp_path):
+    vault = tmp_path / "vault"
+    for name in ["Case", "case"]:
+        directory = vault / "Documentation" / name
+        directory.mkdir(parents=True)
+        (directory / "note.md").write_text("red fixture", encoding="utf-8")
+    policy = VaultPolicy.from_env(config(vault))
+    state = str(tmp_path / "state")
+    index.rebuild_index(policy, state)
+    assert len(index.search_vault(policy, state, {"query": "red", "root": "Documentation/CASE"})["data"]["matches"]) == 2
+    directory = vault / "Documentation" / "CASE"
+    directory.mkdir()
+    (directory / "new.md").write_text("red new", encoding="utf-8")
+    assert code(lambda: index.search_vault(policy, state, {"query": "red", "root": "Documentation/case"})) == "index_stale"
+
+
 def test_unicode_tokens_and_root_filtering_are_literal(indexed):
     policy, state, _ = indexed
     directory = policy.root / "Documentation" / "Café_100%keep"

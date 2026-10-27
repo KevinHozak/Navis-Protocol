@@ -14,6 +14,7 @@ import time
 import uuid
 from itertools import islice
 from collections import deque
+from dataclasses import replace
 from services.vault_io import read_binary
 
 from services.vault_access import (
@@ -94,6 +95,48 @@ def _probe_file(item):
 def _fingerprint(policy):
     data = (os.path.normcase(str(policy.root)), policy.identity, policy.allowed, policy.denied, SCHEMA)
     return hashlib.sha256(json.dumps(data).encode("utf-8")).hexdigest()
+
+
+def _scope_policy(policy, subtree, deadline):
+    # Match the query's existing case-insensitive prefix semantics, but retain
+    # actual on-disk spelling in provenance/manifest comparisons. Discover all
+    # case aliases (possible on POSIX), including ones added since indexing.
+    scope = (subtree[:-1] if Path(subtree[-1]).suffix.casefold() == ".md"
+             and policy.allows(subtree[:-1]) else subtree)
+    roots, examined = [()], 0
+    for depth, part in enumerate(scope):
+        following = []
+        for prefix in roots:
+            if len(prefix) == len(scope):
+                following.append(prefix)
+                continue
+            _check(deadline)
+            parent = policy.root.joinpath(*prefix)
+            try:
+                _no_links(parent)
+                with os.scandir(parent) as children:
+                    matches = []
+                    for entry in children:
+                        _check(deadline)
+                        examined += 1
+                        if examined > MAX_ENTRIES:
+                            raise VaultAccessError("inventory_limit_exceeded")
+                        if entry.name.casefold() == part.casefold():
+                            matches.append(prefix + (entry.name,))
+                following.extend(matches or [prefix + tuple(scope[depth:])])
+            except FileNotFoundError:
+                policy.require_root()
+                following.append(prefix + tuple(scope[depth:]))
+            except OSError:
+                raise VaultAccessError("source_unreadable") from None
+        if len(following) > 32:
+            raise VaultAccessError("inventory_limit_exceeded")
+        # Missing roots have their complete suffix already; do not append it
+        # again while discovering other case aliases.
+        roots = following
+        if all(len(p) == len(scope) for p in roots):
+            break
+    return replace(policy, allowed=tuple(sorted(set(roots))))
 
 
 def _inventory(policy, deadline):
@@ -356,14 +399,32 @@ def search_vault(policy, state_directory, arguments, *, deadline=None):
             indexed_paths = [r[0] for r in db.execute("SELECT path FROM notes LIMIT ?", (MAX_NOTES + 1,))]
             if len(recorded) != len(rows) or len(indexed_paths) != len(rows) or set(indexed_paths) != set(recorded):
                 raise VaultAccessError("index_unavailable")
+            # An explicit root bounds both the query and its freshness work.
+            # Keep the original policy for index identity and source access;
+            # narrow only the walk, retaining denies and pinned root identity.
+            validation_policy = policy
+            expected = recorded
+            if subtree is not None:
+                # Preserve file-prefix filters by validating their parent dir.
+                validation_policy = _scope_policy(policy, subtree, deadline)
+                expected = {path: value for path, value in recorded.items()
+                            if any(_under(path.split("/"), scope) for scope in validation_policy.allowed)}
             try:
-                files, coverage = _inventory(policy, deadline)
+                files, coverage = _inventory(validation_policy, deadline)
             except VaultAccessError as error:
                 if error.code == "source_changed":
                     raise VaultAccessError("index_stale") from None
                 raise
-            if files != recorded or coverage["missing_roots"] != meta.get("missing_roots"):
+            if files != expected or (subtree is None and coverage["missing_roots"] != meta.get("missing_roots")):
                 raise VaultAccessError("index_stale")
+            index_coverage = {**coverage,
+                              "allowed_roots": ["/".join(p) for p in policy.allowed],
+                              "validated_roots": coverage["allowed_roots"],
+                              "unvalidated_roots": ["/".join(p) for p in policy.allowed
+                                                    if not any(_under(p, base) for base in validation_policy.allowed)],
+                              "requested_root": "/".join(subtree) if subtree is not None else None,
+                              "index_state": "current_for_scope" if subtree is not None else "current",
+                              "generation": meta["generation"], "indexed_at": meta["indexed_at"]}
             # Literal path-prefix comparisons avoid SQL LIKE wildcard semantics.
             marker, close_marker = "\ue000" + uuid.uuid4().hex, "\ue001" + uuid.uuid4().hex
             db.create_function("within_root", 1, lambda relative: int(not subtree or _under(relative.split("/"), subtree)))
@@ -394,18 +455,21 @@ def search_vault(policy, state_directory, arguments, *, deadline=None):
                     raise VaultAccessError("index_unavailable")
                 item = _excerpt(relative, text, digest, info, offset)
                 candidate = {"status": "ok", "data": {"matches": data + [item]},
-                             "coverage": {**coverage, "index_state": "current", "generation": meta["generation"],
-                                          "indexed_at": meta["indexed_at"]}, "truncated": truncated, "continuation": None}
+                             "coverage": index_coverage, "truncated": truncated, "continuation": None}
                 if len(json.dumps(candidate, ensure_ascii=False).encode("utf-8")) > MAX_DATA_BYTES:
                     truncated = True
                     break
                 data.append(item)
-            final, final_coverage = _inventory(policy, deadline)
+            final_policy = _scope_policy(policy, subtree, deadline) if subtree is not None else policy
+            if final_policy.allowed != validation_policy.allowed:
+                raise VaultAccessError("index_stale")
+            final, final_coverage = _inventory(final_policy, deadline)
             if final != files or final_coverage != coverage:
                 raise VaultAccessError("index_stale")
+            if subtree is not None and _scope_policy(policy, subtree, deadline).allowed != validation_policy.allowed:
+                raise VaultAccessError("index_stale")
             result = {"status": "ok", "data": {"matches": data},
-                      "coverage": {**coverage, "index_state": "current", "generation": meta["generation"],
-                                   "indexed_at": meta["indexed_at"]}, "truncated": truncated, "continuation": None}
+                      "coverage": index_coverage, "truncated": truncated, "continuation": None}
             if len(json.dumps(result, ensure_ascii=False).encode("utf-8")) > MAX_DATA_BYTES or (matches and not data):
                 raise VaultAccessError("response_too_large")
             _check(deadline)
