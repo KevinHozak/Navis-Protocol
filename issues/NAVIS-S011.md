@@ -4,7 +4,7 @@ id: "NAVIS-S011"
 parent: ["NAVIS-E002"]
 priority: "high"
 schema_version: 1
-status: "open"
+status: "in_review"
 title: "Distinguish unavailable data from valid empty and zero results"
 type: "enhancement"
 ---
@@ -20,14 +20,14 @@ Only confirmed response/UI gaps in affected backend/native contracts and consume
 
 ## Acceptance criteria
 
-- [ ] Before implementation, link confirmed audit findings and document the affected state contract without assuming all views need changes.
-- [ ] Represent loading, valid empty results, measured zero, missing records, dependency failure and unsupported native routes accurately where applicable; do not coerce failures to zero or an empty success.
-- [ ] Provide clear user-facing states and applicable recovery actions while preserving legitimate existing empty/zero behavior and retained data provenance.
-- [ ] Exercise representative missing/corrupt source, unavailable backend/native dependency, empty result and real zero fixtures; verify web/native behavior and meaningful regression checks.
+- [x] Before implementation, link confirmed audit findings and document the affected state contract without assuming all views need changes.
+- [x] Represent loading, valid empty results, measured zero, missing records, dependency failure and unsupported native routes accurately where applicable; do not coerce failures to zero or an empty success.
+- [x] Provide clear user-facing states and applicable recovery actions while preserving legitimate existing empty/zero behavior and retained data provenance.
+- [x] Exercise representative missing/corrupt source, unavailable backend/native dependency, empty result and real zero fixtures; verify web/native behavior and meaningful regression checks.
 
 ## Scope and verification
 
-Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The S009 audit selected the confirmed scope below. Repair acceptance remains unchecked; no application implementation is authorized by this issue update.
+Follow the parent epic's audit-first gate, privacy and runtime evidence requirements. The user selected S011 after accepting S013's PR #18 merge and explicitly authorized separate codex-branch/PR delivery. The affected [availability contract](../docs/journal-availability.md) narrows T02 to calendar failure/recovery and remaining parser/day/sector states; S013's implemented evidence/zero behavior is reused.
 
 
 ## S009 audit disposition - 2026-10-27
@@ -35,3 +35,20 @@ Follow the parent epic's audit-first gate, privacy and runtime evidence requirem
 T02: distinguish missing/unreadable/partial Holocron journal and progression inputs from valid zero; retain day/source coverage. Repair calendar HTTP/error handling so unavailable months do not appear empty. Preserve command readiness and task-board unavailable/zero handling already implemented.
 
 Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). All repair criteria remain pending.
+
+## Implementation and verification - 2026-10-27
+
+Calendar web/native reads now distinguish unavailable sources from readable empty
+months. The shared UI validates responses, exposes loading/error/unsupported and
+retry states, pauses unverified selection and rejects late month responses.
+Holocron parser failures no longer count as readable zero-task days; missing daily
+and sector counts are unavailable while genuine 0%/0 XP values remain valid.
+
+50 affected Python tests, 51 adapter tests, the full frontend regression runner,
+75 serial Rust unit tests and one parity integration test passed. The personal
+Vault probe is excluded. Release 1.11.22 metadata, all 38 resources and actual
+packaged unavailable-to-empty-to-entry recovery passed. Ruff, lint with existing
+warnings and whitespace passed. See the [contract, artifact identity and retained
+runtime limits](../docs/journal-availability.md). No personal Vault operation or live
+provider call was performed. Status remains in_review pending PR acceptance;
+independent external review is unavailable.

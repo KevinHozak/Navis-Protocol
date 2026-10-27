@@ -46,7 +46,9 @@ S009 completed a source/fixture audit with seven confirmed findings and existing
 ## Repair checkpoint - 2026-10-27
 
 S014 is accepted after PR #17 merged at `cf23ca7`; its packaged 1.11.20 fixture
-gate passed. S013 is under implementation on `codex/holocron-evidence`, with the
-shared [evidence contract](../docs/holocron-evidence.md). Its affected manifest
-assumptions are reconciled in tests. S010-S012 and the remaining S015 journeys,
+gate passed. S013 is accepted after PR #18 merged at `cc05842`, with the shared
+[evidence contract](../docs/holocron-evidence.md). Its affected manifest assumptions
+are reconciled in tests. S011 is in review on `codex/journal-availability` after
+the packaged 1.11.22 availability/recovery fixture passed;
+see its [narrowed T02 contract](../docs/journal-availability.md). S010, S012 and the remaining S015 journeys,
 clean-machine installation, personal Drive races and dependency limits stay open.

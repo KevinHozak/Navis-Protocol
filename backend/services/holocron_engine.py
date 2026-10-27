@@ -111,6 +111,7 @@ def parse_daily_journal(file_path: str, date_str: str) -> Dict[str, Any]:
     """Parse a single daily journal file and return task counts and metadata."""
     res = {
         "date": date_str,
+        "availability": "missing",
         "completed": 0,
         "pending": 0,
         "total": 0,
@@ -121,18 +122,19 @@ def parse_daily_journal(file_path: str, date_str: str) -> Dict[str, Any]:
         "manor_counts": Counter()
     }
     
-    if not file_path or not os.path.isfile(file_path):
+    if not file_path:
         return res
         
     try:
         with open(file_path, "r", encoding="utf-8-sig") as f:
             lines = f.readlines()
-    except Exception:
-        try:
-            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
-                lines = f.readlines()
-        except Exception:
-            return res
+    except FileNotFoundError:
+        return res
+    except (OSError, UnicodeError):
+        res["availability"] = "unavailable"
+        return res
+
+    res["availability"] = "available"
 
     current_manor = DEFAULT_MANOR
     in_squad_section = False
@@ -371,6 +373,9 @@ def build_weekly_holocron(
         sources.append(source)
         jfile = find_journal_file(root, date_str) if source["status"] == "available" else None
         day_data = parse_daily_journal(jfile, date_str)
+        if jfile and day_data["availability"] != "available":
+            source["status"] = day_data["availability"]
+            jfile = None
         if jfile and journal_source(root, date_str).get("fingerprint") != source.get("fingerprint"):
             source["status"] = "changed"
             jfile = None
@@ -406,9 +411,9 @@ def build_weekly_holocron(
             "date": date_str,
             "day_name": day_name,
             "day_status": day_status,
-            "completed": day_data["completed"],
-            "pending": day_data["pending"],
-            "total": day_data["total"],
+            "completed": day_data["completed"] if jfile else None,
+            "pending": day_data["pending"] if jfile else None,
+            "total": day_data["total"] if jfile else None,
             "precision": day_data["precision"] if jfile and day_data["total"] else None,
             "source_status": source["status"],
             "source_id": source["id"],
@@ -446,9 +451,9 @@ def build_weekly_holocron(
             "sector_id": manor_def["id"],
             "name": manor_def["name"],
             "icon": manor_def["icon"],
-            "completed": completed_in_manor,
-            "total": completed_in_manor, # Tracked against completions
-            "percentage": pct,
+            "completed": completed_in_manor if logged_days else None,
+            "total": completed_in_manor if logged_days else None, # Tracked against completions
+            "percentage": pct if logged_days else None,
             "color": manor_def["color"]
         })
 
@@ -658,13 +663,13 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
     # Build sector meters HTML
     sector_meters = []
     for s in sectors:
-        pct = min(100, s.get("percentage", 0))
+        pct = min(100, s.get("percentage") or 0)
         color = s.get("color", "#00d4ff")
         sector_meters.append(f"""
           <div class="sector-item">
             <div class="sector-info">
               <span class="sector-name">{s.get('icon', '🏰')} {s.get('name', '')}</span>
-              <span class="sector-pct">{s.get('completed', 0)} ({pct}%)</span>
+              <span class="sector-pct">{display(s.get('completed'))} ({display(s.get('percentage'), '%')})</span>
             </div>
             <div class="meter-track">
               <div class="meter-fill" style="width: {pct}%; background: {color};"></div>
@@ -1053,10 +1058,10 @@ async def synthesize_ollama_debrief(holocron_payload: Dict[str, Any]) -> Tuple[s
     is_in_flight = holocron_payload.get("is_in_flight", False)
 
     # Determine top sector and beasts
-    sectors = holocron_payload.get("sector_distribution", [])
+    sectors = [sector for sector in holocron_payload.get("sector_distribution", []) if sector.get("completed") is not None]
     top_sector = max(sectors, key=lambda s: s.get("completed", 0)) if sectors else {}
-    top_sector_name = top_sector.get("name", "Command Operations")
-    top_sector_tasks = top_sector.get("completed", 0)
+    top_sector_name = top_sector.get("name", "Unavailable")
+    top_sector_tasks = top_sector.get("completed", "Unavailable")
 
     combat = holocron_payload.get("combat", {})
     beasts = [b.get("name") for b in combat.get("beasts_neutralized", []) if b.get("name")]

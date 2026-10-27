@@ -48,6 +48,8 @@ def inspect_source(root, week_id, source_id):
     if source["status"] == "available":
         path = find_journal_file(root, day)
         parsed = parse_daily_journal(path, day)
+        if parsed["availability"] != "available":
+            return {"id": source_id, "date": day, "status": parsed["availability"]}
         if journal_source(root, day).get("fingerprint") != source["fingerprint"]:
             return {"id": source_id, "date": day, "status": "changed"}
         source["counts"] = {key: parsed[key] for key in ("completed", "pending", "total")}

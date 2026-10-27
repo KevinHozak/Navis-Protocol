@@ -239,6 +239,10 @@ explicit, and unresolved legacy history remains visibly flagged.
 
 ## 💠 Weekly Holocron Telemetry & Cockpit Endpoints
 
+### `GET /api/journal/month?year=YYYY&month=M`
+- **Response:** `{ "dates": ["YYYY-MM-DD"], "availability": "available", "year": int, "month": int }` for a readable local Journal index, including a genuinely empty month. Missing year/month directories are empty only when the Journal source is readable.
+- **Failures:** Invalid date parameters return 400 (FastAPI type validation may return 422); unavailable or obstructed Journal sources return 503 with generic `journal_unavailable` detail. Native response semantics match. Calendar loading, recovery, stale-data retention and unsupported-route states follow the [availability contract](journal-availability.md).
+
 ### `GET /api/holocron/weekly/latest`
 - **Purpose:** Compiles or reads the most recent concluded or available 7-day Weekly Holocron.
 - **Response:** JSON payload containing `week_id`, `start_date`, `end_date`, `summary` (precision rate, completed/total tasks, XP yield, threats neutralized), `daily_telemetry`, `sector_distribution`, `combat`, `progression`, `squad_mvp`, and `tactical_debrief`.

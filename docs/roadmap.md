@@ -39,9 +39,10 @@ Trust at a glance ([NAVIS-E002](../issues/NAVIS-E002.md)) is **in progress**.
 [S009 audit](trust-signals-audit.md) completed source/fixture mapping and identified
 seven confirmed gaps while preserving existing persistence/error safeguards.
 S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
-and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is in
-progress on its approved branch; see the [evidence contract](holocron-evidence.md).
-Next repairs remain S011 availability, S012 late-save isolation and S010
+and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
+accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
+S011 availability is in review after its packaged 1.11.22 fixture passed; see the
+[availability contract](journal-availability.md). Next repairs remain S012 late-save isolation and S010
 refresh/selection state. Remaining packaged trust journeys and dependency limits
 remain explicit under S015. Task-status enhancements (S022-S024) and evidence-gated
 AI workflow trials (S001-S008) remain separate open workstreams.

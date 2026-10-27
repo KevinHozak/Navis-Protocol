@@ -6,8 +6,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AsyncJobModal from './AsyncJobModal';
 import { apiFetch } from '@/lib/desktopApi';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -55,8 +53,8 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1); // 1-indexed
-  const [activeDates, setActiveDates] = useState(new Set());
-  const [loadingDates, setLoadingDates] = useState(false);
+  const datesRequest = useRef({ revision: 0, controller: null });
+  const [dateState, setDateState] = useState({ key: null, status: 'loading', dates: new Set(), error: null });
   const [isRollingOver, setIsRollingOver] = useState(false);
   const [activeJob, setActiveJob] = useState(null);
 
@@ -89,20 +87,46 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
   };
 
   const fetchActiveDates = useCallback(async (y, m) => {
-    setLoadingDates(true);
+    datesRequest.current.controller?.abort();
+    const revision = ++datesRequest.current.revision;
+    const controller = new AbortController();
+    datesRequest.current.controller = controller;
+    const key = `${y}-${m}`;
+    setDateState(previous => ({ key, status: 'loading', dates: previous.key === key ? previous.dates : new Set(), error: null }));
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
-      const res = await apiFetch(`/api/journal/month?year=${y}&month=${m}`);
+      const res = await apiFetch(`/api/journal/month?year=${y}&month=${m}`, { signal: controller.signal });
+      if (!res.ok) {
+        const error = new Error('Journal dates unavailable. Reconnect the Vault and retry.');
+        if (res.status === 501) error.message = 'Calendar unavailable in this desktop version.';
+        throw error;
+      }
       const data = await res.json();
-      setActiveDates(new Set(data.dates || []));
+      const prefix = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-`;
+      if (!Array.isArray(data.dates) || (data.availability && data.availability !== 'available') ||
+          (data.year != null && data.year !== y) || (data.month != null && data.month !== m) ||
+          data.dates.some(value => typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+            !value.startsWith(prefix) || Number(value.slice(-2)) < 1 || Number(value.slice(-2)) > getDaysInMonth(y, m))) {
+        throw new Error('Journal date response unavailable. Retry.');
+      }
+      if (revision === datesRequest.current.revision) {
+        setDateState({ key, status: 'ready', dates: new Set(data.dates), error: null });
+      }
     } catch (e) {
-      setActiveDates(new Set());
+      if (revision === datesRequest.current.revision) {
+        setDateState(previous => ({ key, status: 'error', dates: previous.key === key ? previous.dates : new Set(),
+          error: e.name === 'AbortError' ? 'Journal dates timed out. Retry.' :
+            ['Journal dates unavailable. Reconnect the Vault and retry.', 'Calendar unavailable in this desktop version.', 'Journal date response unavailable. Retry.'].includes(e.message)
+              ? e.message : 'Journal dates unavailable. Reconnect the Vault and retry.' }));
+      }
     } finally {
-      setLoadingDates(false);
+      clearTimeout(timeout);
     }
   }, []);
 
   useEffect(() => {
     fetchActiveDates(year, month);
+    return () => { datesRequest.current.revision += 1; datesRequest.current.controller?.abort(); };
   }, [year, month, fetchActiveDates]);
 
   useEffect(() => {
@@ -165,11 +189,15 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
   };
 
   const grid = buildCalendarGrid(year, month);
+  const currentDates = dateState.key === `${year}-${month}`;
+  const loadingDates = !currentDates || dateState.status === 'loading';
+  const activeDates = currentDates ? dateState.dates : new Set();
+  const datesReady = currentDates && dateState.status === 'ready';
 
   const todayStr = getLocalDateStr(today);
 
   return (
-    <div className="bg-zinc-900 border border-white/10 rounded m-2 pb-3 mb-2 select-none">
+    <div className="bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded m-2 pb-3 mb-2 select-none" aria-busy={loadingDates}>
       {/* Month/Year Header */}
       <div className="flex items-center justify-between px-3 pt-3 pb-2 gap-1">
         <button
@@ -204,6 +232,14 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
         >»</button>
       </div>
 
+      {loadingDates && <p role="status" className="px-3 pb-2 text-[10px] text-cyan-300">Loading journal dates…</p>}
+      {currentDates && dateState.status === 'error' && <div role="alert" className="px-3 pb-2 text-[10px] text-amber-200 space-y-1">
+        <p>{dateState.error}</p>
+        {activeDates.size > 0 && <p>Previously loaded dates shown; selection paused.</p>}
+        <button type="button" onClick={() => fetchActiveDates(year, month)} className="text-cyan-300 underline">Retry dates</button>
+      </div>}
+      {datesReady && activeDates.size === 0 && <p role="status" className="px-3 pb-2 text-[10px] text-zinc-400">No journal entries this month.</p>}
+
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 px-2 mb-1">
         {DAYS.map((d, i) => (
@@ -233,8 +269,8 @@ export default function JournalCalendar({ onDateSelect, selectedDate, onRollover
                 <button
                   key={di}
                   onClick={() => handleDayClick(day)}
-                  disabled={!hasEntry}
-                  title={hasEntry ? `Load ${dateStr}` : dateStr}
+                  disabled={!datesReady || !hasEntry}
+                  title={datesReady && hasEntry ? `Load ${dateStr}` : !datesReady ? `${dateStr} · dates unverified` : dateStr}
                   className={`
                     h-7 w-full flex items-center justify-center rounded text-[10px] font-bold transition-all
                     ${isSelected
