@@ -140,6 +140,7 @@ export default function SectorView({
   onRefreshStatus,
   onMissionClick,
   onOpenBestiary,
+  onOpenJournal,
   selectedBeast
 }) {
   const [banter, setBanter] = useState([]);
@@ -1069,7 +1070,7 @@ export default function SectorView({
 
   const renderViewContent = () => {
     if (sectorId === 'HOLOCRON' || activeEntity?.type === 'holocron') {
-      return <WeeklyHolocronView activeWeekId={activeEntity?.week_id} onOpenBestiary={onOpenBestiary} />;
+      return <WeeklyHolocronView activeWeekId={activeEntity?.week_id} onOpenBestiary={onOpenBestiary} onOpenJournal={onOpenJournal} />;
     }
 
     if (sectorId === 'DIRECTIVES' || activeEntity?.id === 'TASKS_COCKPIT') {

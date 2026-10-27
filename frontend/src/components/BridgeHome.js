@@ -336,13 +336,13 @@ export default function BridgeHome({
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
                 <span>
-                  <strong className="text-cyan-400">{holocron.summary?.precision_rate}%</strong> Precision
+                  <strong className="text-cyan-400">{holocron.summary?.precision_rate == null ? 'Unavailable' : `${holocron.summary.precision_rate}%`}</strong> Precision
                 </span>
                 <span>
-                  <strong className="text-purple-400">+{holocron.summary?.total_xp_gained?.toLocaleString()}</strong> XP
+                  <strong className="text-purple-400">{holocron.summary?.total_xp_gained == null ? 'Unavailable' : holocron.summary.total_xp_gained.toLocaleString()}</strong> XP
                 </span>
                 <span>
-                  <strong className="text-rose-400">{holocron.summary?.threats_neutralized}</strong> Slayings
+                  <strong className="text-rose-400">{holocron.summary?.threats_neutralized ?? 'Unavailable'}</strong> Slayings
                 </span>
                 {holocron.summary?.is_in_flight && (
                   <span className="text-emerald-400 font-bold">

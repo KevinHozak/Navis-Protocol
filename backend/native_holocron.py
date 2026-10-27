@@ -27,6 +27,13 @@ def dispatch(path: str, method: str = "GET", body: dict = None) -> dict:
     body = body or {}
     clean_path = path.split("?")[0].rstrip("/")
 
+    if "/evidence/" in clean_path:
+        from services.holocron_evidence import inspect_source
+        parts = clean_path.split("/")
+        if len(parts) != 7 or parts[1:4] != ["api", "holocron", "weekly"] or method != "GET":
+            raise ValueError("Unsupported Holocron source")
+        return inspect_source(NAVIS_ROOT, parts[4], parts[6])
+
     # 1. Manifest
     if clean_path == "/api/holocron/weekly/manifest":
         return get_holocron_manifest(NAVIS_ROOT)
@@ -52,12 +59,15 @@ def dispatch(path: str, method: str = "GET", body: dict = None) -> dict:
         week_id = parts[-3]
         holocron_data = build_weekly_holocron(NAVIS_ROOT, week_id=week_id)
         debrief, source = asyncio.run(synthesize_ollama_debrief(holocron_data))
+        from services.holocron_evidence import share_safe, source_path
+        debrief = share_safe(debrief)
         holocron_data["tactical_debrief"] = debrief
         holocron_data["debrief_source"] = source
+        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source == "ollama" else "deterministic_summary"
 
         # Persist updated debrief in json artifact if it exists on disk
         artifact_path = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.json")
-        if os.path.isfile(artifact_path):
+        if source_path(NAVIS_ROOT, f"Bridge/Holocron/Weekly/{week_id}.json") and os.path.isfile(artifact_path):
             try:
                 with open(artifact_path, "w", encoding="utf-8") as f:
                     json.dump(holocron_data, f, indent=2, ensure_ascii=False)
@@ -75,13 +85,8 @@ def dispatch(path: str, method: str = "GET", body: dict = None) -> dict:
     if clean_path.endswith("/html"):
         parts = clean_path.split("/")
         week_id = parts[-2]
-        html_file = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.html")
-        if os.path.isfile(html_file):
-            with open(html_file, "r", encoding="utf-8") as f:
-                content = f.read()
-            return {"html": content}
         data = build_weekly_holocron(NAVIS_ROOT, week_id=week_id)
-        content = export_standalone_html(data, html_file)
+        content = export_standalone_html(data)
         return {"html": content}
 
     # 7. Specific week: /api/holocron/weekly/{week_id}

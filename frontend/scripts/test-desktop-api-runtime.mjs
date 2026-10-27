@@ -79,6 +79,7 @@ for (const [path, command] of [
   ['/api/combat/log', 'vault_request'], ['/api/bio/adjust', 'vault_request'],
   ['/api/holocron/weekly/latest', 'vault_request'], ['/api/holocron/weekly/manifest', 'vault_request'],
   ['/api/holocron/weekly/current', 'vault_request'],
+  ['/api/holocron/weekly/2026-W40/evidence/journal-2026-09-28', 'vault_request'],
 ]) {
   test(`native route ${path} uses ${command} without HTTP`, async () => {
     const { api, calls } = await runtime({ native: true });

@@ -760,6 +760,15 @@ export default function Home() {
                 onJournalEntrySaved={handleJournalEntrySaved}
                 onRefreshStatus={refreshStatus}
                 onMissionClick={handleMissionClick}
+                onOpenJournal={(path, day) => {
+                  const chronicle = pillars.find(p => p.sectors?.some(s => s.id === 'JOURNAL'));
+                  if (chronicle) setActivePillar(chronicle.id);
+                  setSelectedJournalDate(day);
+                  setActiveSector('JOURNAL');
+                  const journal = { id: path, name: day, type: 'file' };
+                  setSectorActiveEntities(prev => ({ ...prev, JOURNAL: journal }));
+                  setActiveEntity(journal);
+                }}
                 selectedBeast={selectedBeast}
                 onOpenBestiary={(name) => {
                   const codex = pillars.find(p => p.sectors?.some(s => s.id === 'BEASTS'));
