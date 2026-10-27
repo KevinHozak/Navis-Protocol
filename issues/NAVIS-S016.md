@@ -4,7 +4,7 @@ id: "NAVIS-S016"
 parent: ["NAVIS-E003"]
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "done"
 title: "Evaluate MCP reuse and define the Navis-Vault access contract"
 type: "enhancement"
 ---
@@ -26,7 +26,15 @@ Parent: [NAVIS-E003](NAVIS-E003.md).
 
 ## Acceptance criteria
 
-- [ ] Inspect existing backend Vault services, FTS5 tooling and configured NAVIS_ROOT; distinguish verified capabilities from stale descriptions.
-- [ ] Compare the linked Obsidian plugin with an independent Navis-Protocol adapter, including Obsidian uptime, transports, supported clients, maintenance and access controls; record the decision.
-- [ ] Specify search_vault, read_note, get_journal_range and get_mission inputs, bounded outputs, provenance, error states and index freshness behavior.
-- [ ] Define allowed roots/exclusions, symlink and path traversal policy, credential storage, logging redaction and client data-disclosure boundaries.
+- [x] Inspect existing backend Vault services, FTS5 tooling and configured NAVIS_ROOT; distinguish verified capabilities from stale descriptions.
+- [x] Compare the linked Obsidian plugin with an independent Navis-Protocol adapter, including Obsidian uptime, transports, supported clients, maintenance and access controls; record the decision.
+- [x] Specify search_vault, read_note, get_journal_range and get_mission inputs, bounded outputs, provenance, error states and index freshness behavior.
+- [x] Define allowed roots/exclusions, symlink and path traversal policy, credential storage, logging redaction and client data-disclosure boundaries.
+
+## Completion evidence
+
+- Decision and all four tool contracts: [Navis-Vault MCP access contract](../docs/vault-mcp-contract.md), 2026-10-26.
+- Inspected owning backend path, journal, mission, recurrence and cloud-search code. Read-only Vault/index metadata checks and an in-memory FTS5 reproduction distinguish existing behavior from proposed work.
+- Selected independent stdio adapter; documented process lifecycle, client verification gaps, bounded inputs/outputs, freshness, source provenance, allowed roots and privacy boundaries.
+- Source-level contract audit completed; frontend lint passed with existing warnings, backend Ruff passed. Issue-store relationship validation passed.
+- S017–S021 remain open. This design does not claim a running server, successful client trial or enabled writes.
