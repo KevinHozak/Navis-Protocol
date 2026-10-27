@@ -803,26 +803,56 @@ fn list_entities(sector: &str) -> Result<Value, String> {
     Ok(Value::Array(out))
 }
 
-fn journal_month(path: &str) -> Result<Value, String> {
-    let year = query(path, "year").ok_or("year required")?;
-    let month = query(path, "month").ok_or("month required")?;
-    let dir = resolve_relative_path(&format!("Journal/{year}/{month:0>2}"))?;
-    let mut dates: Vec<String> = Vec::new();
-    if dir.exists() {
-        for entry in fs::read_dir(dir).map_err(|e| e.to_string())?.flatten() {
-            let p = entry.path();
-            if p.extension().and_then(|v| v.to_str()) == Some("md") {
-                dates.push(
-                    p.file_stem()
-                        .unwrap_or_default()
-                        .to_string_lossy()
-                        .to_string(),
-                );
+fn journal_month(path: &str) -> ApiResponse {
+    let year = query(path, "year").and_then(|v| v.parse::<i32>().ok());
+    let month = query(path, "month").and_then(|v| v.parse::<u32>().ok());
+    let (year, month) = match (year, month) {
+        (Some(y), Some(m)) if (1..=9999).contains(&y) && chrono::NaiveDate::from_ymd_opt(y, m, 1).is_some() => (y, m),
+        _ => return response_status(400, json!({"detail":"Invalid journal month"})),
+    };
+    let load = || -> Result<Value, String> {
+        let journal = resolve_relative_path("Journal")?;
+        let verify_source = || -> Result<(), String> {
+            fs::read_dir(&journal).map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+            Ok(())
+        };
+        verify_source()?;
+        let year_dir = resolve_relative_path(&format!("Journal/{year}"))?;
+        let mut dates: Vec<String> = Vec::new();
+        // The shared resolver requires an existing parent. An absent year is
+        // empty only after the Journal itself was successfully enumerated.
+        let directory = match fs::read_dir(&year_dir) {
+            Ok(_) => Some(resolve_relative_path(&format!("Journal/{year}/{month:02}"))?),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => return Err(e.to_string()),
+        };
+        if let Some(dir) = directory {
+            match fs::read_dir(dir) {
+                Ok(entries) => for entry in entries {
+                    let entry = entry.map_err(|e| e.to_string())?;
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    if entry.file_type().map_err(|e| e.to_string())?.is_file() {
+                        if let Some(stem) = name.strip_suffix(".md") {
+                            if let Ok(day) = chrono::NaiveDate::parse_from_str(stem, "%Y-%m-%d") {
+                                let canonical = day.format("%Y-%m-%d").to_string();
+                                if canonical == stem && canonical.starts_with(&format!("{year:04}-{month:02}-")) { dates.push(canonical); }
+                            }
+                        }
+                    }
+                },
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {},
+                Err(e) => return Err(e.to_string()),
             }
         }
+        verify_source()?;
+        dates.sort();
+        Ok(json!({"dates":dates,"availability":"available","year":year,"month":month}))
+    };
+    match load() {
+        Ok(value) => response(value),
+        Err(_) => response_status(503, json!({"detail":{"code":"journal_unavailable","message":"Journal dates unavailable. Reconnect the Vault and retry."}})),
     }
-    dates.sort();
-    Ok(json!({"dates": dates}))
 }
 
 fn markdown_section(content: &str, heading: &str) -> Option<String> {
@@ -2041,7 +2071,7 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
         ("GET", "/api/settings") => settings()?,
         ("GET", "/api/navigation") | ("GET", "/api/navigation/pillars") => navigation()?,
         ("GET", "/api/readiness") => read_json("Bridge/readiness.json", json!({}))?,
-        ("GET", "/api/journal/month") => journal_month(path)?,
+        ("GET", "/api/journal/month") => return Ok(journal_month(path)),
         ("POST", "/api/journal/entry") => return Err("Journal appends require the canonical journal bridge".into()),
         ("GET", "/api/ops") => ops()?,
         ("GET", "/api/entities") => list_entities(&query(path, "sectorId").unwrap_or_default())?,
@@ -2238,6 +2268,37 @@ fn python_holocron(
 #[cfg(test)]
 mod tests {
     use std::fs;
+
+    #[test]
+    fn calendar_distinguishes_unavailable_empty_and_valid_entries() {
+        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let root = std::env::temp_dir().join(format!("navis-calendar-{}", uuid::Uuid::new_v4()));
+        fs::create_dir(&root).unwrap();
+        let old_root = std::env::var_os("NAVIS_ROOT");
+        std::env::set_var("NAVIS_ROOT", &root);
+        let path = "/api/journal/month?year=2026&month=10";
+        assert_eq!(super::journal_month(path).status, 503);
+        fs::create_dir(root.join("Journal")).unwrap();
+        let empty = super::journal_month(path);
+        assert_eq!(empty.status, 200);
+        assert_eq!(empty.body, json!({"availability":"available","dates":[],"year":2026,"month":10}));
+        fs::write(root.join("Journal/2026"), "not a directory").unwrap();
+        assert_eq!(super::journal_month(path).status, 503);
+        fs::remove_file(root.join("Journal/2026")).unwrap();
+        fs::create_dir_all(root.join("Journal/2026/10")).unwrap();
+        for name in ["2026-10-02.md", "2026-10-01.md", "2026-10-32.md", "2026-09-01.md", "notes.md"] {
+            fs::write(root.join("Journal/2026/10").join(name), "synthetic").unwrap();
+        }
+        fs::create_dir(root.join("Journal/2026/10/2026-10-03.md")).unwrap();
+        let loaded = super::journal_month(path);
+        assert_eq!(loaded.status, 200);
+        assert_eq!(loaded.body["dates"], json!(["2026-10-01","2026-10-02"]));
+        for query in ["year=0&month=10", "year=2026&month=13", "year=10000&month=1", "year=../Keeper&month=1"] {
+            assert_eq!(super::journal_month(&format!("/api/journal/month?{query}")).status, 400);
+        }
+        match old_root { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn holocron_reads_revalidate_in_python_instead_of_trusting_cached_files() {

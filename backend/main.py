@@ -651,13 +651,43 @@ async def get_recent_journals():
 
 @app.get("/api/journal/month")
 async def get_journal_month(year: int, month: int):
-    journal_dir = os.path.join(NAVIS_ROOT, "Journal", str(year), f"{month:02d}")
-    if not os.path.exists(journal_dir):
-        return {"dates": []}
-    dates = sorted(
-        [f.replace(".md", "") for f in os.listdir(journal_dir) if f.endswith(".md")]
-    )
-    return {"dates": dates}
+    from datetime import date
+    from services.vault_paths import resolve_relative_path, VaultPathError
+    try:
+        date(year, month, 1)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid journal month") from None
+    try:
+        journal_root = resolve_relative_path(NAVIS_ROOT, "Journal")
+        # Opening the source distinguishes a readable empty calendar from a
+        # disconnected or inaccessible Journal, including absent month folders.
+        with os.scandir(journal_root) as entries:
+            list(entries)
+        year_dir = resolve_relative_path(NAVIS_ROOT, f"Journal/{year}")
+        if os.path.lexists(year_dir) and not os.path.isdir(year_dir):
+            raise NotADirectoryError("Journal year unavailable")
+        journal_dir = resolve_relative_path(NAVIS_ROOT, f"Journal/{year}/{month:02d}")
+        if os.path.lexists(journal_dir) and not os.path.isdir(journal_dir):
+            raise NotADirectoryError("Journal month unavailable")
+        try:
+            with os.scandir(journal_dir) as entries:
+                dates = []
+                for entry in entries:
+                    if entry.is_file(follow_symlinks=False) and entry.name.endswith(".md"):
+                        try:
+                            day = date.fromisoformat(entry.name[:-3])
+                        except ValueError:
+                            continue
+                        if day.isoformat() == entry.name[:-3] and day.year == year and day.month == month:
+                            dates.append(day.isoformat())
+        except FileNotFoundError:
+            # A vanished Journal is a failure, not an empty historical month.
+            with os.scandir(journal_root) as entries:
+                list(entries)
+            dates = []
+        return {"dates": sorted(dates), "availability": "available", "year": year, "month": month}
+    except (OSError, VaultPathError):
+        raise HTTPException(status_code=503, detail={"code": "journal_unavailable", "message": "Journal dates unavailable. Reconnect the Vault and retry."}) from None
 
 
 class JournalEntryPolishRequest(BaseModel):

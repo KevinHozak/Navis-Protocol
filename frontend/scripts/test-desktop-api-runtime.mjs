@@ -68,6 +68,7 @@ test('web forwards the exact HTTP options and configured API URL', async () => {
 
 for (const [path, command] of [
   ['/api/tasks/toggle', 'vault_request'],
+  ['/api/journal/month?year=2026&month=10', 'vault_request'],
   ['/api/status', 'vault_request'], ['/api/v1/progression/xp', 'progression_request'],
   ['/api/v1/lounge/media?type=books', 'lounge_request'], ['/api/v1/library/search?q=test', 'lounge_request'],
   ['/api/battle/resolve', 'p3_request'], ['/api/missions/list', 'p3_request'],

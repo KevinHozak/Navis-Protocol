@@ -4,7 +4,7 @@ id: "NAVIS-S013"
 parent: ["NAVIS-E002"]
 priority: "high"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Make Holocron metrics and interpretations traceable to evidence"
 type: "enhancement"
 ---
@@ -59,3 +59,10 @@ packaging passed. The isolated 1.11.21 native UI and all 38 bundled resources we
 verified. See [contract, artifact identity and retained limits](../docs/holocron-evidence.md).
 Physical web-browser/download-dialog and clean-machine installer checks are not
 claimed. Status is in_review pending PR acceptance; external review is unavailable.
+
+## Accepted merge - 2026-10-27
+
+Both current-head scans passed; the user requested merge after readiness. PR #18
+merged as `cc0584231442f580110badfd7280e04eefdca7f3`, and local main was verified
+clean and synchronized. S013 closes within the documented fixture/runtime limits;
+broader S015 journeys and S010 selection gaps remain open.

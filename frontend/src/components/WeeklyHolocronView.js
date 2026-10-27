@@ -364,7 +364,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
                       <div
                         className="w-full rounded-sm transition-all duration-500"
                         style={{ height: `${heightPct}%`, backgroundColor: barColor }}
-                        title={`${day.date} [${day.day_status || 'day'}]: ${day.completed}/${day.total} tasks (${day.precision}%)`}
+                        title={`${day.date} [${day.source_status || day.day_status || 'day'}]: ${measured(day.completed)}/${measured(day.total)} tasks (${measured(day.precision, '%')})`}
                       />
                     </div>
                     <span className={`text-xs font-mono font-bold flex items-center gap-1 ${isActive ? 'text-cyan-300' : isUpcoming ? 'text-zinc-500' : 'text-zinc-400'}`}>
@@ -383,7 +383,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
               <h2 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
                 <span>🏰</span> Manor & Sector Labor Distribution
               </h2>
-              <span className="text-xs font-mono text-zinc-400">{summary.completed_tasks} Cleared Mandates</span>
+              <span className="text-xs font-mono text-zinc-400">{measured(summary.completed_tasks)} observed cleared mandates</span>
             </div>
 
             <div className="space-y-4 pt-1">
@@ -393,7 +393,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
                     <span className="font-semibold text-white flex items-center gap-1.5">
                       <span>{sector.icon}</span> {sector.name}
                     </span>
-                    <span className="font-mono text-zinc-400">{sector.completed} tasks ({sector.percentage}%)</span>
+                    <span className="font-mono text-zinc-400">{measured(sector.completed)} tasks ({measured(sector.percentage, '%')})</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-white/5 overflow-hidden">
                     <div
