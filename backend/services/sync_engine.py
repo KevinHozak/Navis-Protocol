@@ -766,6 +766,8 @@ def check_startup_holocron_catchup(vault_root=None, log_callback=None):
             if log_callback:
                 log_callback(f"Backfilling missing Weekly Holocron for {prev_week}...")
             build_weekly_holocron(root, week_id=prev_week)
+            if not os.path.isfile(holocron_file):
+                return "Startup Holocron unavailable: no artifact persisted. Restore the Vault source, then retry."
             return f"Synthesized missing Holocron for {prev_week}."
         return f"Holocron for {prev_week} is up to date."
     except Exception as e:

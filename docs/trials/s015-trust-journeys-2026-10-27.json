@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-27",
+  "base": "17c23ca9d66c4651df9727783549f304197b955e",
+  "status": "in_review",
+  "web": {
+    "environment": "real browser + FastAPI loopback fixture; lifespan daemons disabled",
+    "source_read_failure": "passed after unavailable-status repair",
+    "retry_reconnect": "passed",
+    "navigation_during_save": "passed with 3-second response delay after canonical commit",
+    "saved_source_keyboard": "passed",
+    "xp_projection_recovery": {
+      "entries": 1,
+      "keeper_xp": 12,
+      "keeper_awards": 1,
+      "other_journal_unchanged": true
+    },
+    "checkbox_saved_feedback": "passed; resulting integrated Holocron has 14 signed XP",
+    "evidence_keyboard": "passed; 2/2 items; exact journal opened"
+  },
+  "findings": [
+    {
+      "id": "S015-F01",
+      "finding": "Web malformed/missing status became successful Earth/empty fallback",
+      "repair": "strict unavailable-source response; valid empty squad and metadata-only records retained"
+    },
+    {
+      "id": "S015-F02",
+      "finding": "Startup catchup claimed synthesized with no artifact",
+      "repair": "return unavailable when no artifact persisted; absent root remains absent"
+    },
+    {
+      "id": "S015-F03",
+      "finding": "Open composer kept obsolete pending-XP message after notice recovery",
+      "repair": "reconcile verified completed receipt; preserve newer drafts"
+    }
+  ],
+  "checks": {
+    "python": {
+      "passed": 94
+    },
+    "frontend": "51 adapters + full regression runner passed",
+    "native": {
+      "unit_passed": 76,
+      "parity_passed": 1,
+      "excluded": "personal-Vault availability probe"
+    }
+  },
+  "remaining": [
+    "Clean-machine installer and physical Drive/production integration coverage accepted by user as untested limits",
+    "Independent external review unavailable; final primary-agent source review completed with no actionable findings",
+    "PR review and merge; S015/E002 remain open until delivery reconciliation"
+  ],
+  "packaged_checkpoint": {
+    "version": "1.11.25 first build",
+    "status_source_unavailable_recovery": "passed",
+    "entry_count": 1,
+    "keeper_awards": 1,
+    "keeper_xp": 12,
+    "other_journal_unchanged": true,
+    "delay_navigation": "inconclusive after window resized; no pass claimed",
+    "final_rebuild": "superseded by packaged_final"
+  },
+  "packaged_final": {
+    "version": "1.11.25",
+    "matched_resources": 38,
+    "entry_count": 1,
+    "keeper_rows": 1,
+    "keeper_xp": 12,
+    "phase": "complete",
+    "B_unchanged": true,
+    "bom_crlf_preserved": true,
+    "stale_pending_message_removed": true,
+    "fixture_closed": true,
+    "exe_sha256": "a2a2e69e3f81a511366c51beda69ff84409ab716c91678c81156f464bf5cb8fb",
+    "nsis_sha256": "057635d3ad363737e91bb75224a2a030d08a7f12983aba29be3e01f9bc7f1319"
+  },
+  "packaged_delayed_save_resume": {
+    "version": "1.11.25",
+    "fixture": "fresh isolated synthetic Vault",
+    "resource_baseline_matches": 38,
+    "test_instrumentation": "Copied journal bridge held response after canonical append; released only after a fresh observation showed B selected without receipt. Copied bridge restored afterward.",
+    "result": "passed",
+    "A_receipt_while_B_selected": true,
+    "entry_count": 1,
+    "keeper_rows": 1,
+    "keeper_xp": 12,
+    "B_unchanged": true,
+    "bom_crlf_preserved": true,
+    "phase": "saved; XP projection intentionally blocked",
+    "fixture_process_closed": true
+  },
+  "web_resume": {
+    "fixture": "fresh isolated synthetic Vault; loopback 18015/18016; real FastAPI and Next; lifespan disabled",
+    "result": "blocked before sync submission",
+    "observation": "Real sync confirmation opened. Dialog API returned undefined; documented CDP dialog handling timed out in focus setup. No POST /api/sync in backend log and no hook entry. No partial/cancel/close pass claimed.",
+    "cleanup": "Owned backend and Next process trees stopped; dedicated listeners absent. Tab close also blocked by dialog tooling; agent-created IAB tab is temporary."
+  },
+  "web_confirmation_followup": {
+    "result": "passed",
+    "fixture": "fresh synthetic Vault, real FastAPI and Next renderer; lifespan disabled; dedicated loopback ports 18015/18016",
+    "browser": "fresh Edge InPrivate window, native coordinate controls after verifying local URL; no production confirmation change or injected auto-accept",
+    "source_version": "1.11.25 unchanged",
+    "confirmation_dismissal": "Cancel dismissed real browser dialog; no sync POST, operation or backup-hook entry before acceptance",
+    "running": "Work completed and saved, XP completed, watch skipped, backup running; disabled Sequence Lock Active remained open when clicked; no web cancellation offered",
+    "partial": "Real fixture git pre-commit hook failed after release; UI showed Partially completed, work saved, XP completed, backup failed and review-before-retry warning",
+    "reconnect": "Same job and partial result retained, no replay",
+    "close": "Close Bridge removed modal without replay; InPrivate window then closed",
+    "sync_posts": 1,
+    "operation_receipts": 1,
+    "hook_entries": 1,
+    "merged_work_item_count": 1,
+    "keeper_ledger_rows": 1,
+    "keeper_xp": 14,
+    "journal_hash_and_full_ledger_unchanged_after_reconnect_close": true,
+    "cleanup": "Owned fixture backend/Next trees stopped; dedicated listeners absent; isolated InPrivate window closed",
+    "limits": "No lifespan/watchers, provider integration, real Drive race or clean-machine install certification"
+  },
+  "accepted_limits": {
+    "authorized_by": "User: Accept the documented clean-machine and Drive/integration limits",
+    "clean_machine_installer": "accepted untested limit; no installation pass claimed",
+    "physical_drive_races_and_production_integrations": "accepted unexercised limits; no production coverage claimed"
+  },
+  "final_review": {
+    "source_head": "91955c7646f0742a5a0337b52adc04060d620267",
+    "base": "17c23ca9d66c4651df9727783549f304197b955e",
+    "reviewer": "primary agent source audit",
+    "actionable_findings": 0,
+    "github_reviews": 0,
+    "github_review_threads": 0,
+    "github_conversation_comments": 0,
+    "independent_external_review": "unavailable; not represented as passed",
+    "composer_regression": "passed on unchanged source",
+    "broader_evidence": "Previously recorded automated and packaged checks retained for identical application source",
+    "status_source_regression": "9 passed; disposable Vault, external network denied; sandbox temp/socket restrictions resolved with targeted elevation"
+  }
+}

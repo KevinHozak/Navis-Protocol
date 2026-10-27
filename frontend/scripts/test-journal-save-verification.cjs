@@ -150,5 +150,25 @@ async function mount(transport) {
     assert.equal(test.content(), '# Newer authoritative content');
     await test.unmount();
   }
+  for (const changedDraft of [false, true]) {
+    const module = { exports: {} };
+    vm.runInNewContext(compile('src/components/JournalEntryComposer.js'), { React, module, exports: module.exports, console,
+      require: id => id === 'react' ? React : id.includes('desktopApi') ? { supportsLocalOllama: () => false }
+        : { saveJournalEntry: async () => ({ xp_status: 'pending' }) },
+    });
+    const Composer = module.exports.default;
+    const request = { date: A, section: 'sanctum', entry: 'Original saved entry' };
+    let root;
+    await renderer.act(async () => { root = renderer.create(React.createElement(Composer, { date: A, initialDraft: request })); });
+    await renderer.act(async () => { await root.root.findByType('form').props.onSubmit({ preventDefault() {} }); });
+    assert.match(JSON.stringify(root.toJSON()), /XP sync is pending/);
+    if (changedDraft) await renderer.act(async () => root.root.findByType('textarea').props.onChange({ target: { value: 'New unsaved draft' } }));
+    await renderer.act(async () => root.update(React.createElement(Composer, { date: A, initialDraft: request,
+      savedReceipt: { verified: true, date: A, xp_status: 'complete', request } })));
+    assert.doesNotMatch(JSON.stringify(root.toJSON()), /XP sync is pending/);
+    if (changedDraft) assert.equal(root.root.findByType('textarea').props.value, 'New unsaved draft');
+    else assert.equal(root.root.findAllByType('textarea').length, 0);
+    await renderer.act(async () => root.unmount());
+  }
   console.log('Passed mounted Home/composer late-save isolation, saved-source navigation, receipt mismatch, pre-commit failure and exact XP recovery across web/native doubles.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

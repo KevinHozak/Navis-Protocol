@@ -139,6 +139,7 @@ export default function SectorView({
   onJournalEntrySaved,
   onJournalEntryUnverified,
   journalEntryDraft,
+  journalEntryReceipt,
   onRefreshStatus,
   onMissionClick,
   onOpenBestiary,
@@ -1244,6 +1245,7 @@ export default function SectorView({
               onSaved={onJournalEntrySaved}
               onUnverified={onJournalEntryUnverified}
               initialDraft={journalEntryDraft}
+              savedReceipt={journalEntryReceipt}
             />
           )}
           <MarkdownRenderer 

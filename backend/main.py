@@ -488,9 +488,15 @@ async def events_stream(
 
 @app.get("/api/status")
 async def get_status():
-    status = load_json(STATUS_PATH)
-    if not status:
-        return {"current_realm": "Earth", "squad": []}
+    try:
+        with open(STATUS_PATH, "r", encoding="utf-8-sig") as source:
+            status = json.load(source)
+        if not isinstance(status, dict) or not status or not isinstance(status.get("squad", []), list):
+            raise ValueError("Invalid status shape")
+        if any(not isinstance(member, dict) for member in status.get("squad", [])):
+            raise ValueError("Invalid squad member")
+    except (OSError, ValueError):
+        raise HTTPException(status_code=503, detail="Status source unavailable. Restore it, then retry.")
 
     # Merge current XP and Level from CompanionStats
     stats_path = os.path.join(NAVIS_ROOT, "Bridge", "CompanionStats.json")
