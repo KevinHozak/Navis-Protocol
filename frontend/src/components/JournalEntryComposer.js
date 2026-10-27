@@ -77,6 +77,10 @@ export default function JournalEntryComposer({ date, onSaved }) {
 
       const result = await response.json();
       onSaved?.(result);
+      if (result.xp_status === 'pending') {
+        setError('Entry saved. XP sync is pending; save this same entry again to retry without adding a duplicate.');
+        return;
+      }
       setEntry('');
       setOriginalEntry(null);
       setIsOpen(false);

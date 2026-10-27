@@ -131,6 +131,20 @@ async fn vault_request(
     method: Option<String>,
     body: Option<Value>,
 ) -> Result<vault::ApiResponse, String> {
+    if method.as_deref() == Some("POST") && path == "/api/journal/entry" {
+        let backend = operations::backend_root(&app)?;
+        let app_handle = app.clone();
+        return tauri::async_runtime::spawn_blocking(move || {
+            let result = p3::journal_entry_request(&backend, body)?;
+            if result.status == 200 {
+                let _ = vault::emit_vault_change(&app_handle, &vault::VaultChangeEvent {
+                    r#type: "journal".to_string(), path: result.body["path"].as_str().unwrap_or_default().to_string(),
+                    timestamp: vault::current_epoch_timestamp(), action: "modified".to_string(), full_path: None,
+                });
+            }
+            Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text})
+        }).await.map_err(|e| e.to_string())?;
+    }
     if method.as_deref() == Some("POST") && path == "/api/tasks/toggle" {
         let backend = operations::backend_root(&app)?;
         let app_handle = app.clone();

@@ -5,8 +5,9 @@ the Tauri application. Advertised tools are `read_note`, `search_vault`,
 `get_journal_range` and `get_mission`. The S020
 [trial report](vault-mcp-trial-results.md) adopts a controlled read-only pilot on
 the verified desktop-bundled Codex runtime; desktop UI setup and real-Vault scale
-remain unverified. S021 governs guarded writes;
-no write tools are enabled. See the [access contract](vault-mcp-contract.md).
+remain unverified. S021 adds an explicitly enabled journal append tool; the
+default tool set remains read-only. See [guarded appends](vault-mcp-journal-appends.md)
+and the [access contract](vault-mcp-contract.md).
 
 ## Install and launch
 
@@ -36,6 +37,7 @@ environment when running regressions, not in the portal's runtime environment.
 | `NAVIS_MCP_ALLOWED_ROOTS` | Optional JSON array of relative directories. Default: `["Journal","Operations","Codex","Documentation"]`. Empty or malformed configuration is rejected. Maximum 32 roots, each at most 1,024 characters. |
 | `NAVIS_MCP_DENIED_PATHS` | Optional JSON array of relative subtrees or files to exclude. Default `[]`. Denials override allowed roots. Same count/path limits as allowed roots. |
 | `NAVIS_MCP_STATE_DIR` | Required for search/rebuild: absolute private directory outside both the Vault and checkout, containing `vault-index.db`. It must not be an ancestor of either root. Direct note reads work without it. |
+| `NAVIS_MCP_ENABLE_JOURNAL_APPEND` | Only the exact value `1` advertises/enables `append_journal_entry`. Unset by default. Requires an existing allowed journal, expected SHA and stable request ID. See the guarded-write guide before opting in. |
 
 Missing individual allowed directories are returned in coverage; unreadable/linked directories
 produce an error. Reads never create them. Root replacement or disappearance
@@ -201,20 +203,24 @@ another process with the same OS account racing filesystem changes. It does not
 detect secrets embedded inside otherwise allowed notes. Configure exclusions
 before connecting a client to personal data.
 
-No HTTP port, credential, shell tool, model call, automatic sync, XP update or
-journal write is exposed. stdout carries only protocol frames. The dedicated
+No HTTP port, credential, shell tool, model call or automatic sync is exposed.
+Default read tools never write journals or XP. The opt-in append tool reconciles
+the existing XP ledger after a confirmed save. stdout carries only protocol frames. The dedicated
 child disables SDK logging because malformed frames may otherwise log private
 arguments; stderr contains only static startup/runtime codes. Normal calls are
 silent. A client can still send retrieved text to its model/provider; the MCP
 process does not control client retention or disclosure.
 
 Each client owns its child process. Closing stdin/disconnecting stops the child;
-reconnecting launches a fresh one. Calls have a 10-second cooperative deadline
+reconnecting launches a fresh one. Read calls have a 10-second cooperative deadline
 and run outside the protocol loop, with a four-worker admission limiter. On a
 deadline, the response is an error and the loop remains available. An already
 blocked OS read cannot be forcibly interrupted by Python thread cancellation;
 the client may terminate the child if graceful shutdown stalls, then restart.
 No detached worker service is launched.
+An enabled mutation waits for its worker instead of abandoning a writer at the
+read deadline. A blocked Drive operation can delay it; after terminating a child,
+retry the exact same append request ID, expected hash and payload.
 
 ## Verified scope
 

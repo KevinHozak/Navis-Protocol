@@ -89,7 +89,7 @@ def combat_talent_bonus_events(resolution_id, source, tactical, root=None):
     return events
 
 
-def calculate_and_apply_xp(date_override=None, root=None, journal_content=None):
+def calculate_and_apply_xp(date_override=None, root=None, journal_content=None, strict_talents=False):
     vault_root = root or NAVIS_ROOT
     status_path = os.path.join(vault_root, "Bridge", "status.json")
     stats_path = os.path.join(vault_root, "Bridge", "CompanionStats.json")
@@ -214,7 +214,8 @@ def calculate_and_apply_xp(date_override=None, root=None, journal_content=None):
             if applied_perks:
                 talent_awards_applied.append(perk_key)
     except Exception:
-        pass
+        if strict_talents:
+            raise
 
     return {
         "status": "success",
