@@ -4,7 +4,7 @@ id: "NAVIS-S026"
 parent: ["NAVIS-E003"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Bound explicit-root MCP search freshness work to its declared scope"
 type: "bug"
 ---
@@ -28,3 +28,8 @@ The live chat returned deadline_exceeded after PR #13. A later identical live re
 ## Verification
 
 217 affected tests passed with one POSIX-only case-alias skip on Windows (63.30 seconds). Backend Ruff and whitespace checks pass. A fresh actual installed Codex client discovered MCP 0.4.2 and returned three source-verified Documentation searches in 291.153, 250.172 and 247.663 ms, with unchanged private index, four read tools, no model turn and a clean client exit. After the user restarted only navis_vault_readonly, three actual current-chat searches passed in 284, 247 and 226 ms, including lowercase-root matching. Each returned current_for_scope with Documentation validated and Journal/Operations unvalidated. The post-restart acceptance is complete. See docs/vault-mcp-live-search.md and docs/trials/vault-mcp-live-scope-2026-10-27.json. Independent external review remains unavailable.
+
+
+## Closeout — 2026-10-27
+
+PR #14 merged as e568a93067f28a7c853ad3356f5f06678ff53eb8. All retained acceptance criteria are checked and the merged verification evidence is recorded above. S026 additionally passed three actual current-chat post-restart searches in 226–284 ms. Remaining human workflow and broader runtime evaluation belongs to NAVIS-E003; personal writes remain disabled.

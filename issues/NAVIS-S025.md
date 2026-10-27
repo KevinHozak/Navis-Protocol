@@ -4,7 +4,7 @@ id: "NAVIS-S025"
 parent: ["NAVIS-E003"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Remove serial Drive inventory bottlenecks and verify broader read-only MCP coverage"
 type: "bug"
 ---
@@ -33,3 +33,8 @@ The optimized complete inventory takes 10.5 seconds for 2,160 notes and an atomi
 209 affected Python tests passed (47.55 seconds), including race, readability, path/link, short-read, cleanup and scan-budget isolation cases. Backend Ruff and whitespace checks pass. MCP version is 0.4.1; the unchanged frontend app-source profile reuses desktop version 1.11.18.
 
 The broader actual-Codex pilot indexed all 2,160 notes under Journal/Operations/Documentation and verified 19 real sources over three repetitions. It checked seven recent journals and an archived range with four present and three genuinely absent dates. Four mission links remain explicitly unresolved; no observed scoped source changes, write tools or model turns occurred. Median exhaustive search was 15,714.832 ms within the explicit 60-second budget; ordinary read deadlines and fail-closed freshness/readability remain intact. The earlier narrow index and pre-expansion configuration backup are retained privately. See docs/vault-mcp-inventory-performance.md and docs/trials/vault-mcp-broad-pilot-2026-10-27.json for source-bound evidence and remaining limits. Independent external review remains unavailable.
+
+
+## Closeout — 2026-10-27
+
+PR #13 merged as 900c8bf735fb1ca53abe20749a57f70cbfa14f51. All retained acceptance criteria are checked and the merged verification evidence is recorded above. S026 additionally passed three actual current-chat post-restart searches in 226–284 ms. Remaining human workflow and broader runtime evaluation belongs to NAVIS-E003; personal writes remain disabled.
