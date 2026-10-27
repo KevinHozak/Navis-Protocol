@@ -4,7 +4,7 @@ id: "NAVIS-S012"
 parent: ["NAVIS-E002"]
 priority: "high"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Verify saved journal and task changes against authoritative state"
 type: "enhancement"
 ---
@@ -35,4 +35,4 @@ Follow the parent epic's audit-first gate, privacy and runtime evidence requirem
 
 T05: isolate late journal-append responses from a different selected record; provide navigation to the actual saved source without overwriting another view. Retain canonical snapshot readback, durable request identity, authoritative checkbox responses and pending-XP recovery. No general rewrite of save services is justified.
 
-Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). Scoped repair criteria passed the automated and packaged fixture checks documented in the save contract. S012 awaits PR review and merge; broader physical web/installation journeys remain under S015.
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). Scoped repair criteria passed the automated and packaged fixture checks documented in the save contract. S012 was accepted when PR #20 merged at `3751f2c`; broader physical web/installation journeys remain under S015.

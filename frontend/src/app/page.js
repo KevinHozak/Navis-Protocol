@@ -13,6 +13,7 @@ import HorizonRoadmap from '@/components/HorizonRoadmap';
 import AsyncJobModal from '@/components/AsyncJobModal';
 import AudioEngine from '@/lib/AudioEngine';
 import DesktopDiagnostics from '@/components/DesktopDiagnostics';
+import ReadFreshness from '@/components/ReadFreshness';
 import JournalSaveNotice from '@/components/JournalSaveNotice';
 import { journalPath, saveJournalEntry, verifiedJournalReceipt } from '@/lib/journalSave.mjs';
 import { apiFetch, apiUrl, vaultAssetUrl, subscribeVaultStream } from '@/lib/desktopApi';
@@ -95,18 +96,24 @@ export default function Home() {
   // Journal Calendar State
   const [selectedJournalDate, setSelectedJournalDate] = useState(getLocalDateStr());
 
+  const [statusRead, setStatusRead] = useState({ pending: false, lastRead: null, error: false });
+  const statusReadPending = useRef(false);
   const syncRequestId = useRef(null);
   const refreshStatus = async () => {
+    if (statusReadPending.current) return;
+    statusReadPending.current = true;
+    setStatusRead(previous => ({ ...previous, pending: true, error: false }));
     try {
       const res = await fetchWithTimeout(`${API_BASE}/api/status`);
-      if (res.ok) {
-        const statusData = await res.json();
-        setStatus(statusData);
-        return statusData;
-      }
-    } catch (error) {
-      console.error("DEBUG: Error refreshing status:", error);
-    }
+      if (!res.ok) throw new Error('Status unavailable');
+      const statusData = await res.json();
+      if (!statusData || typeof statusData !== 'object' || Array.isArray(statusData)) throw new Error('Invalid status');
+      setStatus(statusData);
+      setStatusRead({ pending: false, lastRead: new Date().toISOString(), error: false });
+      return statusData;
+    } catch {
+      setStatusRead(previous => ({ ...previous, pending: false, error: true }));
+    } finally { statusReadPending.current = false; }
   };
 
   // Stream & Polling State
@@ -649,12 +656,8 @@ export default function Home() {
   const handleRolloverComplete = async (newDate) => {
     try {
       // 1. Fetch updated status (XP/squad/metadata changes)
-      const statusRes = await apiFetch('/api/status');
-      if (statusRes.ok) {
-        const statusData = await statusRes.json();
-        setStatus(statusData);
-      }
-      
+      await refreshStatus();
+
       // 2. Fetch updated journal files list
       const res = await apiFetch('/api/entities?sectorId=JOURNAL');
       if (res.ok) {
@@ -761,6 +764,7 @@ export default function Home() {
             {contentLoadError || entityLoadError.message}
           </div>
         )}
+        <ReadFreshness label="Dashboard" {...statusRead} sourceLabel="Operational marker" sourceTime={status?.last_updated} onRetry={refreshStatus} />
         {/* Level 1: Sovereign Ribbon */}
         <SovereignRibbon 
           realm={status?.current_realm}
