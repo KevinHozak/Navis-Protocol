@@ -172,3 +172,25 @@ S015 moves to in review with these explicit limits; PR #22 may be marked ready
 after the documentation update and current-head CI pass. This does not merge
 the PR or close S015/E002. Earlier draft/blocker checkpoints above are historical
 and superseded by the completed journeys and this user disposition.
+
+## Merged delivery and S015 closeout
+
+PR #22 merged at `32cd24b6e0e7797e4e47b9869123177349ab4a7d`; local main
+was fast-forwarded to the verified merge. S015 is done with all retained selected
+acceptance reconciled under the user-accepted clean-machine and Drive/integration
+limits. Those limits remain untested, and independent external review remains
+unavailable. Earlier in-review/draft checkpoints are historical.
+
+The issue runner reports E002 has seven accepted children out of seven and no
+incomplete children or unresolved dependencies. No retained implementation or
+child acceptance remains; formal epic closeout is the remaining administrative
+step. This reassessment does not itself close E002.
+
+## E002 closeout
+
+The user requested formal epic closeout after the merged S015 delivery. E002 is
+done with all seven direct children accepted and no retained implementation or
+acceptance remaining. This supersedes the prior administrative-closeout checkpoint.
+The accepted clean-machine / Drive / production integration limits and unavailable
+independent external review remain explicit; no additional runtime coverage is
+claimed by this documentation closeout.
