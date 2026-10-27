@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-27",
+  "client": "current Codex chat navis_vault_readonly connection",
+  "server": "0.4.2",
+  "mode": "read_only",
+  "decision": "adopt_controlled_read_only",
+  "workflows": {
+    "past_decision": {
+      "status": "initial_generic_query_unsuccessful_followed_by_user_confirmed_topic_test",
+      "literal_query": "decision",
+      "root": "Documentation",
+      "matches": 0,
+      "elapsed_ms": 319,
+      "fallback_generic_documentation_matches": 3,
+      "fallback_note_read": "ok",
+      "known_decision_recovered": false
+    },
+    "journal_week": {
+      "start_date": "2026-10-20",
+      "end_date": "2026-10-26",
+      "dates_returned": 7,
+      "missing_dates": 0,
+      "initial_call_ms": 2050,
+      "truncated_days": 5,
+      "continuation_calls": 5,
+      "continuation_elapsed_ms": 1428,
+      "remaining_truncated_pages": 0
+    },
+    "mission": {
+      "status": "ok",
+      "elapsed_ms": 19863,
+      "related_notes": 1,
+      "related_continuation_calls": 1,
+      "unresolved_links": 4,
+      "remaining_related_page_truncation": false
+    }
+  },
+  "maintenance": {
+    "initial_search": "index_stale",
+    "configured_rebuild_budget_seconds": 60,
+    "first_rebuild_exit": 1,
+    "first_rebuild_elapsed_ms": 60676,
+    "operator_retry_budget_seconds": 120,
+    "retry_elapsed_ms": 66143,
+    "retry_exit": 0,
+    "indexed_notes": 2161,
+    "saved_client_config_changed": false,
+    "operator_rebuild_attempts": 2,
+    "search_retry_required": true
+  },
+  "human_correction_time": "not_measured",
+  "human_preference": "useful",
+  "direct_source_reverification": "not_performed: automatic approval review rejected private-text evidence duplication; no copy attempted afterward",
+  "baseline_comparison": "not measured in this run; prior pilot evidence retained",
+  "raw_private_text_saved_to_repository": false,
+  "vault_writes_requested": false,
+  "limitations": [
+    "User-confirmed topic match followed retrieval; not a blinded predeclared accuracy test",
+    "Four mission links unresolved",
+    "No controlled external-writer baseline or concurrent-write integrity measurement",
+    "Human effort and preference cannot be inferred from automated timings",
+    "No full cross-client or cold-Drive acceptance"
+  ],
+  "human_feedback": {
+    "assessment": "Useful, no corrections needed",
+    "corrections_needed": false,
+    "correction_time_estimate": "not supplied",
+    "scope": "user feedback on live retrieval so far"
+  },
+  "mission_link_review": {
+    "reviewed": 4,
+    "fresh_mission_call_ms": 8380,
+    "same_unresolved_indices": [
+      0,
+      2,
+      3,
+      4
+    ],
+    "classifications": [
+      {
+        "link_index": 0,
+        "category": "non_Markdown_target"
+      },
+      {
+        "link_index": 2,
+        "category": "external_URI_not_local_Markdown"
+      },
+      {
+        "link_index": 3,
+        "category": "external_URI_not_local_Markdown"
+      },
+      {
+        "link_index": 4,
+        "category": "missing_basename_target",
+        "existing_candidates": 0
+      }
+    ],
+    "conclusion": "Three unsupported target types and one absent Markdown source; no policy expansion or content repair performed",
+    "private_targets_logged": false
+  },
+  "known_decision_test": {
+    "status": "user_confirmed_relevant_source",
+    "root": "Journal",
+    "elapsed_ms": 19317,
+    "matches_returned": 10,
+    "results_truncated": true,
+    "refinement_matches": 2,
+    "refinement_latency": "approximately 20 seconds",
+    "bounded_source_reads": "succeeded",
+    "findings": "User confirmed the retrieved tentative game-selection entry as the intended source",
+    "expected_answer_confirmed": true,
+    "exhaustive_recall_claimed": false,
+    "source_text_or_paths_in_report": false,
+    "source_wording_strength": "tentative game selection, not an unequivocal commitment",
+    "test_design_limit": "Expected answer confirmed after candidate retrieval; not a blinded predeclared accuracy test"
+  },
+  "acceptance": {
+    "status": "accepted_with_documented_limits",
+    "authorized_by": "explicit user acceptance on 2026-10-27",
+    "human_correction_time": "accepted as unmeasured, not a passing timed result",
+    "scope": "verified local Codex read-only MCP connection",
+    "writes_enabled": false
+  }
+}

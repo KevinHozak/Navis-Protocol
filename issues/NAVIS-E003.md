@@ -4,7 +4,7 @@ id: "NAVIS-E003"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "done"
 title: "Provide safe, consistent Navis-Vault access through MCP"
 type: "epic"
 ---
@@ -20,11 +20,11 @@ Use disposable Vault fixtures and sanitized evidence. Keep private note content 
 
 ## Acceptance criteria
 
-- [ ] Evidence-backed reuse/build decision defines the service boundary, supported clients and deployment lifecycle.
-- [ ] Read-only search, note reads, journal ranges and mission retrieval preserve source provenance and distinguish unavailable data from empty results.
-- [ ] A measured trial demonstrates retrieval accuracy and correction time against the existing workflow, with an explicit adoption decision.
-- [ ] Any retained write scope passes append-only integrity, concurrency, duplicate-submit and persistence verification gates before enablement.
-- [ ] All retained child criteria and runtime evidence are reconciled before completion; unsupported client/runtime cases remain explicit.
+- [x] Evidence-backed reuse/build decision defines the service boundary, supported clients and deployment lifecycle.
+- [x] Read-only search, note reads, journal ranges and mission retrieval preserve source provenance and distinguish unavailable data from empty results.
+- [x] A measured trial and controlled read-only adoption are recorded; the user explicitly accepts unmeasured human correction time and documented evidence limits.
+- [x] Any retained write scope passes append-only integrity, concurrency, duplicate-submit and persistence verification gates before enablement.
+- [x] All retained child criteria and runtime evidence are reconciled before completion; unsupported client/runtime cases remain explicit.
 
 ## Stories
 
@@ -35,18 +35,35 @@ Use disposable Vault fixtures and sanitized evidence. Keep private note content 
 - [NAVIS-S020](NAVIS-S020.md): Trial MCP retrieval against the existing Vault workflow
 - [NAVIS-S021](NAVIS-S021.md): Add guarded journal appends after a passing read-only trial
 
-## Real-Vault pilot checkpoint — 2026-10-27
+## Completion and accepted scope - 2026-10-27
 
-All six implementation stories are merged; S021 is now done following PR #12 (3a11dc064dcd81f8234d2c03f34486e0239166f1). The requested real-Vault read-only pilot configured navis_vault_readonly in the installed Codex client and verified MCP 0.4.0 using the persisted entry. See [pilot record](../docs/vault-mcp-real-pilot.md) and [sanitized results](../docs/trials/vault-mcp-real-pilot-2026-10-27.json).
+The user explicitly accepted controlled read-only adoption with documented limits
+and requested closure. All eight child stories are done, including
+[S025](NAVIS-S025.md) after PR #13 and [S026](NAVIS-S026.md) after PR #14.
+S016/S017 define service/client lifecycle; S018/S019 verify provenance and
+unavailable/empty distinctions; S020 records fixture comparison and adoption;
+S021 verifies guarded append integrity on disposable fixtures.
 
-The scoped pilot indexed 45 real notes and independently verified 14 sources over three repetitions, including seven journal dates and one mission with related context. Scoped source hashes remained unchanged, only four read tools were available, and no model turn or Vault write was requested. An initial broad-policy inventory exceeded a 30-second deadline; the retained configuration covers the recent journal month, Documentation and one canonical mission directory. Four mission links remain explicitly unresolved. Human correction time, preference, interactive desktop setup and broader real-Vault performance remain unverified. The epic remains open pending acceptance reconciliation of these limits; personal writes remain disabled.
+The real workflow completed journal pagination, mission context and a
+user-confirmed topic match. User feedback is useful/no corrections needed.
+The trial criterion is accepted with explicit exceptions: human correction time
+remains unmeasured; topic confirmation after retrieval is not a blinded accuracy
+test; no fresh direct-source/baseline comparison was made in this run. Prior
+source-verified fixture/pilot evidence is retained separately. Automatic approval
+review rejected private-text duplication, which was not pursued.
 
+Four mission omissions are reviewed: one non-Markdown target, two external URIs
+and one missing Markdown note. No target was fetched or repaired. Stale-index
+recovery required a failed 60-second rebuild and a successful 66.143-second retry
+under a temporary 120-second budget. Saved client settings were unchanged.
 
-## Broad coverage follow-up
+Adoption covers the verified local Codex read-only connection. Claude Desktop,
+simultaneous clients, cold hydration, multi-device Drive races and personal-data
+writes remain unverified. Broad search remains slower; scoped freshness covers
+only the declared scope. Writes remain disabled. These limits are explicitly
+accepted for closure, not converted into passing tests or write enablement.
 
-- [NAVIS-S025](NAVIS-S025.md): Remove serial Drive inventory bottlenecks and verify broader read-only MCP coverage. The retained configuration now covers 2,160 notes across Journal, Operations and Documentation with an explicit 60-second exhaustive-scan budget (ten-second default retained). The final pilot verified 19 sources, recent and archived journal ranges, and unchanged scoped source hashes. [Performance and pilot evidence](../docs/vault-mcp-inventory-performance.md). Human effort, interactive desktop use and simultaneous-client/physical Drive concurrency remain unverified; writes remain disabled.
-
-
-## Live scoped-search follow-up
-
-- [NAVIS-S026](NAVIS-S026.md): Explicit-root queries now validate their own subtree and report current_for_scope with unvalidated roots. A live pre-fix Documentation retry took 31.25 seconds; a fresh actual Codex connection with the candidate took 248–291 ms with source provenance verified. After the user restarted the server, three current-chat searches passed in 226–284 ms with the expected scoped coverage; post-restart acceptance is complete. [Contract and evidence](../docs/vault-mcp-live-search.md). Unfiltered searches retain exhaustive validation and their existing latency/deadline limits.
+See [adoption record](../docs/vault-mcp-real-workflow.md),
+[sanitized report](../docs/trials/vault-mcp-real-workflow-2026-10-27.json),
+[broad pilot](../docs/vault-mcp-inventory-performance.md) and
+[live search](../docs/vault-mcp-live-search.md).
