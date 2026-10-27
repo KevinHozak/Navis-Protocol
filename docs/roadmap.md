@@ -42,7 +42,7 @@ S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
 and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
 accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
 S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
-see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state passed scoped automated and packaged 1.11.24 checks and awaits PR review; see the [read freshness contract](refresh-freshness.md). Remaining packaged trust journeys and dependency limits
+see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). Remaining packaged trust journeys and dependency limits
 remain explicit under S015. Task-status enhancements (S022-S024) and evidence-gated
 AI workflow trials (S001-S008) remain separate open workstreams.
 
@@ -73,3 +73,5 @@ These retain the original product direction without treating an existing compone
 | Bidirectional synchronization | Partial | Journal edits and combat completion write back; real-time push synchronization tracked in Epic [#188](https://github.com/KevinHozak/Navis-Protocol-Private/issues/188). |
 
 Use issue acceptance criteria and the linked evidence records to select follow-up work. Recheck issue state before starting: merged implementation and unfinished manual verification can coexist.
+
+S015 integrated verification is in progress: real browser trust journeys exposed unavailable-status and startup-receipt gaps. See the [current matrix](trust-journey-verification.md); E002 remains open while retained runtime gates are incomplete.

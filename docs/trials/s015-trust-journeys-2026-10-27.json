@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-27",
+  "base": "17c23ca9d66c4651df9727783549f304197b955e",
+  "status": "in_progress",
+  "web": {
+    "environment": "real browser + FastAPI loopback fixture; lifespan daemons disabled",
+    "source_read_failure": "passed after unavailable-status repair",
+    "retry_reconnect": "passed",
+    "navigation_during_save": "passed with 3-second response delay after canonical commit",
+    "saved_source_keyboard": "passed",
+    "xp_projection_recovery": {
+      "entries": 1,
+      "keeper_xp": 12,
+      "keeper_awards": 1,
+      "other_journal_unchanged": true
+    },
+    "checkbox_saved_feedback": "passed; resulting integrated Holocron has 14 signed XP",
+    "evidence_keyboard": "passed; 2/2 items; exact journal opened"
+  },
+  "findings": [
+    {
+      "id": "S015-F01",
+      "finding": "Web malformed/missing status became successful Earth/empty fallback",
+      "repair": "strict unavailable-source response; valid empty squad and metadata-only records retained"
+    },
+    {
+      "id": "S015-F02",
+      "finding": "Startup catchup claimed synthesized with no artifact",
+      "repair": "return unavailable when no artifact persisted; absent root remains absent"
+    },
+    {
+      "id": "S015-F03",
+      "finding": "Open composer kept obsolete pending-XP message after notice recovery",
+      "repair": "reconcile verified completed receipt; preserve newer drafts"
+    }
+  ],
+  "checks": {
+    "python": {
+      "passed": 94
+    },
+    "frontend": "51 adapters + full regression runner passed",
+    "native": {
+      "unit_passed": 76,
+      "parity_passed": 1,
+      "excluded": "personal-Vault availability probe"
+    }
+  },
+  "remaining": [
+    "Selected final packaged 1.11.25 smoke and native checks passed; broader acceptance remains open",
+    "Physical web partial-sync/cancel/close trial not yet executed",
+    "Packaged controlled-delay late-response race not yet executed",
+    "Clean-machine installer execution unavailable in current host",
+    "Physical Drive races and production integrations not exercised",
+    "Independent external review unavailable"
+  ],
+  "packaged_checkpoint": {
+    "version": "1.11.25 first build",
+    "status_source_unavailable_recovery": "passed",
+    "entry_count": 1,
+    "keeper_awards": 1,
+    "keeper_xp": 12,
+    "other_journal_unchanged": true,
+    "delay_navigation": "inconclusive after window resized; no pass claimed",
+    "final_rebuild": "superseded by packaged_final"
+  },
+  "packaged_final": {
+    "version": "1.11.25",
+    "matched_resources": 38,
+    "entry_count": 1,
+    "keeper_rows": 1,
+    "keeper_xp": 12,
+    "phase": "complete",
+    "B_unchanged": true,
+    "bom_crlf_preserved": true,
+    "stale_pending_message_removed": true,
+    "fixture_closed": true,
+    "exe_sha256": "a2a2e69e3f81a511366c51beda69ff84409ab716c91678c81156f464bf5cb8fb",
+    "nsis_sha256": "057635d3ad363737e91bb75224a2a030d08a7f12983aba29be3e01f9bc7f1319"
+  }
+}

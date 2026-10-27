@@ -822,6 +822,7 @@ export default function Home() {
                 onJournalEntrySaved={handleJournalEntrySaved}
                 onJournalEntryUnverified={handleJournalEntryUnverified}
                 journalEntryDraft={journalSaveReceipt && !journalSaveReceipt.verified && journalSaveReceipt.path === activeEntity?.id ? journalSaveReceipt.request : null}
+                journalEntryReceipt={journalSaveReceipt?.path === activeEntity?.id ? journalSaveReceipt : null}
                 onRefreshStatus={refreshStatus}
                 onMissionClick={handleMissionClick}
                 onOpenJournal={(path, day) => {

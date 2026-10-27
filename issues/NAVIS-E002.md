@@ -51,5 +51,7 @@ gate passed. S013 is accepted after PR #18 merged at `cc05842`, with the shared
 are reconciled in tests. S011 is accepted after PR #19 merged at `9408bd1` and its
 packaged 1.11.22 fixture passed; see its [T02 contract](../docs/journal-availability.md).
 S012 is accepted after PR #20 merged at `3751f2c` and its packaged 1.11.23 fixture passed; see the
-[T05 save contract](../docs/journal-save-verification.md). S010 passed scoped automated and packaged 1.11.24 checks and awaits PR review on `codex/refresh-freshness`; see its [read freshness contract](../docs/refresh-freshness.md). The remaining S015 journeys,
+[T05 save contract](../docs/journal-save-verification.md). S010 is accepted after PR #21 merged at `17c23ca` and its packaged 1.11.24 fixture passed; see its [read freshness contract](../docs/refresh-freshness.md). The remaining S015 journeys,
 clean-machine installation, personal Drive races and dependency limits stay open.
+
+S015 is running integrated trust journeys and repairing confirmed status-source/receipt gaps; see the [integrated matrix](../docs/trust-journey-verification.md). Remaining affected acceptance blocks epic completion.

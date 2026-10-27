@@ -4,7 +4,7 @@ id: "NAVIS-S010"
 parent: ["NAVIS-E002"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Expose freshness and failed-refresh state for confirmed gaps"
 type: "enhancement"
 ---
@@ -34,4 +34,4 @@ Follow the parent epic's audit-first gate, privacy and runtime evidence requirem
 
 T03/T04: protect Holocron selected-week identity against out-of-order replies; expose dashboard failed refresh and last successful read separately from operational/source timestamps. Reuse current loading/error/retry UI and generated_at; do not infer source freshness from render time.
 
-Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). Repair contract and verification: [refresh freshness](../docs/refresh-freshness.md). Scoped automated and packaged 1.11.24 fixture checks passed; S010 awaits PR review and merge. Broader physical web and clean-machine journeys remain under S015.
+Evidence and fixture reproduction: [trust-signals audit](../docs/trust-signals-audit.md) and [sanitized source/check record](../docs/trials/navis-trust-audit-2026-10-27.json). Repair contract and verification: [refresh freshness](../docs/refresh-freshness.md). Scoped automated and packaged 1.11.24 fixture checks passed; S010 was accepted when PR #21 merged at `17c23ca`. Broader physical web and clean-machine journeys remain under S015.

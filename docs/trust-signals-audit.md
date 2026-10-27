@@ -205,3 +205,12 @@ The MCP epic is done within accepted read-only limits; it is not reopened by thi
 audit. Roadmap MCP and native-checkbox descriptions are reconciled to delivered
 evidence. S009 can close as an audit with documented runtime unknowns; no repair
 story acceptance is marked implemented by this report.
+
+## S015 integrated checkpoint - 2026-10-27
+
+Repairs S010-S014 are merged through PR #21 (`17c23ca`). The original matrix
+above is the S009 audit baseline, not the current runtime disposition. See the
+[integrated trust-journey record](trust-journey-verification.md) for versioned
+packaged evidence, new physical browser observations, S015-F01/F02 repairs and
+remaining gates. Do not rerun historical defect-assertion probes as acceptance.
+S015 and E002 remain in progress.

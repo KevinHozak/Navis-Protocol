@@ -359,8 +359,13 @@ fn route(path: &str) -> &str {
 fn status() -> Result<Value, String> {
     let mut value = read_json(
         "Bridge/status.json",
-        json!({"current_realm":"Earth","squad":[]}),
+        Value::Null,
     )?;
+    if value.as_object().map_or(true, |object| object.is_empty()) ||
+        value.get("squad").map_or(false, |squad| squad.as_array()
+            .map_or(true, |members| members.iter().any(|member| !member.is_object()))) {
+        return Err("Status source unavailable. Restore it, then retry.".into());
+    }
     let stats = read_json("Bridge/CompanionStats.json", json!({}))?;
     if let Some(companions) = stats.get("companions").and_then(Value::as_object) {
         if let Some(squad) = value.get_mut("squad").and_then(Value::as_array_mut) {
@@ -2268,6 +2273,26 @@ fn python_holocron(
 #[cfg(test)]
 mod tests {
     use std::fs;
+
+    #[test]
+    fn status_unavailability_does_not_become_an_earth_default() {
+        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let root = std::env::temp_dir().join(format!("navis-status-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(root.join("Bridge")).unwrap();
+        let old_root = std::env::var_os("NAVIS_ROOT");
+        std::env::set_var("NAVIS_ROOT", &root);
+        assert!(super::status().is_err());
+        for content in ["{", "[]", "{}", r#"{"squad":null}"#, r#"{"squad":[null]}"#] {
+            fs::write(root.join("Bridge/status.json"), content).unwrap();
+            assert!(super::status().is_err());
+        }
+        for content in [r#"{"squad":[]}"#, r#"{"last_updated":"2026-10-26"}"#] {
+            fs::write(root.join("Bridge/status.json"), content).unwrap();
+            assert!(super::status().is_ok());
+        }
+        match old_root { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn calendar_distinguishes_unavailable_empty_and_valid_entries() {

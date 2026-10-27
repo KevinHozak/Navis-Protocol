@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { apiFetch, supportsLocalOllama } from '@/lib/desktopApi';
 import { saveJournalEntry } from '@/lib/journalSave.mjs';
 
@@ -12,7 +12,7 @@ const JOURNAL_SECTIONS = [
   { value: 'outland', label: '🥾 The Kinetic Outland' },
 ];
 
-export default function JournalEntryComposer({ date, onSaved, onUnverified, initialDraft }) {
+export default function JournalEntryComposer({ date, onSaved, onUnverified, initialDraft, savedReceipt }) {
   const [isOpen, setIsOpen] = useState(Boolean(initialDraft?.entry));
   const [section, setSection] = useState(initialDraft?.section || 'sanctum');
   const [entry, setEntry] = useState(initialDraft?.entry || '');
@@ -22,6 +22,17 @@ export default function JournalEntryComposer({ date, onSaved, onUnverified, init
   const [originalEntry, setOriginalEntry] = useState(null);
   const [error, setError] = useState('');
   const canSuggestLocally = supportsLocalOllama();
+  const draftRef = useRef(null);
+  draftRef.current = { entry, section };
+  useEffect(() => {
+    if (!savedReceipt?.verified || savedReceipt.xp_status !== 'complete' || savedReceipt.date !== date) return;
+    setError(previous => previous.startsWith('Entry saved. XP sync is pending') ? '' : previous);
+    if (savedReceipt.request?.entry === draftRef.current.entry && savedReceipt.request?.section === draftRef.current.section) {
+      setEntry('');
+      setOriginalEntry(null);
+      setIsOpen(false);
+    }
+  }, [savedReceipt, date]);
 
   const polishEntry = async () => {
     if (savePending.current || saving || polishing || !entry.trim()) return;
