@@ -4,7 +4,7 @@ id: "NAVIS-S011"
 parent: ["NAVIS-E002"]
 priority: "high"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Distinguish unavailable data from valid empty and zero results"
 type: "enhancement"
 ---
@@ -52,3 +52,10 @@ warnings and whitespace passed. See the [contract, artifact identity and retaine
 runtime limits](../docs/journal-availability.md). No personal Vault operation or live
 provider call was performed. Status remains in_review pending PR acceptance;
 independent external review is unavailable.
+
+## Accepted merge - 2026-10-27
+
+The user authorized merge after both current-head scans passed and PR readiness
+was verified. PR #19 merged as `9408bd14dbdda3ce1fa7acca5f1e3efa46662c16`;
+local main was fast-forwarded and verified clean at that commit. S011 closes
+within the documented fixture/runtime limits; broader S015 journeys remain open.

@@ -137,6 +137,8 @@ export default function SectorView({
   onSelectEntity,
   onToggleCheckbox,
   onJournalEntrySaved,
+  onJournalEntryUnverified,
+  journalEntryDraft,
   onRefreshStatus,
   onMissionClick,
   onOpenBestiary,
@@ -1237,8 +1239,11 @@ export default function SectorView({
         <div className="w-full max-w-4xl mx-auto bg-zinc-900/40 p-8 border border-white/10 rounded shadow-2xl">
           {sectorId === 'JOURNAL' && (
             <JournalEntryComposer
+              key={activeEntity.id}
               date={activeEntity.name?.match(/\d{4}-\d{2}-\d{2}/)?.[0] || ''}
               onSaved={onJournalEntrySaved}
+              onUnverified={onJournalEntryUnverified}
+              initialDraft={journalEntryDraft}
             />
           )}
           <MarkdownRenderer 

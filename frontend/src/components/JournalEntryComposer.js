@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { apiFetch, supportsLocalOllama } from '@/lib/desktopApi';
+import { saveJournalEntry } from '@/lib/journalSave.mjs';
 
 const JOURNAL_SECTIONS = [
   { value: 'sanctum', label: '🏰 The Sanctum' },
@@ -11,18 +12,19 @@ const JOURNAL_SECTIONS = [
   { value: 'outland', label: '🥾 The Kinetic Outland' },
 ];
 
-export default function JournalEntryComposer({ date, onSaved }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [section, setSection] = useState('sanctum');
-  const [entry, setEntry] = useState('');
+export default function JournalEntryComposer({ date, onSaved, onUnverified, initialDraft }) {
+  const [isOpen, setIsOpen] = useState(Boolean(initialDraft?.entry));
+  const [section, setSection] = useState(initialDraft?.section || 'sanctum');
+  const [entry, setEntry] = useState(initialDraft?.entry || '');
   const [saving, setSaving] = useState(false);
+  const savePending = useRef(false);
   const [polishing, setPolishing] = useState(false);
   const [originalEntry, setOriginalEntry] = useState(null);
   const [error, setError] = useState('');
   const canSuggestLocally = supportsLocalOllama();
 
   const polishEntry = async () => {
-    if (saving || polishing || !entry.trim()) return;
+    if (savePending.current || saving || polishing || !entry.trim()) return;
     setOriginalEntry((original) => original ?? entry);
     setPolishing(true);
     setError('');
@@ -55,28 +57,15 @@ export default function JournalEntryComposer({ date, onSaved }) {
 
   const saveEntry = async (event) => {
     event.preventDefault();
-    if (saving || polishing || !entry.trim()) return;
+    if (savePending.current || saving || polishing || !entry.trim()) return;
 
+    savePending.current = true;
     setSaving(true);
     setError('');
+    const request = { date, section, entry };
     try {
-      const response = await apiFetch('/api/journal/entry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, section, entry }),
-      });
-      if (!response.ok) {
-        let message = await response.text();
-        try {
-          message = JSON.parse(message).detail || message;
-        } catch {
-          // Keep the raw response text for non-JSON errors.
-        }
-        throw new Error(message || 'Journal entry could not be saved.');
-      }
-
-      const result = await response.json();
-      onSaved?.(result);
+      const result = await saveJournalEntry(request);
+      onSaved?.(result, request);
       if (result.xp_status === 'pending') {
         setError('Entry saved. XP sync is pending; save this same entry again to retry without adding a duplicate.');
         return;
@@ -85,8 +74,10 @@ export default function JournalEntryComposer({ date, onSaved }) {
       setOriginalEntry(null);
       setIsOpen(false);
     } catch (saveError) {
+      if (saveError.unverified) onUnverified?.(request);
       setError(saveError.message || 'Journal entry could not be saved.');
     } finally {
+      savePending.current = false;
       setSaving(false);
     }
   };
