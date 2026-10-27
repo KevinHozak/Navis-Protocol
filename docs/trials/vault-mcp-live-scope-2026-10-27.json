@@ -1,0 +1,93 @@
+{
+  "client": "desktop-bundled Codex app-server 0.164.0-alpha.11.1",
+  "server": "0.4.2",
+  "source_identity": [
+    {
+      "path": "backend/navis_vault_mcp.py",
+      "sha256": "ae7760ff5239fbee24aa6612b910895471228d6b1c1810315428ee131ce49327"
+    },
+    {
+      "path": "backend/services/vault_index.py",
+      "sha256": "513fa62745bb20255f85fe3a9770de8e36e173fcd6a1c5b212c9b9bcdbca71ac"
+    }
+  ],
+  "baseline_live_retry_ms": 31250,
+  "repetitions": [
+    {
+      "elapsed_ms": 291.153,
+      "matches": 1,
+      "index_state": "current_for_scope",
+      "validated_roots": [
+        "Documentation"
+      ],
+      "unvalidated_roots": [
+        "Journal",
+        "Operations"
+      ]
+    },
+    {
+      "elapsed_ms": 250.172,
+      "matches": 1,
+      "index_state": "current_for_scope",
+      "validated_roots": [
+        "Documentation"
+      ],
+      "unvalidated_roots": [
+        "Journal",
+        "Operations"
+      ]
+    },
+    {
+      "elapsed_ms": 247.663,
+      "matches": 1,
+      "index_state": "current_for_scope",
+      "validated_roots": [
+        "Documentation"
+      ],
+      "unvalidated_roots": [
+        "Journal",
+        "Operations"
+      ]
+    }
+  ],
+  "source_provenance_verified": true,
+  "private_index_unchanged": true,
+  "tools": [
+    "get_journal_range",
+    "get_mission",
+    "read_note",
+    "search_vault"
+  ],
+  "model_turns": 0,
+  "write_tools_available": false,
+  "client_exit_code": 0,
+  "base_commit": "900c8bf735fb1ca53abe20749a57f70cbfa14f51",
+  "date": "2026-10-27",
+  "source_state": "verified local changes bound by normalized source hashes",
+  "tests": {
+    "passed": 217,
+    "skipped": 1,
+    "skip_reason": "POSIX distinct-case aliases on Windows",
+    "duration_seconds": 63.3
+  },
+  "current_chat_after_reload": {
+    "status": "passed",
+    "date": "2026-10-27",
+    "elapsed_ms": [
+      284,
+      247,
+      226
+    ],
+    "matches_per_query": 1,
+    "lowercase_root_verified": true,
+    "index_state": "current_for_scope",
+    "validated_roots": [
+      "Documentation"
+    ],
+    "unvalidated_roots": [
+      "Journal",
+      "Operations"
+    ]
+  },
+  "raw_private_text_logged": false
+}

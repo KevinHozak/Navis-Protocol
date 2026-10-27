@@ -1,5 +1,10 @@
 # Broad-Vault inventory and read-only pilot
 
+This records S025's exhaustive validation behavior. S026 subsequently bounds
+an explicit-root search to its requested subtree with `current_for_scope`
+coverage; see [live search](vault-mcp-live-search.md). Unfiltered searches retain
+the exhaustive behavior and latency described here.
+
 Follow-up NAVIS-S025 addresses the real-Vault timeout observed after S021.
 The initial 45-note pilot is preserved in [its report](vault-mcp-real-pilot.md).
 

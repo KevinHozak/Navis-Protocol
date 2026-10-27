@@ -75,11 +75,15 @@ An interrupted process may leave a private temporary file; it is never treated
 as a published generation.
 
 Each generation records a schema/policy/root fingerprint, build time, opaque
-generation ID and per-file metadata/digests. Before and after each search, the
-server inventories allowed Markdown files and checks metadata, root coverage and
-read access. Added, removed, renamed or changed files, changed roots/exclusions,
-or previously missing directories appearing invalidate the generation. Matching
-files are re-read and digest-checked before snippets are returned.
+generation ID and per-file metadata/digests. Search without `root` inventories
+all configured Markdown roots before and after the query and reports `current`
+only when that complete inventory matches. With an explicit `root`, both passes
+validate that subtree and report `current_for_scope`, `validated_roots` and
+`unvalidated_roots`. Missing-root coverage then applies to the validated scope;
+other roots are not certified fresh. Added, removed, renamed, changed or unreadable
+files within that scope still fail closed. Policy/index identity remains global,
+and matching files are re-read and digest-checked before snippets are returned.
+See [live scoped-search verification](vault-mcp-live-search.md).
 
 `index_unavailable` means a missing, corrupt or unsupported database/configured
 state location; `index_stale` means it no longer matches the current source or

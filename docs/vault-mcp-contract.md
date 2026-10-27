@@ -174,6 +174,11 @@ are subject to the common 64 KiB cap; resume note content using `read_note`.
 
 ## Index health and freshness
 
+S026 update: an explicit search `root` now bounds both inventory passes and
+returns `current_for_scope` with validated/unvalidated roots. This does not
+certify the unexamined roots. Omitting `root` retains complete-policy validation
+and `current`. See [the live-search contract](vault-mcp-live-search.md).
+
 Build a separate policy-scoped FTS5 index in private state, never reuse the skill
 database. A local operator rebuild command (not an MCP tool) inventories allowed
 Markdown files with relative path, byte size, mtime_ns and digest; atomically
