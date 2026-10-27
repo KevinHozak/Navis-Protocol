@@ -282,7 +282,7 @@ def test_stdio_handshake_read_unknown_args_unavailable_reconnect_no_logs(vault):
             init = wire.start()
             assert set(init["result"]["capabilities"]) == {"tools"}
             tools = wire.call("tools/list")["result"]["tools"]
-            assert [t["name"] for t in tools] == ["read_note"]
+            assert [t["name"] for t in tools] == ["read_note", "search_vault"]
             assert tools[0]["annotations"]["readOnlyHint"] is True
             assert tools[0]["inputSchema"]["additionalProperties"] is False
             result = wire.call("tools/call", {"name": "read_note", "arguments": {"path": "Documentation/fixture.md"}})["result"]

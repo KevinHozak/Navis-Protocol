@@ -17,7 +17,7 @@ MAX_FILE_BYTES = 1024 * 1024
 MAX_DATA_BYTES = 16 * 1024  # Leaves room for duplicated/escaped MCP representations.
 DEFAULT_ROOTS = ("Journal", "Operations", "Codex", "Documentation")
 RESERVED = re.compile(r"^(con|conin\$|conout\$|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)", re.I)
-SECRET = re.compile(r"^(secret|credential|token|oauth|client.secret|service.account|private.key|config|settings)(?:[._ -]|$)", re.I)
+SECRET = re.compile(r"^(secrets?|credentials?|tokens?|oauth\d*|client[._ -]?secrets?|service[._ -]?accounts?|private[._ -]?keys?|configs?|settings)(?:[._ -]|$)", re.I)
 
 
 class VaultAccessError(Exception):
@@ -122,8 +122,7 @@ class VaultPolicy:
     def resolve(self, raw):
         self.require_root()
         parts = _parts(raw)
-        if (_private(parts) or not any(_under(parts, base) for base in self.allowed)
-                or any(_under(parts, base) for base in self.denied) or Path(parts[-1]).suffix.casefold() != ".md"):
+        if not self.allows(parts) or Path(parts[-1]).suffix.casefold() != ".md":
             raise VaultAccessError("not_found")
         try:
             path = Path(resolve_relative_path(self.root, raw))
@@ -135,6 +134,11 @@ class VaultPolicy:
         except OSError:
             raise VaultAccessError("source_unreadable") from None
         return path
+
+    def allows(self, parts):
+        """Common policy for files and directory pruning; no filesystem effects."""
+        return (not _private(parts) and any(_under(parts, base) for base in self.allowed)
+                and not any(_under(parts, base) for base in self.denied))
 
     def coverage(self):
         missing = []
@@ -189,18 +193,28 @@ def _headings(lines):
     result = []
     fence = None
     for i, line in enumerate(lines):
-        code = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
-        if code:
-            marker = code[1]
-            if fence is None:
-                fence = marker
-            elif marker[0] == fence[0] and len(marker) >= len(fence):
+        line = line.rstrip("\r\n")
+        code = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence is not None:
+            if code and code[1][0] == fence[0] and len(code[1]) >= len(fence) and not code[2].strip():
                 fence = None
             continue
-        match = re.match(r"^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$", line.rstrip("\r\n"))
-        if match and fence is None:
-            result.append((i, len(match[1]), match[2]))
+        if code:
+            if code[1][0] != "`" or "`" not in code[2]:
+                fence = code[1]
+            continue
+        match = re.match(r"^ {0,3}(#{1,6})(?:[ \t]+(.*?)|[ \t]*)$", line)
+        if match:
+            title = re.sub(r"[ \t]+#+[ \t]*$", "", match[2] or "").strip(" \t")
+            result.append((i, len(match[1]), title))
     return result
+
+
+def _note_lines(text):
+    lines = re.findall(r"[^\r\n]*(?:\r\n|\r|\n|$)", text)
+    if lines and not lines[-1]:
+        lines.pop()
+    return lines
 
 
 def read_note(policy, arguments, *, deadline=None):
@@ -226,9 +240,7 @@ def read_note(policy, arguments, *, deadline=None):
     relative, text, digest, info = _snapshot(policy, path)
     check_time()
     # Only CR/LF delimit physical Markdown lines, not Unicode separators.
-    lines = re.findall(r"[^\r\n]*(?:\r\n|\r|\n|$)", text)
-    if lines and not lines[-1]:
-        lines.pop()
+    lines = _note_lines(text)
     headings = _headings(lines)
     lo, hi = 0, len(lines)
     if section is not None:
