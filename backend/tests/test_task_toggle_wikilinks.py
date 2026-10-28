@@ -1,6 +1,7 @@
 import pytest
 
 from services.task_toggle import toggle, ToggleConflict
+from services import task_time
 
 
 @pytest.mark.parametrize('link', [
@@ -16,6 +17,6 @@ def test_linked_school_lunch_checkbox_preserves_source(tmp_path, link):
                    target_text='🍱 Finance: Add funds for school lunch (SchoolPay)')
     result = toggle(tmp_path, path, request)
     assert result['saved']
-    assert path.read_bytes() == source.replace('[ ]', '[x]', 1).encode('utf-8')
+    assert task_time.strip(path.read_bytes().decode('utf-8')).encode('utf-8') == source.replace('[ ]', '[x]', 1).encode('utf-8')
     with pytest.raises(ToggleConflict):
         toggle(tmp_path, path, request)

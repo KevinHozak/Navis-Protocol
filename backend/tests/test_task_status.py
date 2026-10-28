@@ -20,7 +20,7 @@ RAW = '\ufeff# Fixture\r\n## 🥾 The Kinetic Outland\r\n- [ ] Keep **雪**\r\n 
 def test_release_packages_both_canonical_status_entrypoints():
     repo = Path(__file__).parents[2]
     resources = json.loads((repo / 'frontend/src-tauri/tauri.conf.json').read_text(encoding='utf-8'))['bundle']['resources']
-    for source in ('native_task_toggle.py', 'native_directive.py', 'services/task_toggle.py', 'services/directive_completion.py'):
+    for source in ('native_task_toggle.py', 'native_directive.py', 'services/task_toggle.py', 'services/directive_completion.py', 'services/task_time.py'):
         assert resources[f'../../backend/{source}'] == f'backend/{source}'
 
 
@@ -65,6 +65,8 @@ def test_journal_status_roundtrip_and_stale_rejection(vault, transport, desired)
     status, result = send()
     assert status == 200, result
     assert result['saved'] and result['task_status'] == desired
+    from services import task_time
+    assert task_time.valid_instant(result.get('completed_at')) == (desired == 'done')
     raw = file.read_bytes()
     assert raw.startswith(b'\xef\xbb\xbf') and raw.count(b'\r\n') == RAW.count(b'\r\n')
     assert raw.endswith(b'  note stays here\r\n- [X] Legacy checked\r\n')

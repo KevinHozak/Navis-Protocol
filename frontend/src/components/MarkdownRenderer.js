@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import TaskStatusPicker from './TaskStatusPicker';
+import { completionMetadata } from '../lib/taskCompletionTime.mjs';
 import remarkGfm from 'remark-gfm';
 
 import rehypeRaw from 'rehype-raw';
@@ -173,7 +174,7 @@ export default function MarkdownRenderer({ content = '', onToggleCheckbox, onHop
               className="w-4 h-4 shrink-0 mt-1 cursor-pointer accent-[#00d4ff]"
             />
             <TaskStatusPicker id={`task-status-${startLine}`} label={textContent}
-              value={taskStatus} disabled={pending || !onToggleCheckbox} onChange={handleCheckboxChange} />
+              completedAt={completionMetadata(content.split(/\r?\n/)[(startLine || 1) - 1] || '')} value={taskStatus} disabled={pending || !onToggleCheckbox} onChange={handleCheckboxChange} />
             <div
               className={`transition-colors duration-200 flex-1 [&>p:last-child]:mb-0 ${
                 effectiveChecked ? 'text-[#888] font-normal' : 'text-white/80'

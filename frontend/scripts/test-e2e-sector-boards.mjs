@@ -148,6 +148,7 @@ async function createComponent(componentName, tasksFixture) {
       if (specifier === 'framer-motion') return synthetic('motion', { motion: { div: 'div', form: 'form' }, AnimatePresence: ({ children }) => children });
       if (specifier === 'next/dynamic') return synthetic('next/dynamic', { default: () => ({ content }) => React.createElement('div', null, content) });
       if (specifier.startsWith('@/')) return load(specifier.slice(2) + '.js');
+      if (specifier === '../lib/taskCompletionTime.mjs') return load('lib/taskCompletionTime.mjs');
       if (specifier === './TaskStatusPicker') return load('components/TaskStatusPicker.js');
       if (specifier === './taskBoardStore.mjs') return load('lib/taskBoardStore.mjs');
       throw new Error(`Unexpected import: ${specifier}`);

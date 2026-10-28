@@ -326,7 +326,7 @@ function RecurringBoardArea({ area }) {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <TaskStatusPicker label={task.text} value={task.occurrence_status?.date === todayStr ? task.occurrence_status.status : (task.last_done === todayStr ? 'done' : 'pending')} disabled={pending || loading || !!listError} onChange={status => changeStatus(task, status)} />
+                    <TaskStatusPicker completedAt={task.completed_at || task.completion?.completed_at} label={task.text} value={task.occurrence_status?.date === todayStr ? task.occurrence_status.status : (task.last_done === todayStr ? 'done' : 'pending')} disabled={pending || loading || !!listError} onChange={status => changeStatus(task, status)} />
                     <button 
                       disabled={pending || loading || !!listError || isCompleting}
                       onClick={() => handleMarkDone(task.id)}

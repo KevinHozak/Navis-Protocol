@@ -421,14 +421,28 @@ mod tests {
                 continue;
             }
             assert_eq!(result.body["status"], "completed", "{result:?}");
+            let written = std::fs::read(&journal).unwrap();
             let replay =
                 super::combat_request(&backend, "/api/battle/resolve", Some(command)).unwrap();
             assert_eq!(replay.body["idempotent_replay"], true);
+            assert_eq!(std::fs::read(&journal).unwrap(), written);
             let state = super::request("/api/battle/state", "GET", None).unwrap();
             assert_eq!(state.body["discard"].as_array().unwrap().len(), 2);
             assert_eq!(state.body["lost"].as_array().unwrap().len(), 2);
+            let rendered = String::from_utf8(written).unwrap();
+            let original_content = if case == "success" {
+                let (prefix, rest) = rendered.split_once(" <!-- navis-completion:").unwrap();
+                let (metadata, suffix) = rest.split_once(" -->").unwrap();
+                let metadata: serde_json::Value = serde_json::from_str(metadata).unwrap();
+                chrono::DateTime::parse_from_rfc3339(metadata["completed_at"].as_str().unwrap()).unwrap();
+                assert_eq!(metadata["history"], serde_json::json!([]));
+                format!("{prefix}{suffix}")
+            } else {
+                assert!(!rendered.contains("navis-completion:"), "legacy recovery cannot invent a time");
+                rendered
+            };
             assert_eq!(
-                std::fs::read(&journal).unwrap(),
+                original_content.as_bytes(),
                 String::from_utf8(bytes.to_vec())
                     .unwrap()
                     .replace("[ ]", "[x]")

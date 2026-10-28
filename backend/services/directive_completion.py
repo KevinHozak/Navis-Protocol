@@ -5,10 +5,11 @@ import re
 import shutil
 import uuid
 from contextlib import nullcontext
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from services.combat_completion import atomic_bytes, atomic_json, battle_lock, safe_source
 from services.recurrence import calculate_next_due
+from services import task_time
 
 HEADERS = {
     'sanctum': '## 🏰 The Sanctum',
@@ -19,7 +20,7 @@ HEADERS = {
 }
 
 
-def complete_section_item(content, header, text, marker=None):
+def complete_section_item(content, header, text, marker=None, record_time=False):
     """Reuse one exact occurrence in its section; never guess between duplicates."""
     lines = content.splitlines(keepends=True)
     starts = [i for i, line in enumerate(lines) if line.strip() == header]
@@ -34,7 +35,7 @@ def complete_section_item(content, header, text, marker=None):
         if match:
             label = re.sub(r'\s*<!-- navis-directive:[^>]+ -->', '', match[3])
             from services.task_toggle import STATUS_MARKER
-            if ' '.join(STATUS_MARKER.sub('', label).split()) == ' '.join(text.split()):
+            if ' '.join(task_time.strip(STATUS_MARKER.sub('', label)).split()) == ' '.join(text.split()):
                 matches.append((i, match))
     if len(matches) > 1:
         raise ValueError('Directive journal occurrence ambiguous; review before retry')
@@ -46,11 +47,14 @@ def complete_section_item(content, header, text, marker=None):
             raise ValueError('Journal occurrence already belongs to another directive')
         # Keep existing provenance when the legacy sweep encounters a canonical item.
         label = re.sub(r'\s*<!-- navis-directive:[^>]+ -->', '', match[3]) if marker else match[3]
+        if record_time:
+            label, _ = task_time.transition(label, bool(re.match(r'^\s*[-*+]\s+\[[xX]\]', match[0])), True)
         lines[i] = match[1] + 'x' + match[2] + label + suffix + (match[4] or '')
     else:
         if not lines[start].endswith(('\n', '\r')):
             lines[start] += newline
-        lines.insert(start + 1, f'- [x] {text}{suffix}{newline}')
+        label, _ = task_time.transition(text, False, True) if record_time else (text, None)
+        lines.insert(start + 1, f'- [x] {label}{suffix}{newline}')
     return ''.join(lines)
 
 CANONICAL_AREAS = {
@@ -138,7 +142,7 @@ def complete(root, task_id, award=None, is_recurring=False, locked=False):
                 source_id = hashlib.sha256(f"{task_id}:{date}".encode()).hexdigest()
                 operation = {
                     'phase': 'prepared',
-                    'completed_at': datetime.now(timezone.utc).isoformat(),
+                    'completed_at': None,
                     'journal_path': relative,
                     'local_date': date,
                     'header': header,
@@ -152,7 +156,7 @@ def complete(root, task_id, award=None, is_recurring=False, locked=False):
                 source_id = hashlib.sha256(task_id.encode()).hexdigest()
                 operation = {
                     'phase': 'prepared',
-                    'completed_at': datetime.now(timezone.utc).isoformat(),
+                    'completed_at': None,
                     'journal_path': relative,
                     'local_date': date,
                     'header': header,
@@ -172,7 +176,7 @@ def complete(root, task_id, award=None, is_recurring=False, locked=False):
         marker = operation['marker']
 
         if marker not in content:
-            updated = complete_section_item(content, operation['header'], operation['text'], marker).encode('utf-8')
+            updated = complete_section_item(content, operation['header'], operation['text'], marker, record_time=True).encode('utf-8')
             if raw.startswith(b'\xef\xbb\xbf'):
                 updated = b'\xef\xbb\xbf' + updated
             if journal.read_bytes() != raw:
@@ -185,23 +189,42 @@ def complete(root, task_id, award=None, is_recurring=False, locked=False):
                 raise ValueError('Reopened completion evidence missing or ambiguous')
             lines = content.splitlines(keepends=True)
             index = candidates[0]
-            if not re.match(r'^\s*[-*+]\s+\[ \]\s+', lines[index]):
+            checked = bool(re.match(r'^\s*[-*+]\s+\[[xX]\]\s+', lines[index]))
+            if checked and not task_time.read(lines[index])['completed_at']:
+                raise ValueError('Recompletion time unavailable; review before retry')
+            if not checked and not re.match(r'^\s*[-*+]\s+\[ \]\s+', lines[index]):
                 raise ValueError('Reopened completion evidence changed')
-            lines[index] = re.sub(r'^(\s*[-*+]\s+\[) (\])', r'\1x\2', lines[index])
+            line = lines[index].rstrip('\r\n')
+            ending = lines[index][len(line):]
+            line, _ = task_time.transition(line, checked, True)
+            lines[index] = re.sub(r'^(\s*[-*+]\s+\[) (\])', r'\1x\2', line) + ending
+            if journal.read_bytes() != raw:
+                raise ValueError('Journal changed during recompletion; reload')
             atomic_bytes(journal, (b'\xef\xbb\xbf' if raw.startswith(b'\xef\xbb\xbf') else b'') + ''.join(lines).encode('utf-8'))
         elif content.count(marker) != 1 or not any(re.match(r'^\s*[-*+]\s+\[[xX]\]\s+', line) and line.endswith(marker) for line in content.splitlines()):
             raise ValueError('Completion journal evidence changed; review before retry')
 
+        # The inline instant and checkbox share one atomic write. Recovery reuses it.
+        saved_raw = journal.read_bytes()
+        saved_lines = saved_raw.decode('utf-8-sig').splitlines()
+        saved_rows = [line for line in saved_lines if line.endswith(marker)]
+        if len(saved_rows) != 1 or not re.match(r'^\s*[-*+]\s+\[[xX]\]', saved_rows[0]):
+            raise ValueError('Completion evidence missing or ambiguous after save')
+        inline = task_time.read(saved_rows[0])['completed_at']
+        operation['completed_at'] = inline or (operation.get('completed_at') if task_time.valid_instant(operation.get('completed_at')) else None)
         operation['phase'] = 'xp_pending'
         if not is_recurring:
             task['status'] = 'completion_pending'
         atomic_json(path, state)
+        expected_state = path.read_bytes()
 
         if award is None:
             from services.rpg_engine import calculate_and_apply_xp
             award = calculate_and_apply_xp
         award(date_override=operation['local_date'])
 
+        if path.read_bytes() != expected_state or journal.read_bytes() != saved_raw:
+            raise ValueError('Completion sources changed during XP reconciliation; reload')
         operation['phase'] = 'complete'
         task['completed_at'] = operation['completed_at']
         if is_recurring:
@@ -233,6 +256,8 @@ def complete(root, task_id, award=None, is_recurring=False, locked=False):
             })
 
         atomic_json(path, latest)
+        if json.loads(path.read_text(encoding='utf-8-sig')) != latest:
+            raise ValueError('Completion changed after save; reload')
         return {'status': 'completed', 'task': targets[0], 'idempotent_replay': False}
 
 
@@ -282,7 +307,10 @@ def transition(root, task_id, desired, expected_task, is_recurring=False, award=
             atomic_json(path, state)
             expected_state = path.read_bytes()
             i = indices[0]
-            lines[i] = re.sub(r'^(\s*[-*+]\s+\[)[ xX](\])', r'\1 \2', lines[i])
+            line = lines[i].rstrip('\r\n')
+            ending = lines[i][len(line):]
+            line, _ = task_time.transition(line, bool(re.match(r'^\s*[-*+]\s+\[[xX]\]', line)), False)
+            lines[i] = re.sub(r'^(\s*[-*+]\s+\[)[ xX](\])', r'\1 \2', line) + ending
             from services.task_toggle import STATUS_MARKER
             identities = STATUS_MARKER.findall(lines[i])
             stable_id = identities[0][0] if len(identities) == 1 else hashlib.sha256(operation['marker'].encode()).hexdigest()[:32]
@@ -300,6 +328,7 @@ def transition(root, task_id, desired, expected_task, is_recurring=False, award=
                 raise ValueError('Completion sources changed during reconciliation; reload')
             operation['phase'] = 'reopened'
             task.pop('completed_at', None)
+            operation['completed_at'] = None
             if is_recurring:
                 for key in ('last_done', 'next_due', 'due_date'):
                     task.pop(key, None)

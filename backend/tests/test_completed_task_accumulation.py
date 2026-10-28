@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from services import directive_completion, sync_engine
+from services import directive_completion, sync_engine, task_time
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def test_completion_consumes_existing_occurrence_and_retry_is_byte_noop(vault):
     saved = journal.read_bytes()
     sanctum, domestic = saved.decode('utf-8-sig').split('## 🏠')
     assert sanctum.count('Inspect telescope') == 1
-    assert '- [x] Inspect telescope <!-- navis-directive:' in sanctum
+    assert '- [x] Inspect telescope <!-- navis-directive:' in task_time.strip(sanctum)
     assert domestic == before.decode('utf-8-sig').split('## 🏠')[1]
     assert b'Keep \xe9\x9b\xaa\r\n' in saved
     directive_completion.complete_active(root, 'one', award=lambda **kw: pytest.fail('replay awarded XP'))

@@ -8,6 +8,7 @@ import re
 import shutil
 import tempfile
 import uuid
+from services import task_time
 
 TASK = re.compile(rb"^(\s*[-*+]\s+\[)([ xX])(\]\s+.*?)(\r?\n)?$")
 
@@ -70,6 +71,7 @@ def safe_source(root, relative):
 
 def normalized(line):
     # Ignore completion state when checking identity and surrounding task context.
+    line = task_time.strip(line.decode("utf-8")).encode("utf-8")
     return re.sub(rb"^(\s*[-*+]\s+\[)[ xX](\])", rb"\1 \2", line)
 
 
@@ -113,7 +115,7 @@ def bind_source(root, task_id, source):
     matches = []
     for index, line in enumerate(lines):
         match = TASK.fullmatch(line)
-        if match and match[3][1:].decode("utf-8").strip() == target:
+        if match and task_time.strip(match[3][1:].decode("utf-8")).strip() == task_time.strip(target).strip():
             matches.append(index)
     if len(matches) != 1:
         raise ValueError("Task source missing or ambiguous")
@@ -130,8 +132,11 @@ def complete_checkbox(root, source):
     path, raw, lines, index, match = read_source(root, source)
     if match[2].lower() == b"x":
         return False
-    offset = (3 if raw.startswith(b"\xef\xbb\xbf") else 0) + sum(len(line) for line in lines[:index]) + match.start(2)
-    updated = raw[:offset] + b"x" + raw[offset + 1:]
+    line = lines[index].decode("utf-8").rstrip("\r\n")
+    ending = lines[index].decode("utf-8")[len(line):]
+    line, _ = task_time.transition(line, False, True)
+    lines[index] = (re.sub(r"^(\s*[-*+]\s+\[) (\])", r"\1x\2", line) + ending).encode("utf-8")
+    updated = (b"\xef\xbb\xbf" if raw.startswith(b"\xef\xbb\xbf") else b"") + b"".join(lines)
     shutil.copy2(path, path.with_name(path.name + f".backup_combat_{uuid.uuid4().hex}"))
     if path.read_bytes() != raw:
         raise ValueError("Task source changed during completion")
