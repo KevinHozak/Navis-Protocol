@@ -1,0 +1,55 @@
+{
+  "story": "NAVIS-S001",
+  "status": "in progress; human review pending",
+  "client_date": "2026-10-27",
+  "sample_set": {
+    "source": "Canonical Navis daily journals; originals retained unchanged",
+    "dates": ["2026-10-26", "2026-10-27"],
+    "source_paths": [
+      "Journal/2026/10/2026-10-26.md",
+      "Journal/2026/10/2026-10-27.md"
+    ],
+    "source_file_sha256": {
+      "2026-10-26": "b2747372f70ddbe8515cad4cc0fc27cb95dd7b431a68a8bc2e63307201285227",
+      "2026-10-27": "4dff47d86c202a16bcc88b54d6cac0e225e7e7919da6e2717dd5e3d7f9b52cf9"
+    },
+    "vault_writes": 0
+  },
+  "method": {
+    "brief_fields": ["Goal", "Known facts", "Uncertainties", "One suggested next action"],
+    "samples": [
+      {"id": "S1", "category": "straightforward chore", "source_date": "2026-10-26"},
+      {"id": "S2", "category": "underspecified review", "source_date": "2026-10-27"},
+      {"id": "S3", "category": "ambiguous export", "source_date": "2026-10-27"},
+      {"id": "S4", "category": "personal communication", "source_date": "2026-10-27"},
+      {"id": "S5", "category": "competing household concerns", "source_date": "2026-10-27"}
+    ],
+    "content_policy": "Raw notes and generated personal briefs are omitted from this repository record; briefs were shown in the user conversation."
+  },
+  "initial_results": {
+    "briefs_prepared": 5,
+    "explicit_intentions_separated_from_suggestions": true,
+    "agent_source_audit_unsupported_facts": 0,
+    "agent_source_audit_invented_dates_or_commitments": 0,
+    "human_corrections": null,
+    "human_usefulness_ratings": "pending",
+    "human_review_minutes": null,
+    "human_review_minutes_timed": false,
+    "elapsed_drafting_seconds": 42,
+    "elapsed_includes_human_wait": false
+  },
+  "runtime": {
+    "surface": "Codex conversation",
+    "model_identifier": "unavailable",
+    "generation_settings": "unavailable",
+    "usage": "unknown"
+  },
+  "manual_baseline": "not measured; no comparable manual baseline",
+  "side_effects": {
+    "tasks_or_deadlines_created": 0,
+    "checked_items_changed": 0,
+    "suggested_actions_executed": 0,
+    "applications_changed": false
+  },
+  "decision": "pending human usefulness and correction review"
+}

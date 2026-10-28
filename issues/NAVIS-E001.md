@@ -4,7 +4,7 @@ id: "NAVIS-E001"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "in_progress"
 title: "Evaluate and deliver evidence-backed Navis AI workflows"
 type: "epic"
 ---

@@ -37,6 +37,13 @@ pub fn journal_entry_request(backend: &std::path::Path, body: Option<Value>) -> 
     python_mutation(backend, "/api/journal/entry", body, "native_journal_entry.py")
 }
 
+pub fn vault_note_request(backend: &std::path::Path, path: &str) -> Result<ApiResponse, String> {
+    if !path.starts_with("/api/vault/") {
+        return Err("unsupported Vault note command".into());
+    }
+    python_mutation(backend, path, None, "native_vault_note.py")
+}
+
 pub fn operation_status_request(backend: &std::path::Path, path: &str, method: &str) -> Result<ApiResponse, String> {
     python_mutation(backend, path, Some(json!({"method": method})), "native_operation_status.py")
 }
@@ -44,7 +51,7 @@ pub fn operation_status_request(backend: &std::path::Path, path: &str, method: &
 fn python_mutation(backend: &std::path::Path, path: &str, body: Option<Value>, script: &str) -> Result<ApiResponse, String> {
     let runtime = crate::command::resolve_python_runtime(backend, !cfg!(debug_assertions))?;
     let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
-    if script == "native_completed_tasks.py" {
+    if matches!(script, "native_completed_tasks.py" | "native_vault_note.py") {
         command.arg("-B");
     }
     command
@@ -312,6 +319,71 @@ mod tests {
         let retry = super::journal_entry_request(&backend, body).unwrap();
         assert_eq!(retry.body["replayed"], true);
         assert_eq!(std::fs::read(&journal).unwrap(), saved);
+        match original { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn shared_markdown_read_uses_bounded_backend_service_without_vault_writes() {
+        let _guard = ENV.lock().unwrap();
+        let original = std::env::var_os("NAVIS_ROOT");
+        let root = std::env::temp_dir().join(format!(
+            "navis-vault-note-{}-{}",
+            std::process::id(),
+            super::SystemTime::now().duration_since(super::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        let journal = root.join("Journal/2026/10/2026-10-27.md");
+        std::fs::create_dir_all(journal.parent().unwrap()).unwrap();
+        let original_bytes = b"# Fixture\r\nShared source caf\xc3\xa9\r\n";
+        std::fs::write(&journal, original_bytes).unwrap();
+        std::env::set_var("NAVIS_ROOT", &root);
+        let backend = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+
+        let shared = super::vault_note_request(
+            &backend,
+            "/api/vault/Journal/2026/10/2026-10-27.md",
+        ).unwrap();
+        assert_eq!(shared.status, 200);
+        assert_eq!(shared.body["path"], "Journal/2026/10/2026-10-27.md");
+        assert_eq!(shared.body["content"], "# Fixture\r\nShared source café\r\n");
+        assert_eq!(std::fs::read(&journal).unwrap(), original_bytes);
+
+        let missing = super::vault_note_request(
+            &backend,
+            "/api/vault/Journal/2026/10/missing.md",
+        ).unwrap();
+        assert_eq!(missing.status, 404);
+
+        let separate = super::vault_note_request(
+            &backend,
+            "/api/vault/Companions/Fixture/Profile.md",
+        ).unwrap();
+        assert_eq!(separate.status, 204);
+
+        match original { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn app_only_markdown_falls_back_outside_the_shared_mcp_roots() {
+        let _guard = ENV.lock().unwrap();
+        let original = std::env::var_os("NAVIS_ROOT");
+        let root = std::env::temp_dir().join(format!(
+            "navis-vault-note-fallback-{}-{}",
+            std::process::id(),
+            super::SystemTime::now().duration_since(super::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        let profile = root.join("Companions/Fixture/Profile.md");
+        std::fs::create_dir_all(profile.parent().unwrap()).unwrap();
+        std::fs::write(&profile, "App-only fixture").unwrap();
+        std::env::set_var("NAVIS_ROOT", &root);
+        let backend = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+        let not_applicable = super::vault_note_request(
+            &backend,
+            "/api/vault/Companions/Fixture/Profile.md",
+        ).unwrap();
+        assert_eq!(not_applicable.status, 204);
+
         match original { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
         std::fs::remove_dir_all(root).unwrap();
     }

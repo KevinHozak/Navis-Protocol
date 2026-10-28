@@ -4,7 +4,7 @@ id: "NAVIS-S001"
 parent: ["NAVIS-E001"]
 priority: "medium"
 schema_version: 1
-status: "open"
+status: "in_progress"
 title: "Trial actionable briefs on five rough notes"
 type: "enhancement"
 ---
@@ -27,4 +27,4 @@ Journal composer and manual evaluation; no application changes.
 
 ## Evaluation, privacy and scope
 
-Follow the parent epic's evaluation record, privacy requirements and trial gates. This issue records planned work only. Conditional implementation requires separately selected work after passing evidence; no trial results are claimed.
+Follow the parent epic's evaluation record, privacy requirements and trial gates. The five-brief trial is underway. See [the sanitized trial record](../docs/trials/s001-actionable-brief-five-note-2026-10-27.json); human usefulness ratings, corrections and review effort are pending. Conditional implementation requires separately selected work after passing evidence.

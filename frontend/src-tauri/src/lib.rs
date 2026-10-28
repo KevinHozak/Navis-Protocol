@@ -219,6 +219,17 @@ async fn vault_request(
             vault::holocron_request(&backend, &path, &method, body)
         }).await.map_err(|e| e.to_string())?;
     }
+    if uses_shared_vault_note_reader(&path, method.as_deref()) {
+        let backend = operations::backend_root(&app)?;
+        let note_path = path.clone();
+        let result = tauri::async_runtime::spawn_blocking(move || {
+            p3::vault_note_request(&backend, &note_path)
+        }).await.map_err(|error| error.to_string())?;
+        let result = result?;
+        if result.status != 204 {
+            return Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text});
+        }
+    }
     let is_mutation = method.as_deref().map(|m| m == "POST" || m == "PUT" || m == "DELETE").unwrap_or(false);
     let app_handle = app.clone();
     let target_path = path.clone();
@@ -238,6 +249,51 @@ async fn vault_request(
     })
     .await
     .map_err(|error| error.to_string())?
+}
+
+fn uses_shared_vault_note_reader(path: &str, method: Option<&str>) -> bool {
+    if method.unwrap_or("GET") != "GET" {
+        return false;
+    }
+    let route = path.split('?').next().unwrap_or(path);
+    if !route.to_ascii_lowercase().ends_with(".md") {
+        return false;
+    }
+    route
+        .strip_prefix("/api/vault/")
+        .and_then(|relative| relative.split('/').next())
+        .map(|root| ["Journal", "Operations", "Codex", "Documentation"]
+            .iter().any(|candidate| root.eq_ignore_ascii_case(candidate)))
+        .unwrap_or(false)
+}
+
+#[cfg(test)]
+mod shared_vault_route_tests {
+    use super::uses_shared_vault_note_reader;
+
+    #[test]
+    fn selects_only_get_markdown_under_shared_roots() {
+        assert!(uses_shared_vault_note_reader(
+            "/api/vault/Journal/2026/10/note.md?view=source",
+            Some("GET")
+        ));
+        assert!(uses_shared_vault_note_reader(
+            "/api/vault/documentation/guide.MD",
+            None
+        ));
+        assert!(!uses_shared_vault_note_reader(
+            "/api/vault/Companions/profile.md",
+            Some("GET")
+        ));
+        assert!(!uses_shared_vault_note_reader(
+            "/api/vault/Journal/note.md",
+            Some("PUT")
+        ));
+        assert!(!uses_shared_vault_note_reader(
+            "/api/vault/Journal/note.txt",
+            Some("GET")
+        ));
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

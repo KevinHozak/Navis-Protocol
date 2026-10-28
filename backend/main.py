@@ -2300,6 +2300,30 @@ async def get_vault_file(file_path: str):
         raise HTTPException(status_code=404, detail="Resource not found")
 
     ext = os.path.splitext(full_path)[1].lower()
+    relative_path = to_rel_path(full_path)
+    if ext == ".md":
+        from services.vault_access import (
+            VaultAccessError,
+            application_note_policy,
+            is_shared_note_path,
+            read_markdown_source,
+        )
+
+        if is_shared_note_path(relative_path):
+            try:
+                source = await asyncio.to_thread(
+                    lambda: read_markdown_source(
+                        application_note_policy(NAVIS_ROOT), relative_path
+                    )
+                )
+                source_content = source["content"]
+                content = rewrite_image_links(source_content, to_rel_path(os.path.dirname(full_path)))
+                return {"content": content, "source_content": source_content, "path": source["path"]}
+            except VaultAccessError as error:
+                if error.code == "not_found":
+                    raise HTTPException(status_code=404, detail="Resource not found") from None
+                raise HTTPException(status_code=500, detail="Resource unavailable") from None
+
     if ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]:
         return FileResponse(full_path)
 
