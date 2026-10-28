@@ -1,0 +1,138 @@
+{
+  "story": "NAVIS-S003",
+  "date": "2026-10-28",
+  "status": "passed; closed out",
+  "source_kind": "existing Navis repository documentation and implementation; snapshot at merged main 0e957dc",
+  "runtime": {
+    "surface": "Codex conversation",
+    "model": "gpt-6.1-sol",
+    "settings": "unavailable",
+    "usage": "unknown"
+  },
+  "preparation_minutes": null,
+  "review_minutes": null,
+  "elapsed_including_wait": null,
+  "manual_baseline": "not measured; no time savings claimed",
+  "notes": [
+    {
+      "id": "N1",
+      "topic": "When should an app use MCP versus shared Vault functions?",
+      "source_files": [
+        "docs/vault-mcp.md",
+        "docs/vault-mcp-real-workflow.md"
+      ],
+      "source_sha256": {
+        "docs/vault-mcp.md": "63359b33c81e7b5311e7026eb2370cca5ba3775852f0f52b47a3d6b38482fc45",
+        "docs/vault-mcp-real-workflow.md": "e5e417f0b0607cd4add81b72c4e4a1680934984585e2b470d3cc5b0b66817995"
+      },
+      "claim_traceability": "primary-agent source audit complete; no unsupported claims or invented quotations found",
+      "human_corrections": [],
+      "human_usefulness": "useful",
+      "later_reuse": {
+        "question": "A new web Markdown-reader operation matches the shared domain reader. Must it launch MCP, and may sharing the implementation grant access to an MCP-denied path or certify personal writes?",
+        "answer": "Call the shared bounded reader directly with the application caller policy; no MCP process hop is required. Shared implementation does not merge permissions or broaden MCP allow/deny rules. Controlled read-only adoption does not certify personal writes.",
+        "note_evidence": [
+          "Findings 1 and 2",
+          "Limit",
+          "Interpretation",
+          "Practical application"
+        ],
+        "rubric": [
+          "Identifies direct shared-function reuse",
+          "Preserves caller-specific permissions",
+          "Does not infer personal write approval"
+        ],
+        "status": "passed",
+        "originals_reopened": false,
+        "answered_from_note": true,
+        "evaluation": "primary-agent manual comparison against the saved note only; all listed rubric items satisfied",
+        "unsupported_findings_or_quotes": 0
+      },
+      "correction_rounds": 0
+    },
+    {
+      "id": "N2",
+      "topic": "Which date tells me when a task was actually completed?",
+      "source_files": [
+        "docs/task-completion-times.md"
+      ],
+      "source_sha256": {
+        "docs/task-completion-times.md": "2d016626e6aa7a9ba8d37d4ad5fd8cf973b6c7f57c08e5c0735fa67f2d700d1f"
+      },
+      "claim_traceability": "primary-agent source audit complete; no unsupported claims or invented quotations found",
+      "human_corrections": [],
+      "human_usefulness": "useful",
+      "later_reuse": {
+        "question": "A legacy checked task was imported today and its file modification time changed. Can that establish its exact completion time? Separately, should a Done retry after XP failure replace an already reliable completion instant?",
+        "answer": "No. Without reliable completion metadata, its completion time remains unknown; import, sync and file times cannot supply it. A Done retry preserves an already recorded completion instant, including after XP failure. The operational journal date and configured display zone are separate considerations.",
+        "note_evidence": [
+          "Findings 1, 2 and 3",
+          "Practical application"
+        ],
+        "rubric": [
+          "Rejects inferred legacy timestamp",
+          "Preserves the reliable instant on retry",
+          "Separates display/operational dates from completion evidence"
+        ],
+        "status": "passed",
+        "originals_reopened": false,
+        "answered_from_note": true,
+        "evaluation": "primary-agent manual comparison against the saved note only; all listed rubric items satisfied",
+        "unsupported_findings_or_quotes": 0
+      },
+      "correction_rounds": 0
+    },
+    {
+      "id": "N3",
+      "topic": "How can a brief help a tangled note without silently rewriting its meaning or creating tasks?",
+      "source_files": [
+        "docs/actionable-briefs.md",
+        "backend/services/actionable_brief.py"
+      ],
+      "source_sha256": {
+        "docs/actionable-briefs.md": "e71472c25282137584b202f59f4b0d17af924e7d146bb5a7e39ce999ae9c51cc",
+        "backend/services/actionable_brief.py": "38328a16118aa877134485d04083267f63b91964e315a150baa589e196289935"
+      },
+      "claim_traceability": "primary-agent source audit complete; no unsupported claims or invented quotations found",
+      "human_corrections": [],
+      "human_usefulness": "useful",
+      "later_reuse": {
+        "question": "After editing and saving a brief, its record refers to a journal path. Does that prove a journal entry or task was created, overwrite the original, or certify every edited statement as source-grounded?",
+        "answer": "No. The saved source reference identifies an unsaved composer draft, not an existing journal entry. A separate Library record retains the original and accepted brief; saving it creates no journal entry, task or XP change. Human edits are intentional and are not certified as source-grounded; compare them with the original and choose task creation separately.",
+        "note_evidence": [
+          "Findings 2 and 3",
+          "Practical application"
+        ],
+        "rubric": [
+          "Distinguishes draft reference from saved journal",
+          "Preserves original and separates task creation",
+          "Does not certify user edits as source-grounded"
+        ],
+        "status": "passed",
+        "originals_reopened": false,
+        "answered_from_note": true,
+        "evaluation": "primary-agent manual comparison against the saved note only; all listed rubric items satisfied",
+        "unsupported_findings_or_quotes": 0
+      },
+      "correction_rounds": 0
+    }
+  ],
+  "decision": "keep: three useful source-linked notes; 3/3 follow-up questions answered without reopening original research",
+  "live_vault_writes": 0,
+  "review_time_status": "unknown, explicitly reported by user",
+  "human_feedback": "All three useful; no corrections needed",
+  "reuse_summary": {
+    "tested": 3,
+    "passed": 3,
+    "required": 2,
+    "original_research_reopened": false,
+    "scope": "Same-day later-turn scenario checks after user review; questions and answers authored and assessed by primary agent",
+    "limits": [
+      "Not blind or independent: the author retained prior conversational context.",
+      "Not a longitudinal measurement of real-world reuse.",
+      "No comparable manual baseline or time-savings claim."
+    ],
+    "software_tests_run": false
+  },
+  "implementation_gate": "S004 passing-trial and keep-decision prerequisites satisfied; implementation remains unstarted pending separate selection"
+}

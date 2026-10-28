@@ -4,7 +4,7 @@ id: "NAVIS-S002"
 parent: ["NAVIS-E001"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Implement reviewed actionable briefs after a passing trial"
 type: "enhancement"
 ---
@@ -45,3 +45,7 @@ Local-only generation and editable save/discard preview added. Accepted records 
 ## Final candidate acceptance
 
 All requested isolated web and packaged desktop checks passed after grounding generation in source sentence indices and packaging the shared service. Eight backend tests, 52 frontend tests, lint, Ruff and release 1.11.30 packaging passed. Three fresh synthetic samples passed source-grounding review by the primary agent. Both fixtures retained journal/task/XP bytes; process trees cleaned up. See the final section of the linked verification record. Awaiting PR review/merge; earlier progress notes above describe superseded attempts.
+
+## Closeout
+
+PR #31 merged at 0e957dce73b79a66f718dbd8c058c64d189f36dd on 2026-10-28. Required secret scans passed on 53b59e0; merged state read back independently. Local main fast-forwarded to the merge. All acceptance criteria and isolated verification were recorded before merge.
