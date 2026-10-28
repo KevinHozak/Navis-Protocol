@@ -79,3 +79,8 @@ Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 adds the
 shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
 picker; see [semantics and persistence](task-status-semantics.md). S023 completion
 timestamps and S024 Completed today remain separate open work.
+
+S023 completion timestamps are implemented and in review: UTC instants, retained
+reopen/recomplete history, configured-zone display and explicit legacy unknown
+times. Automated and real web verification passed; packaged Tauri UI acceptance
+is pending after a window-discovery/helper blocker. See the [timestamp contract](task-completion-times.md).

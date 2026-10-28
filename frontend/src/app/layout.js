@@ -1,3 +1,4 @@
+import TaskTimeProvider from '../components/TaskTimeProvider';
 import "./globals.css";
 
 export const metadata = {
@@ -69,7 +70,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body style={{ backgroundColor: '#050505', color: '#f0f0f0' }}>{children}</body>
+      <body style={{ backgroundColor: '#050505', color: '#f0f0f0' }}><TaskTimeProvider>{children}</TaskTimeProvider></body>
     </html>
   );
 }

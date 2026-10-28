@@ -8,7 +8,7 @@ import unittest
 import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from services.directive_completion import complete
-from services import rpg_engine, progression_db
+from services import rpg_engine, progression_db, task_time
 
 class CompletionTests(unittest.TestCase):
     def test_recovery_ledger_native_and_encoding(self):
@@ -147,7 +147,7 @@ def test_recurring_mandate_completion_and_advancement(tmp_path, monkeypatch):
     journal_text = journal_bytes.decode('utf-8-sig')
     assert 'Initial Sanctum Note 🌟' in journal_text
     assert 'Home Note 雪' in journal_text
-    assert '- [x] Daily calibration <!-- navis-directive:' in journal_text
+    assert '- [x] Daily calibration <!-- navis-directive:' in task_time.strip(journal_text)
 
     # Verify daily XP accrued: base daily (10) + 1 checkbox (2) = 12
     assert progression_db.get_entity_total('keeper') == 12
@@ -321,7 +321,7 @@ def test_active_directive_preserves_surrounding_across_all_manors(tmp_path, monk
     journal_text = journal_path.read_text(encoding='utf-8-sig')
     # Check that each task was added
     for _, text, _ in areas:
-        assert f"- [x] {text} <!-- navis-directive:" in journal_text
+        assert f"- [x] {text} <!-- navis-directive:" in task_time.strip(journal_text)
 
     # Check that ALL surrounding text was preserved
     assert 'Sanctum Lore 🌟' in journal_text

@@ -430,7 +430,7 @@ export default function TasksCockpit() {
         className="group bg-zinc-950/80 hover:bg-zinc-900/90 border border-white/10 hover:border-cyan-400/30 rounded-xl p-3.5 transition-all shadow-md backdrop-blur-sm space-y-2.5"
       >
         <div className="flex items-start gap-3.5">
-          <TaskStatusPicker id={`cockpit-status-${task.isRecurring ? 'recurring' : 'active'}-${task.id}`} label={task.text} disabled={isCompleting || statusPending.current}
+          <TaskStatusPicker completedAt={task.completed_at || task.completion?.completed_at} id={`cockpit-status-${task.isRecurring ? 'recurring' : 'active'}-${task.id}`} label={task.text} disabled={isCompleting || statusPending.current}
             value={task.isRecurring ? (task.occurrence_status?.date === todayStr ? task.occurrence_status.status : task.last_done === todayStr ? 'done' : 'pending') : task.status || 'pending'}
             onChange={status => changeTaskStatus(task, status)} />
           {/* Priority-Colored Check Ring */}

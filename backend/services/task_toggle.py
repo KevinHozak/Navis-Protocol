@@ -2,6 +2,7 @@
 from html import unescape
 import re
 import uuid
+from services import task_time
 from pathlib import Path
 from services.combat_completion import atomic_bytes, battle_lock
 
@@ -17,7 +18,7 @@ class ToggleConflict(ValueError):
 
 def _rendered_task_text(source_text):
     """Match Markdown source to the plain text exposed by the checkbox UI."""
-    source_text = STATUS_MARKER.sub('', source_text)
+    source_text = task_time.strip(STATUS_MARKER.sub('', source_text))
     source_text = re.sub(r'\s*<!-- navis-directive:[^>]+ -->', '', source_text)
     text = re.sub(r"\[\[([^\]]+)\]\]", lambda m: m[1].rsplit('|', 1)[-1], source_text)
     text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", text)
@@ -81,7 +82,9 @@ def toggle(root, path, request, award=None, locked=False):
             raise ToggleConflict('Task identity duplicated; reload', content)
         if request.get('task_status') is not None or markers:
             task_id = task_id or uuid.uuid4().hex
-            label = STATUS_MARKER.sub('', label) + f' <!-- navis-task:{task_id}:{desired} -->'
+            marker = f' <!-- navis-task:{task_id}:{desired} -->'
+            label = STATUS_MARKER.sub(lambda _: marker, label) if markers else label + marker
+        label, completed_at = task_time.transition(label, match[2] in 'xX', desired == 'done')
         modified = match[2].lower() != state or label != match[4]
         if modified:
             lines[index] = match[1] + state + match[3] + label + (match[5] or '')
@@ -92,7 +95,7 @@ def toggle(root, path, request, award=None, locked=False):
             content = updated
         if path.read_bytes().decode('utf-8-sig') != content:
             raise ToggleConflict('Task changed after save; reload', path.read_bytes().decode('utf-8-sig'))
-        result = {'status': 'success', 'saved': True, 'modified': modified, 'content': content, 'task_status': desired, 'task_id': task_id, 'xp_status': 'not_applicable'}
+        result = {'status': 'success', 'saved': True, 'modified': modified, 'content': content, 'task_status': desired, 'task_id': task_id, 'completed_at': completed_at, 'xp_status': 'not_applicable'}
         relative = path.relative_to(root).as_posix()
         journal = re.fullmatch(r'Journal/(\d{4})/(\d{2})/(\d{4}-\d{2}-\d{2})\.md', relative)
         if journal and journal[3].startswith(f'{journal[1]}-{journal[2]}-'):
@@ -119,4 +122,6 @@ def toggle(root, path, request, award=None, locked=False):
                 result['xp_status'] = 'complete'
             except Exception:
                 result.update(status='saved_xp_pending', xp_status='pending', message='Task saved. XP pending; retry this checkbox state to reconcile safely.')
+        if path.read_bytes().decode('utf-8-sig') != content:
+            raise ToggleConflict('Task changed during XP reconciliation; reload', path.read_bytes().decode('utf-8-sig'))
         return result

@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-27",
+  "story": "NAVIS-S023",
+  "base": "2f853175d9c0c86ec178c976f824e9bfc64b2f78",
+  "release": "1.11.27",
+  "status": "draft_packaged_ui_pending",
+  "checks": {
+    "python_affected_suite": {
+      "passed": 232,
+      "log": "s023-python-clean-confirm.log"
+    },
+    "frontend": "51 runtime adapters and full regression runner passed, including completion-time midnight/DST and mounted picker checks",
+    "native_unit": {
+      "passed": 76,
+      "excluded": "personal-Vault availability probe",
+      "log": "s023-native-confirm.log"
+    },
+    "issue_records": 30
+  },
+  "runtime": {
+    "web": {
+      "environment": "Fresh synthetic Vault; real FastAPI/Next; dedicated loopback ports; lifespan daemons disabled; timezone Asia/Tokyo",
+      "observed": [
+        "Done shows saved instant in configured GMT+9 zone",
+        "Legacy date-only completion shows Completion time unknown",
+        "Keyboard reopening clears current completion display",
+        "Keyboard recompletion shows a new instant and restores focus"
+      ],
+      "readback": {
+        "completed_at": "2026-10-28T00:32:08.844164+00:00",
+        "previous_completed_at": "2026-10-28T00:31:23.172895+00:00",
+        "history_count": 1,
+        "journal_sha256": "fbb77814ec731293ff89387388f2b05bd362ed84565b26eea070568fbd9e0a2e",
+        "one_original_occurrence": true,
+        "bom_crlf_notes_preserved": true
+      }
+    },
+    "packaged_tauri": {
+      "status": "blocked",
+      "observation": "Window discovery timed out through the documented lightweight retry and kernel-reset recovery. No native timestamp UI action was performed or counted as passed.",
+      "resource_check": "40 bundled Python resources matched source before the UI attempt."
+    }
+  },
+  "retained_failures": [
+    {
+      "observation": "Initial replay moved the status marker around the new timestamp",
+      "repair": "Replace an existing status marker in place; preserve inserted metadata and idempotent bytes",
+      "verification": "Journal status/replay suites passed"
+    },
+    {
+      "observation": "Recompletion interruption after journal write could leave the state phase reopened",
+      "repair": "Reuse an already checked row only when it retains a valid completion instant; retry cannot replace the first instant",
+      "verification": "Fault-injection regression and clean affected suite passed"
+    },
+    {
+      "observation": "Native parity assertion expected no timestamp metadata",
+      "repair": "Validate offset-bearing metadata independently and compare original content after removing only that comment; verify replay byte equality",
+      "verification": "76 native unit tests passed on clean serial rerun"
+    },
+    {
+      "observation": "During the runtime slowdown a Python subprocess timed out and native child cancellation exceeded its timing assertion",
+      "cause": "unconfirmed",
+      "verification": "Clean serial backend rerun passed 232 cases and native rerun passed 76 cases"
+    },
+    {
+      "observation": "Cleanup reported an unexpectedly large descendant process tree beneath the fixture",
+      "cause": "unconfirmed",
+      "followup": "Retain as a runtime acceptance limit; do not assign a product cause or claim the packaged UI passed."
+    }
+  ],
+  "cleanup": {
+    "fixture_tab_closed": true,
+    "fixture_native_root_absent": true,
+    "fixture_web_roots_absent": true,
+    "dedicated_listeners_remaining": 0
+  },
+  "review": {
+    "primary_source_review": "No remaining actionable S023 source finding; packaged runtime observation remains unresolved",
+    "independent_external_review": "unavailable"
+  },
+  "limits": [
+    "Packaged timestamp UI acceptance remains required before readiness",
+    "No personal Vault or live provider integration test",
+    "Installer packaging does not certify clean-machine installation",
+    "S024 remains separate"
+  ]
+}

@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from services import battle_engine, combat_completion, rpg_engine, progression_db
 import native_combat
+from services import task_time
 
 CONTRACT = json.loads((Path(__file__).resolve().parents[2] / "docs/fixtures/combat_task_completion.json").read_text())
 
@@ -87,7 +88,8 @@ def state(vault):
 
 
 @pytest.mark.parametrize("bom,newline", [(True, b"\r\n"), (True, b"\n"), (False, b"\r\n"), (False, b"\n")])
-def test_success_and_replay_preserve_bytes_and_xp(vault, call, bom, newline):
+def test_success_and_replay_preserve_bytes_and_xp(vault, call, bom, newline, monkeypatch):
+    monkeypatch.setattr(task_time, "now", lambda: "2026-11-01T06:30:00Z")
     journal = vault / "Journal/2026/09/2026-09-30.md"
     raw = journal.read_bytes().replace(b"\r\n", newline)
     journal.write_bytes(raw if bom else raw[3:])
@@ -97,12 +99,16 @@ def test_success_and_replay_preserve_bytes_and_xp(vault, call, bom, newline):
     result = call("/api/battle/resolve", command)
     assert_contract(result, "completed")
     assert result["status"] == "completed", result.get("message")
-    assert journal.read_bytes() == before.replace(b"[ ]", b"[x]", 1)
+    assert task_time.strip(journal.read_bytes().decode("utf-8")).encode("utf-8") == before.replace(b"[ ]", b"[x]", 1)
     assert list(journal.parent.glob("*.backup_combat_*"))[0].read_bytes() == before
+    assert task_time.read(journal.read_text(encoding="utf-8-sig"))["completed_at"] == "2026-11-01T06:30:00Z"
+    monkeypatch.setattr(task_time, "now", lambda: "2026-11-01T07:30:00Z")
+    saved_bytes = journal.read_bytes()
     ledger = progression_db.get_source_states("journal_daily", "Journal/2026/09/30.md#daily-xp")
     replay = call("/api/battle/resolve", command)
     assert_contract(replay, "same_key_retry")
     assert replay["idempotent_replay"]
+    assert journal.read_bytes() == saved_bytes
     assert replay["xp_sync"] == "not_repeated"
     assert progression_db.get_source_states("journal_daily", "Journal/2026/09/30.md#daily-xp") == ledger
     assert state(vault)["discard"] == ["a"]

@@ -830,7 +830,7 @@ def sync_active_tasks():
 
                 for line in tasks_content:
                     match = re.match(r"^\s*-\s*\[[xX]\]\s*(.*)", line)
-                    if match and "<!-- navis-task:" not in line:
+                    if match and "<!-- navis-task:" not in line and "<!-- navis-completion:" not in line:
                         completed_tasks.append(match.group(1).strip())
                     else:
                         new_tasks_content.append(line)
@@ -882,7 +882,7 @@ def sync_active_tasks():
                     continue
 
                 escaped_text = re.escape(task_text)
-                completion_pattern = rf"^\s*-\s*\[[xX]\]\s*{escaped_text}(?:\s+<!-- navis-task:[^>]+ -->)?(?:\s+<!-- navis-directive:[^>]+ -->)?[ \t]*\r?$"
+                completion_pattern = rf"^\s*-\s*\[[xX]\]\s*{escaped_text}(?:\s+<!-- navis-task:[^>]+ -->)?(?:\s+<!-- navis-completion:[^>]+ -->)?(?:\s+<!-- navis-directive:[^>]+ -->)?[ \t]*\r?$"
 
                 matched = re.search(completion_pattern, daily_content, re.MULTILINE)
                 if matched and '<!-- navis-task:' in matched[0]:
