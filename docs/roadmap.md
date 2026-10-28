@@ -86,7 +86,9 @@ times. Automated, real web and fresh packaged Tauri verification passed, includi
 journal recompletion, Chicago fallback and DST boundaries. See the [timestamp contract](task-completion-times.md).
 
 S024 Completed today is implemented with calendar-day completion evidence kept
-separate from unknown-time journal checks and activity logs. Its draft delivery
-has passing automated checks and web source/filter/byte-preservation evidence;
-physical web refresh and packaged UI acceptance remain pending after control
-helper timeouts. See [contract and verification](completed-today.md).
+separate from unknown-time journal checks and activity logs. It is in review with
+passing automated checks and fresh web/packaged grouping, source navigation,
+filtering, reopening/refresh and byte-preservation acceptance. The earlier helper
+blocker did not recur; no application repair was needed. See
+[contract and verification](completed-today.md). E004 remains open pending S024 merge
+and epic closeout.

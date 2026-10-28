@@ -73,11 +73,23 @@ checks are recorded separately; source assertions are not runtime acceptance.
 
 The S024 [verification record](trials/s024-completed-today.json) records 247
 affected Python tests, the full frontend suite and 77 native tests passing.
-Actual web area filtering, older-source navigation and byte preservation passed.
-The remaining physical refresh and packaged UI journeys are pending after
-browser/Windows control timeouts; the PR must remain draft until they pass.
+Actual web and fresh packaged Tauri grouping, filtering, older-source navigation,
+reopening and refresh passed. Four completions became three after reopening,
+with one distinct same-text Outland row remaining. Unknown-time activity evidence
+stayed separate and unreadable-source coverage remained explicit.
 Release 1.11.28 and its installer have matching metadata and 42 source-matching
 backend resources. This is not clean-machine installation certification.
+
+The resumed run's Windows helper responded without application/helper source
+repair; the earlier timeout cause remains unconfirmed. Native and web fixtures
+ran sequentially; the web session loaded after initial compilation and reload.
+Whole-Vault byte checks passed for 13 native files before the intentional edit,
+16 after dashboard cache writes settled, and 11/14 web files before/after its
+intentional edit. Command navigation refreshed three existing Holocron cache
+files, invalidating the first post-edit native baseline; the isolated completion
+view Refresh then preserved every byte. Source journal, XP and recurrence reads
+remained unchanged. All owned fixture processes and dedicated listeners were
+cleaned up. The verification record retains earlier failed/blocked observations.
 
 Windows Python installations need the declared `tzdata==2026.5` dependency from
 `backend/requirements.txt`; without zone data the reader reports unavailable.
