@@ -4,7 +4,7 @@ id: "NAVIS-S024"
 parent: ["NAVIS-E004"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Add a read-only Completed today view grouped by operation area"
 type: "enhancement"
 ---
@@ -81,3 +81,15 @@ unchanged by view reads. Original note and task location were retained. Owned na
 window/process and both web process trees were cleaned up; dedicated ports were
 absent, and final snapshots still matched. All eight S024 acceptance criteria now
 have evidence. S024 remains in review pending merge; E004 remains in progress.
+
+
+## Closeout - 2026-10-27
+
+Accepted and closed after [PR #27](https://github.com/KevinHozak/Navis-Protocol/pull/27)
+merged at `d9bdb5886b98e3cba5eb735d931e2660cb48d1be`. Independent merge readback
+confirmed MERGED; both CI scans passed on the delivered head. Local main was
+safely fast-forwarded to that merge with zero ahead/behind commits before these
+closeout edits. All eight criteria have automated and fresh web/packaged evidence.
+The read-only scope, bounded/partial inventory, unknown-time activity separation,
+dashboard-cache observation and clean-machine/provider/private-Vault limits remain
+explicit. No remaining S024 implementation or selected acceptance work was found.

@@ -1,6 +1,6 @@
 {
   "story": "NAVIS-S024",
-  "status": "verified; in review pending merge",
+  "status": "accepted; merged and closed",
   "base": "304923203e37fecce2fc7116d16ce4e589427362",
   "version": "1.11.28",
   "checks": {
@@ -89,5 +89,16 @@
         "sha256": "2f1a5b8e40bfb06e57c769bfd79a7fb63aa3c69231aadb12f01c1d1eaacdd05d"
       }
     }
+  },
+  "closeout": {
+    "client_date": "2026-10-27",
+    "pr": 27,
+    "merge_commit": "d9bdb5886b98e3cba5eb735d931e2660cb48d1be",
+    "merge_readback": "MERGED",
+    "delivered_head": "c1e85fb561c8f2077cb7f68025bd7ff58584626f",
+    "ci": "both secret scans passed on delivered head",
+    "local_main": "fast-forwarded to verified merge before local closeout edits",
+    "acceptance": "8/8 satisfied",
+    "remaining_story_work": "none"
   }
 }

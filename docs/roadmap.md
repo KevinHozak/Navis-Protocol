@@ -42,8 +42,8 @@ S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
 and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
 accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
 S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
-see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). S015 integrated journeys were accepted after PR #22; clean-machine and Drive/integration limits remain explicitly untested. Task-status enhancements (S022-S024) and evidence-gated
-AI workflow trials (S001-S008) remain separate open workstreams.
+see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). S015 integrated journeys were accepted after PR #22; clean-machine and Drive/integration limits remain explicitly untested. Task-status epic E004 and its enhancements (S022-S024) are done. Evidence-gated
+AI workflow trials (S001-S008) remain a separate open workstream.
 
 These retain the original product direction without treating an existing component as completion of its entire initiative.
 
@@ -75,20 +75,23 @@ Use issue acceptance criteria and the linked evidence records to select follow-u
 
 S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.
 
-Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 is done after PR #24 merged at `2f85317`, delivering the
+Task-status epic [E004](../issues/NAVIS-E004.md) is done with three done children
+and all six acceptance criteria reconciled.
+S022 is done after PR #24 merged at `2f85317`, delivering the
 shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
 picker with verified isolated web and packaged Tauri journeys; see [semantics and persistence](task-status-semantics.md). S023 completion
-timestamps are done after PR #26; S024 Completed today remains separate work.
+timestamps are done after PR #26; S024 Completed today is done after PR #27.
 
 S023 is done after PR #26 merged at `3049232`: UTC instants, retained
 reopen/recomplete history, configured-zone display and explicit legacy unknown
 times. Automated, real web and fresh packaged Tauri verification passed, including
 journal recompletion, Chicago fallback and DST boundaries. See the [timestamp contract](task-completion-times.md).
 
-S024 Completed today is implemented with calendar-day completion evidence kept
-separate from unknown-time journal checks and activity logs. It is in review with
-passing automated checks and fresh web/packaged grouping, source navigation,
+S024 Completed today is done after PR #27 merged at `d9bdb58`, with calendar-day
+completion evidence kept separate from unknown-time journal checks and activity logs.
+It has passing automated checks and fresh web/packaged grouping, source navigation,
 filtering, reopening/refresh and byte-preservation acceptance. The earlier helper
 blocker did not recur; no application repair was needed. See
-[contract and verification](completed-today.md). E004 remains open pending S024 merge
-and epic closeout.
+[contract and verification](completed-today.md). No retained implementation or selected
+acceptance gap remains for E004. Clean-machine installation, personal-Vault/live-provider trials and
+independent external review remain explicit limits.
