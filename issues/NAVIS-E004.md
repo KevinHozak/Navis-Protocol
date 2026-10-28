@@ -21,7 +21,7 @@ Source inspection found binary checkbox handling in backend/services/task_toggle
 ## Acceptance criteria
 
 - [x] Deliver an accessible status picker with explicit completion, cancellation, deferral and reopening semantics.
-- [ ] Persist and display trustworthy completion timestamps without breaking text matching, recurrence, task identity or XP.
+- [x] Persist and display trustworthy completion timestamps without breaking text matching, recurrence, task identity or XP.
 - [ ] Provide a read-only Completed today view grouped by operation area with links to original entries.
 - [ ] Preserve original journal locations, headings, order, nested notes, provenance, BOM and newline style; no collection moves, checkbox stripping or duplicate log copies.
 - [ ] Verify affected journeys across web and Tauri with disposable fixtures, including concurrent edits, retries, midnight boundaries and legacy records.
@@ -36,3 +36,7 @@ Source inspection found binary checkbox handling in backend/services/task_toggle
 ## S022 checkpoint
 
 S022 is done after PR #24 merged at `2f85317`, with all seven child acceptance criteria satisfied by automated and isolated web/packaged Tauri verification. The status-picker criterion is accepted; epic-wide preservation and verification criteria remain open until S023/S024 are verified. Completion timestamps (S023) and the read-only Completed today view (S024) remain separate, unimplemented stories. See [task status semantics](../docs/task-status-semantics.md).
+
+## S023 checkpoint
+
+S023 is done after merged PR #26 (`3049232`), with timestamp persistence, history, configured-zone and fallback/DST display verified in isolated web and packaged fixtures. S024 Completed today remains open work; epic-wide acceptance remains in progress.

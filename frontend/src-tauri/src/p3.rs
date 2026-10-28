@@ -29,6 +29,10 @@ pub fn task_toggle_request(backend: &std::path::Path, body: Option<Value>) -> Re
     python_mutation(backend, "/api/tasks/toggle", body, "native_task_toggle.py")
 }
 
+pub fn completed_tasks_request(backend: &std::path::Path) -> Result<ApiResponse, String> {
+    python_mutation(backend, "/api/tasks/completed-today", None, "native_completed_tasks.py")
+}
+
 pub fn journal_entry_request(backend: &std::path::Path, body: Option<Value>) -> Result<ApiResponse, String> {
     python_mutation(backend, "/api/journal/entry", body, "native_journal_entry.py")
 }
@@ -40,6 +44,9 @@ pub fn operation_status_request(backend: &std::path::Path, path: &str, method: &
 fn python_mutation(backend: &std::path::Path, path: &str, body: Option<Value>, script: &str) -> Result<ApiResponse, String> {
     let runtime = crate::command::resolve_python_runtime(backend, !cfg!(debug_assertions))?;
     let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
+    if script == "native_completed_tasks.py" {
+        command.arg("-B");
+    }
     command
         .arg(backend.join(script))
         .current_dir(backend)
@@ -458,6 +465,35 @@ mod tests {
     #[test]
     fn invalid_transition_is_rejected_by_card_identity() {
         assert_ne!("top", "bottom");
+    }
+
+    #[test]
+    fn completed_today_bridge_is_read_only_and_preserves_original_source() {
+        let _guard = ENV.lock().unwrap();
+        let original = std::env::var_os("NAVIS_ROOT");
+        let root = std::env::temp_dir().join(format!("navis-completed-read-{}", std::process::id()));
+        std::fs::create_dir_all(root.join("Bridge")).unwrap();
+        std::fs::create_dir_all(root.join("Journal/2020/01")).unwrap();
+        std::fs::write(root.join("Bridge/settings.json"), br#"{"timezone":"UTC"}"#).unwrap();
+        let ops = br#"{"active_tasks":[],"tasks":[]}"#;
+        std::fs::write(root.join("Bridge/ops_state.json"), ops).unwrap();
+        let journal = root.join("Journal/2020/01/2020-01-01.md");
+        let instant = chrono::Utc::now().to_rfc3339();
+        let content = format!("\u{feff}## The Sanctum\r\n- [x] Read-only fixture <!-- navis-completion:{{\"completed_at\":\"{instant}\",\"history\":[]}} -->\r\n  note stays\r\n");
+        std::fs::write(&journal, content.as_bytes()).unwrap();
+        std::env::set_var("NAVIS_ROOT", &root);
+        let backend = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../backend");
+        let response = super::completed_tasks_request(&backend).unwrap();
+        assert_eq!(response.status, 200);
+        assert_eq!(response.body["status"], "complete");
+        assert_eq!(response.body["completed"][0]["text"], "Read-only fixture");
+        assert_eq!(response.body["completed"][0]["source"]["path"], "Journal/2020/01/2020-01-01.md");
+        assert_eq!(std::fs::read(&journal).unwrap(), content.as_bytes());
+        assert_eq!(std::fs::read(root.join("Bridge/ops_state.json")).unwrap(), ops);
+        assert!(!root.join("Keeper").exists());
+        assert!(!root.join("Battle").exists());
+        if let Some(value) = original { std::env::set_var("NAVIS_ROOT", value); }
+        else { std::env::remove_var("NAVIS_ROOT"); }
     }
     #[test]
     fn native_routes_work_without_backend_server() {

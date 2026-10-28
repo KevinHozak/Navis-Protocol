@@ -4,7 +4,7 @@ id: "NAVIS-S023"
 parent: ["NAVIS-E004"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Persist and display reliable task completion timestamps"
 type: "enhancement"
 ---
@@ -35,3 +35,7 @@ The initial packaged 1.11.27 UI acceptance was blocked: window discovery timed o
 ## Packaged acceptance completed - 2026-10-27
 
 Fresh synthetic Vaults and WebView profiles verified configured Tokyo display, canonical active/recurring replay, timestamp history, and journal completion/reopening. After an intervening user Escape, a new Chicago-fallback fixture completed journal reopening/recompletion with a distinct new UTC instant and retained first instant. Original BOM/CRLF, labels, position and attached note were preserved; final Keeper XP was 14. The rendered fallback times distinguished fall DST 01:30 CDT/CST, skipped spring 02:00, changed the date at calendar midnight, and kept legacy completion time unknown. The same 1.11.27 executable and all 40 packaged Python resources matched the committed implementation. No application/helper source repair was required; fresh helper runs responded, and full-window screenshot targeting resolved input geometry. Earlier timeout/process-tree cause remains unconfirmed. All fixture windows/processes and dedicated listeners were cleaned up. All seven selected acceptance criteria now have evidence; S023 remains in review pending PR merge. See the sanitized trial linked above through the completion-time contract.
+
+## Closeout - 2026-10-27
+
+Accepted and closed after [PR #26](https://github.com/KevinHozak/Navis-Protocol/pull/26) merged at `304923203e37fecce2fc7116d16ce4e589427362`. All seven acceptance criteria have automated and isolated web/packaged evidence. CI passed on the merged head; local main was safely fast-forwarded to the verified merge. The documented clean-machine/provider/private-Vault and independent-review limits remain explicit. E004 continues with S024.

@@ -1,0 +1,52 @@
+{
+  "story": "NAVIS-S024",
+  "status": "implementation complete; physical acceptance pending",
+  "base": "304923203e37fecce2fc7116d16ce4e589427362",
+  "version": "1.11.28",
+  "checks": {
+    "python_affected": {
+      "passed": 247
+    },
+    "frontend_full": "passed",
+    "native_serial": {
+      "passed": 77,
+      "excluded": "personal Vault default probe"
+    },
+    "release_build": "passed",
+    "packaged_resources": 42
+  },
+  "web_physical": {
+    "completed": 4,
+    "groups": {
+      "domestic": 1,
+      "front": 1,
+      "world": 2
+    },
+    "unknown_activity": 1,
+    "partial_unreadable_source": true,
+    "same_text_distinct": true,
+    "area_filter": "passed",
+    "original_older_source_navigation": "passed",
+    "read_only_files": 11,
+    "intentional_reopen_saved": "Pending",
+    "post_edit_read_only_files": 14,
+    "post_edit_completed_refresh": "blocked by browser helper timeout"
+  },
+  "packaged_physical": "blocked by Windows helper discovery timeout after bounded recovery",
+  "cleanup": "owned fixture roots and descendants absent",
+  "limits": [
+    "No clean-machine installation certification",
+    "No personal Vault or live provider trial",
+    "No global snapshot transaction or exhaustive production inventory claim"
+  ],
+  "artifacts": {
+    "navis-protocol.exe": {
+      "bytes": 28444160,
+      "sha256": "59dc94ff91f0212f45417df29bda55c212e1f335c2b5157d7bd3be35c828386c"
+    },
+    "Navis Protocol_1.11.28_x64-setup.exe": {
+      "bytes": 19307605,
+      "sha256": "717a2b6ca1d922b757e29ccaece01fc101f58baab0e20558f76a6016fa29e330"
+    }
+  }
+}

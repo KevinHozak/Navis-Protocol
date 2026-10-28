@@ -33,7 +33,7 @@ async function board(name, native) {
   const context = vm.createContext({ process: { env: { NEXT_PUBLIC_API_URL: 'https://fixture.invalid' } },
     window: { __TAURI_INTERNALS__: native ? {} : undefined, location: { hostname: 'fixture.invalid' }, confirm: () => true, dispatchEvent: () => {}, addEventListener: () => {}, removeEventListener: () => {} },
     navigator: { userAgent: 'Windows' }, fetch: (url, options) => transport(url.replace('https://fixture.invalid', ''), options),
-    Headers, Response, Error, DOMException, Event, console, setInterval: () => 1, clearInterval: () => {} });
+    Headers, Response, Error, DOMException, Event, AbortSignal, console, setTimeout, clearTimeout, setInterval: () => 1, clearInterval: () => {} });
   const modules = new Map();
   const synthetic = async (key, values) => {
     if (modules.has(key)) return modules.get(key);
@@ -65,10 +65,11 @@ async function board(name, native) {
     });
     modules.set(path, mod);
     await mod.link(async specifier => {
-      if (specifier === 'react') return synthetic('react', { default: React, useState: React.useState, useEffect: React.useEffect, useMemo: React.useMemo, useCallback: React.useCallback });
+      if (specifier === 'react') return synthetic('react', { default: React, useState: React.useState, useEffect: React.useEffect, useMemo: React.useMemo, useCallback: React.useCallback, useRef: React.useRef });
       if (specifier === 'framer-motion') return synthetic('motion', { motion: { div: 'div', form: 'form' }, AnimatePresence: ({ children }) => children });
       if (specifier === 'next/dynamic') return synthetic('next/dynamic', { default: () => ({ content }) => React.createElement('div', null, content) });
-      if (specifier.startsWith('@/')) return load(specifier.slice(2) + '.js');
+      if (specifier.startsWith('@/')) return load(specifier.slice(2) + (specifier.endsWith('.mjs') ? '' : '.js'));
+      if (specifier === './CompletedToday') return load('components/CompletedToday.js');
       if (specifier === './TaskModal') return load('components/TaskModal.js');
       if (specifier === '../lib/taskCompletionTime.mjs') return load('lib/taskCompletionTime.mjs');
       if (specifier === './TaskStatusPicker') return load('components/TaskStatusPicker.js');
@@ -81,7 +82,7 @@ async function board(name, native) {
   await mod.evaluate();
   const Component = mod.namespace.default;
   let renderer;
-  const render = async area => act(async () => { const element = React.createElement(Component, { area }); if (renderer) renderer.update(element); else renderer = TestRenderer.create(element); });
+  const render = async (area, props = {}) => act(async () => { const element = React.createElement(Component, { area, ...props }); if (renderer) renderer.update(element); else renderer = TestRenderer.create(element); });
   const click = async button => act(async () => { await button.props.onClick(); });
   const text = () => JSON.stringify(renderer.toJSON());
   const button = label => renderer.root.findAllByType('button').find(node => node.props.title === label || node.children.join('') === label);
@@ -230,3 +231,38 @@ for (const native of [false, true]) {
   await c.unmount();
 }
 console.log('Passed 2 additional cockpit status readback scenarios across web/native adapters.');
+
+// S024: render the real read-only view through both production transports.
+for (const native of [false, true]) {
+  const c = await board('CompletedToday', native);
+  const opened = [];
+  const completed = {id:'completion-1', text:'Older journal task', area:'world', completed_at:'2026-10-28T00:30:00Z', source:{path:'Journal/2026/10/2026-10-25.md',line_number:3,journal_date:'2026-10-25'}};
+  const unknown = {id:'legacy',text:'Logged activity',area:'sanctum',completed_at:null,source:{path:'Journal/2026/10/2026-10-27.md',line_number:4,journal_date:'2026-10-27'}};
+  const result = {status:'complete',date:'2026-10-27',timezone:'America/Chicago',completed:[completed],journal_evidence:[unknown],issues:[]};
+  c.replies.push(packet(result));
+  await c.render('Home', {onOpenJournal:(...args)=>opened.push(args)});
+  assert.match(c.text(), /Outland/);
+  assert.match(c.text(), /Checked items with unknown completion time may include activity logs/);
+  assert.equal(c.root.findAllByType('article').length,2);
+  const source = c.root.findByProps({'aria-label':'Open source Journal/2026/10/2026-10-25.md line 3'});
+  await c.click(source);
+  assert.deepEqual(opened, [['Journal/2026/10/2026-10-25.md','2026-10-25']]);
+  await act(async()=>c.root.findByProps({'aria-label':'Operation area'}).props.onChange({target:{value:'sanctum'}}));
+  assert.equal(c.root.findAllByType('article').length,1);
+  assert.doesNotMatch(c.text(), /Older journal task/);
+  await act(async()=>c.root.findByProps({'aria-label':'Operation area'}).props.onChange({target:{value:'all'}}));
+  c.replies.push(packet({...result,status:'partial',completed:[],issues:[{path:'Journal/unreadable.md',reason:'source_unreadable'}]}));
+  await c.click(c.button('Refresh'));
+  assert.match(c.text(),/Partial results/);
+  assert.match(c.text(),/No matching completions in the available sources/);
+  assert.equal(c.root.findAllByType('article').length,1);
+  c.replies.push(packet({detail:'offline'},503)); await c.click(c.button('Refresh'));
+  assert.match(c.text(),/Completion evidence unavailable/);
+  assert.equal(c.root.findAllByType('article').length,0);
+  assert.doesNotMatch(c.text(),/No matching completions today/);
+  c.replies.push(packet({...result,status:'empty',completed:[],journal_evidence:[]})); await c.click(c.button('Refresh'));
+  assert.match(c.text(),/No matching completions today/);
+  assert.ok(c.calls.every(call=>call.method==='GET'));
+  await c.unmount();
+}
+console.log('Passed Completed today grouping, source navigation, filtering, refresh, partial/error/empty and GET-only checks on web/native adapters.');

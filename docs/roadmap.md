@@ -78,9 +78,15 @@ S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust j
 Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 is done after PR #24 merged at `2f85317`, delivering the
 shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
 picker with verified isolated web and packaged Tauri journeys; see [semantics and persistence](task-status-semantics.md). S023 completion
-timestamps and S024 Completed today remain separate open work.
+timestamps are done after PR #26; S024 Completed today remains separate work.
 
-S023 completion timestamps are implemented and in review: UTC instants, retained
+S023 is done after PR #26 merged at `3049232`: UTC instants, retained
 reopen/recomplete history, configured-zone display and explicit legacy unknown
 times. Automated, real web and fresh packaged Tauri verification passed, including
 journal recompletion, Chicago fallback and DST boundaries. See the [timestamp contract](task-completion-times.md).
+
+S024 Completed today is implemented with calendar-day completion evidence kept
+separate from unknown-time journal checks and activity logs. Its draft delivery
+has passing automated checks and web source/filter/byte-preservation evidence;
+physical web refresh and packaged UI acceptance remain pending after control
+helper timeouts. See [contract and verification](completed-today.md).

@@ -131,6 +131,17 @@ async fn vault_request(
     method: Option<String>,
     body: Option<Value>,
 ) -> Result<vault::ApiResponse, String> {
+    if path == "/api/tasks/completed-today" {
+        if method.as_deref().unwrap_or("GET") != "GET" {
+            let body = serde_json::json!({"detail":"Read-only completion view"});
+            return Ok(vault::ApiResponse {status:405, text:body.to_string(), body});
+        }
+        let backend = operations::backend_root(&app)?;
+        return tauri::async_runtime::spawn_blocking(move || {
+            let result = p3::completed_tasks_request(&backend)?;
+            Ok(vault::ApiResponse {status:result.status, text:result.text, body:result.body})
+        }).await.map_err(|error| error.to_string())?;
+    }
     if path.starts_with("/api/ops/jobs/") || path == "/api/ops/latest" {
         let backend = operations::backend_root(&app)?;
         return tauri::async_runtime::spawn_blocking(move || {

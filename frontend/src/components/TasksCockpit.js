@@ -7,6 +7,7 @@ import { journalDay } from '@/lib/journalDay';
 import { apiFetch, subscribeVaultStream } from '@/lib/desktopApi';
 import TaskModal from './TaskModal';
 import TaskStatusPicker from './TaskStatusPicker';
+import CompletedToday from './CompletedToday';
 
 const MarkdownRenderer = dynamic(() => import('./MarkdownRenderer'), { ssr: false });
 
@@ -111,7 +112,8 @@ function formatDateBadge(dateStr, todayStr) {
   };
 }
 
-export default function TasksCockpit() {
+export default function TasksCockpit({ onOpenJournal }) {
+  const [completedView, setCompletedView] = useState(false);
   const [todayStr, setTodayStr] = useState(() => journalDay());
   const [activeTasks, setActiveTasks] = useState([]);
   const [recurringTasks, setRecurringTasks] = useState([]);
@@ -589,6 +591,8 @@ export default function TasksCockpit() {
     return { dayMap, overdue, later, unscheduled };
   }, [filteredTasks, agendaDays, todayStr]);
 
+  if (completedView) return <CompletedToday onBack={() => setCompletedView(false)} onOpenJournal={onOpenJournal} />;
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-950/60 backdrop-blur-md">
       {/* Top Banner & Stats Cockpit */}
@@ -608,6 +612,7 @@ export default function TasksCockpit() {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2.5">
+            <button type="button" onClick={() => setCompletedView(true)} className="rounded-xl border border-cyan-400/30 bg-zinc-950/90 px-3 py-2 text-xs font-bold text-cyan-300">Completed today</button>
             <button
               type="button"
               onClick={fetchAllTasks}
