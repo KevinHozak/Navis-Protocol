@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Navis Protocol",
-  "version": "1.11.31",
+  "version": "1.11.32",
   "identifier": "com.navis.protocol",
   "build": {
     "beforeDevCommand": "npm run dev -- --hostname 127.0.0.1",
@@ -59,6 +59,7 @@
       "../../backend/services/sync_engine.py": "backend/services/sync_engine.py",
       "../../backend/services/holocron_engine.py": "backend/services/holocron_engine.py",
       "../../backend/services/holocron_evidence.py": "backend/services/holocron_evidence.py",
+      "../../backend/services/holocron_decisions.py": "backend/services/holocron_decisions.py",
       "../../backend/services/recurrence.py": "backend/services/recurrence.py",
       "../../backend/services/forge_service.py": "backend/services/forge_service.py",
       "../../backend/services/ai_provider.py": "backend/services/ai_provider.py",

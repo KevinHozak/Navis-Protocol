@@ -4,7 +4,7 @@ id: "NAVIS-S004"
 parent: ["NAVIS-E001"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Implement reviewed knowledge notes after a passing reuse trial"
 type: "enhancement"
 ---
@@ -39,3 +39,7 @@ Passing S003 evidence and explicit keep decision are published in PR #32 (commit
 Release 1.11.31, nine backend checks, 52 frontend transport checks, Ruff, frontend lint (existing warnings), Cargo check and fresh isolated web/packaged desktop workflows passed. Explicit selection, missing/changed-source errors, draft retention, destination/save/provenance and discard were verified. All 13 original fixture files per surface remained byte-identical after deliberate test edits were restored. Owned processes and browser tab cleaned up; no live Vault data used.
 
 Three fresh synthetic notes passed primary-agent review with no unsupported findings or corrections. Human usefulness, review time and long-term reuse remain unmeasured. See [implementation notes](../docs/reviewed-knowledge-notes.md) and [sanitized verification](../docs/trials/s004-knowledge-notes-2026-10-28.json). Implementation awaits PR merge; this is not a story closeout.
+
+## Closeout - 2026-10-28
+
+PR #33 merged as f36cb52a3f9203eec0e9df23a484025be42f639d; local main independently verified at that merge. All acceptance criteria passed with the documented synthetic-review limits. Release 1.11.31 and verification evidence remain linked above. S004 is closed; human usefulness of the new UI, review timing and long-term reuse are not claimed.

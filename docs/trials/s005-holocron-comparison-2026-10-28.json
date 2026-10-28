@@ -1,0 +1,75 @@
+{
+  "story": "NAVIS-S005",
+  "date": "2026-10-28",
+  "status": "passed; closed out",
+  "design": "Retrospective comparison across three completed weekly cycles; not a prospective three-week intervention.",
+  "baseline": "Current corrected rule-based debrief on f36cb52, evaluated on the same private copied evidence as each candidate. Legacy cached debriefs excluded from baseline.",
+  "cycles": [
+    {
+      "id": "2026-W41",
+      "source_coverage": "7 of 7 journals plus available Keeper ledger",
+      "candidate_sections": [
+        "what changed",
+        "unresolved or unknown",
+        "one suggested adjustment"
+      ],
+      "primary_agent_factual_review": "passed",
+      "human_preference": "candidate",
+      "human_correction_rounds": 0,
+      "baseline_review_minutes": null,
+      "candidate_review_minutes": null,
+      "baseline_elapsed_minutes": null,
+      "candidate_elapsed_minutes": null
+    },
+    {
+      "id": "2026-W42",
+      "source_coverage": "7 of 7 journals plus available Keeper ledger",
+      "candidate_sections": [
+        "what changed",
+        "unresolved or unknown",
+        "one suggested adjustment"
+      ],
+      "primary_agent_factual_review": "passed",
+      "human_preference": "candidate",
+      "human_correction_rounds": 0,
+      "baseline_review_minutes": null,
+      "candidate_review_minutes": null,
+      "baseline_elapsed_minutes": null,
+      "candidate_elapsed_minutes": null
+    },
+    {
+      "id": "2026-W43",
+      "source_coverage": "7 of 7 journals plus available Keeper ledger",
+      "candidate_sections": [
+        "what changed",
+        "unresolved or unknown",
+        "one suggested adjustment"
+      ],
+      "primary_agent_factual_review": "passed",
+      "human_preference": "candidate",
+      "human_correction_rounds": 0,
+      "baseline_review_minutes": null,
+      "candidate_review_minutes": null,
+      "baseline_elapsed_minutes": null,
+      "candidate_elapsed_minutes": null
+    }
+  ],
+  "privacy": {
+    "personal_text": "outside repository",
+    "live_input_hashes_unchanged": 25,
+    "live_writes": false,
+    "scheduled_generation": false
+  },
+  "runtime": {
+    "surface": "Codex conversation; primary-agent drafting",
+    "model": "not independently inspected",
+    "settings": "unknown",
+    "usage": "unknown",
+    "baseline": "deterministic local Python service"
+  },
+  "preparation_minutes": null,
+  "elapsed_including_wait_minutes": null,
+  "manual_time_savings_baseline": "not measured; no time savings claimed",
+  "decision": "keep; user explicitly accepted 2026-10-28",
+  "human_result": "Candidate more useful in all three cycles; no corrections; review time unknown."
+}
