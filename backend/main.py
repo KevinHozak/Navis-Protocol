@@ -774,6 +774,25 @@ from services.journal_entry import checked_journal_list_item as checked_journal_
 
 
 
+@app.post("/api/knowledge-notes/{operation}")
+async def knowledge_note(operation: str, body: dict):
+    import asyncio
+    from services.knowledge_notes import selected_sources, save
+    from services.vault_access import VaultAccessError
+    try:
+        if operation == "sources":
+            return await asyncio.to_thread(selected_sources, NAVIS_ROOT, body.get("paths"))
+        if operation == "save":
+            return await asyncio.to_thread(save, NAVIS_ROOT, body)
+        raise HTTPException(status_code=404, detail="Unknown note operation.")
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except VaultAccessError as error:
+        raise HTTPException(status_code=422, detail="Selected source unavailable. Reload and review the note.") from error
+    except OSError as error:
+        raise HTTPException(status_code=503, detail="Note operation unavailable. Retry the same save to verify its outcome.") from error
+
+
 @app.post("/api/journal/brief/{operation}")
 async def actionable_brief(operation: str, body: dict):
     import asyncio

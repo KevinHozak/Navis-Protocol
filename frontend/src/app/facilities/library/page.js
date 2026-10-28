@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import KnowledgeNoteComposer from "../../../components/KnowledgeNoteComposer";
 import { motion } from "framer-motion";
 import { apiFetch } from "../../../lib/desktopApi";
 
@@ -139,6 +140,7 @@ export default function LibraryDashboard({ onSelectEntity }) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center gap-4 px-6 text-center">
         <h1 className="text-2xl font-bold text-white">Library unavailable</h1>
+        <KnowledgeNoteComposer />
         <p role="alert" className="max-w-xl text-zinc-300">{dashboardError || errorMessage()}</p>
         <button type="button" onClick={loadDashboard} className="rounded-lg border border-cyan-400/40 px-4 py-2 text-cyan-300 hover:bg-cyan-400/10">Retry</button>
       </div>
@@ -149,6 +151,7 @@ export default function LibraryDashboard({ onSelectEntity }) {
     <div className="h-full bg-zinc-950 text-white p-8 font-sans overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-12 pb-12">
         
+        <KnowledgeNoteComposer candidates={activeQuery || activeCategory ? searchResults : data.recent_documents} />
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
