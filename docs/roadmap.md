@@ -82,5 +82,5 @@ timestamps and S024 Completed today remain separate open work.
 
 S023 completion timestamps are implemented and in review: UTC instants, retained
 reopen/recomplete history, configured-zone display and explicit legacy unknown
-times. Automated and real web verification passed; packaged Tauri UI acceptance
-is pending after a window-discovery/helper blocker. See the [timestamp contract](task-completion-times.md).
+times. Automated, real web and fresh packaged Tauri verification passed, including
+journal recompletion, Chicago fallback and DST boundaries. See the [timestamp contract](task-completion-times.md).

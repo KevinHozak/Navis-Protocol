@@ -3,7 +3,7 @@
   "story": "NAVIS-S023",
   "base": "2f853175d9c0c86ec178c976f824e9bfc64b2f78",
   "release": "1.11.27",
-  "status": "draft_packaged_ui_pending",
+  "status": "verified_in_review",
   "checks": {
     "python_affected_suite": {
       "passed": 232,
@@ -36,9 +36,57 @@
       }
     },
     "packaged_tauri": {
-      "status": "blocked",
-      "observation": "Window discovery timed out through the documented lightweight retry and kernel-reset recovery. No native timestamp UI action was performed or counted as passed.",
-      "resource_check": "40 bundled Python resources matched source before the UI attempt."
+      "status": "passed",
+      "release": "1.11.27",
+      "verified_source": "a018366f446ee731b3c6a6e63097cbdbd3f7e535",
+      "exe_sha256": "20f8a04eba176563b3c48414e08e5c88c1a914ccf0be1f40057e5f95b996b845",
+      "resources": "40 packaged Python resources matched committed source with LF/CRLF normalization",
+      "earlier_attempt": {
+        "status": "blocked",
+        "observation": "Window discovery timed out through the documented lightweight retry and kernel-reset recovery. No native timestamp UI action was performed or counted as passed.",
+        "resource_check": "40 bundled Python resources matched source before the UI attempt."
+      },
+      "resumed_tokyo": {
+        "status": "passed_before_user_interruption",
+        "observed": [
+          "Configured Asia/Tokyo active completion display and saved readback",
+          "Active canonical Done replay preserved the full record and instant",
+          "Active keyboard reopening cleared current time and retained history",
+          "Active keyboard recompletion recorded a new instant",
+          "Recurring completion recorded time and advanced next_due once",
+          "Recurring replay preserved full ops state and exact journal bytes",
+          "Journal rendering displayed matching directive times and unknown legacy time",
+          "Journal completion recorded time and reopening archived it",
+          "Original journal position, single task occurrences, BOM, seven CRLF lines and attached note retained"
+        ],
+        "interruption": "User stopped Computer Use with Escape before the remaining journal recompletion and Chicago fixture; no further UI input was used in that turn."
+      },
+      "fresh_final_fixture": {
+        "status": "passed",
+        "environment": "New synthetic Vault and WebView profile; timezone setting absent; same verified packaged executable; no concurrent builds/test suites",
+        "journal_recompletion": {
+          "metadata": {
+            "completed_at": "2026-10-28T01:01:41.132614+00:00",
+            "history": [
+              "2026-10-28T01:01:11.465364+00:00"
+            ]
+          },
+          "journal_sha256": "efcb7bc3b6862e2e4bcb32026a7038de7ad0575087286b6d4571219b1bd3a2e4",
+          "original_bytes_preserved_except_checkbox_and_metadata": true
+        },
+        "rendered_instants": [
+          "Nov 1, 2026, 1:30:00 AM CDT",
+          "Nov 1, 2026, 1:30:00 AM CST",
+          "Mar 8, 2026, 1:59:59 AM CST",
+          "Mar 8, 2026, 3:00:00 AM CDT",
+          "Oct 27, 2026, 11:59:59 PM CDT",
+          "Oct 28, 2026, 12:00:00 AM CDT"
+        ],
+        "legacy": "Completion time unknown",
+        "keeper_xp_after_recompletion": 14,
+        "seeded_completions_not_mutated": true
+      },
+      "helper_recovery": "Window discovery responded on fresh isolated runs. Verified full-window screenshot coordinates handled unavailable geometry/extra icon-region observations; input was refreshed after local-input notification. No application or helper source modification was needed. Original timeout/process-tree cause remains unconfirmed."
     }
   },
   "retained_failures": [
@@ -72,14 +120,15 @@
     "fixture_tab_closed": true,
     "fixture_native_root_absent": true,
     "fixture_web_roots_absent": true,
-    "dedicated_listeners_remaining": 0
+    "dedicated_listeners_remaining": 0,
+    "final_packaged_fixture_window_closed": true,
+    "final_packaged_fixture_processes_remaining": 0
   },
   "review": {
     "primary_source_review": "No remaining actionable S023 source finding; packaged runtime observation remains unresolved",
     "independent_external_review": "unavailable"
   },
   "limits": [
-    "Packaged timestamp UI acceptance remains required before readiness",
     "No personal Vault or live provider integration test",
     "Installer packaging does not certify clean-machine installation",
     "S024 remains separate"

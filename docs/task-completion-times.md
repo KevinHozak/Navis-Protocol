@@ -50,10 +50,19 @@ S024's Completed today aggregation remains separate work.
 
 The [sanitized trial](trials/s023-completion-times-2026-10-27.json) retains the
 passing 232-case affected suite, frontend regressions, 76 serial native unit
-cases and real web configured-zone/reopening observations. It also retains initial
-failures and repairs. Packaged timestamp UI acceptance remains pending after the
-window-discovery helper failed through its documented recovery. Cleanup observed
-an unexpectedly large descendant process tree of unconfirmed cause; the final
-fixture roots, window and dedicated listeners were absent. This delivery remains
-a draft until the packaged UI check passes. Independent external review is
-unavailable; primary-agent source review found no further S023 source finding.
+cases and real web configured-zone/reopening observations, plus earlier failures
+and repairs. Packaged 1.11.27 acceptance subsequently passed in fresh synthetic
+Vaults and WebView profiles: configured Tokyo display, active/recurrent replay,
+reopening/recompletion history, journal recompletion and explicit unknown legacy
+times. The final fixture omitted timezone configuration and verified Chicago
+fallback, both fall DST 01:30 instants, the spring gap and calendar midnight.
+Journal bytes, notes, position and single occurrences were preserved; final
+Keeper XP was 14. All fixture windows, owned processes and dedicated listeners
+were cleaned up.
+
+The initial helper timeout and process-tree observation remain of unconfirmed
+cause; later fresh isolated runs were responsive. Full-window screenshot geometry
+and refreshed state resolved input targeting. No application/helper code changed
+for this acceptance recovery. An intervening user Escape stopped one run, which
+was cleaned up before the final fresh run. Independent external review remains
+unavailable; primary-agent source review found no remaining actionable issue.
