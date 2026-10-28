@@ -149,6 +149,13 @@ async fn vault_request(
             Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text})
         }).await.map_err(|error| error.to_string())?;
     }
+    if method.as_deref() == Some("POST") && matches!(path.as_str(), "/api/journal/brief/generate" | "/api/journal/brief/save") {
+        let backend = operations::backend_root(&app)?;
+        return tauri::async_runtime::spawn_blocking(move || {
+            let result = p3::brief_request(&backend, &path, body)?;
+            Ok(vault::ApiResponse {status:result.status, text:result.text, body:result.body})
+        }).await.map_err(|error| error.to_string())?;
+    }
     if method.as_deref() == Some("POST") && path == "/api/journal/entry" {
         let backend = operations::backend_root(&app)?;
         let app_handle = app.clone();

@@ -229,6 +229,9 @@ async function performApiFetch(path, options = {}) {
   if (options.signal?.aborted) {
     throw new DOMException('The operation was aborted.', 'AbortError');
   }
+  if (path.startsWith('/api/journal/brief/') && !supportsLocalOllama()) {
+    throw new Error('Briefs require the desktop app or a local Navis server.');
+  }
   if (path === '/api/journal/entry/polish' && !supportsLocalOllama()) {
     throw new Error('Local Ollama suggestions are available in the desktop app or when running Navis locally.');
   }

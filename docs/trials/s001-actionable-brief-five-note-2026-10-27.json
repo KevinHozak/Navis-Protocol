@@ -4,7 +4,10 @@
   "client_date": "2026-10-27",
   "sample_set": {
     "source": "Canonical Navis daily journals; originals retained unchanged",
-    "dates": ["2026-10-26", "2026-10-27"],
+    "dates": [
+      "2026-10-26",
+      "2026-10-27"
+    ],
     "source_paths": [
       "Journal/2026/10/2026-10-26.md",
       "Journal/2026/10/2026-10-27.md"
@@ -16,13 +19,38 @@
     "vault_writes": 0
   },
   "method": {
-    "brief_fields": ["Goal", "Known facts", "Uncertainties", "One suggested next action"],
+    "brief_fields": [
+      "Goal",
+      "Known facts",
+      "Uncertainties",
+      "One suggested next action"
+    ],
     "samples": [
-      {"id": "S1", "category": "straightforward chore", "source_date": "2026-10-26"},
-      {"id": "S2", "category": "underspecified review", "source_date": "2026-10-27"},
-      {"id": "S3", "category": "ambiguous export", "source_date": "2026-10-27"},
-      {"id": "S4", "category": "personal communication", "source_date": "2026-10-27"},
-      {"id": "S5", "category": "competing household concerns", "source_date": "2026-10-27"}
+      {
+        "id": "S1",
+        "category": "straightforward chore",
+        "source_date": "2026-10-26"
+      },
+      {
+        "id": "S2",
+        "category": "underspecified review",
+        "source_date": "2026-10-27"
+      },
+      {
+        "id": "S3",
+        "category": "ambiguous export",
+        "source_date": "2026-10-27"
+      },
+      {
+        "id": "S4",
+        "category": "personal communication",
+        "source_date": "2026-10-27"
+      },
+      {
+        "id": "S5",
+        "category": "competing household concerns",
+        "source_date": "2026-10-27"
+      }
     ],
     "content_policy": "Raw notes and generated personal briefs are omitted from this repository record; briefs were shown in the user conversation."
   },
@@ -51,5 +79,5 @@
     "suggested_actions_executed": 0,
     "applications_changed": false
   },
-  "decision": "pending human usefulness and correction review"
+  "decision": "revise: user narrowed scope to complex or tangled notes on 2026-10-28; individual ratings and review time not supplied"
 }
