@@ -1,0 +1,70 @@
+{
+  "story": "NAVIS-S006",
+  "date": "2026-10-28",
+  "status": "verified local candidate; publication pending",
+  "prerequisite": "S005: candidates preferred 3/3, no corrections, review time unknown, user keep decision",
+  "release": {
+    "version": "1.11.32",
+    "resources_matching_source": 48,
+    "executable_sha256": "47d0f788f293fa65d7f2da59cf25e9593a85b544a729941fc7bb2d49fa4aca44"
+  },
+  "checks": {
+    "affected_backend": 27,
+    "frontend_transport": 52,
+    "frontend_regressions": "passed after explicit missing component stub in existing harness",
+    "mounted_evidence": "passed",
+    "ruff": "passed",
+    "frontend_lint": "passed with existing warnings",
+    "release_build": "passed; sandbox EPERM recovered with elevated build; final backend resources repackaged using unchanged frontend export"
+  },
+  "web": {
+    "observations_unknowns_editing": "passed",
+    "source_inspection": "passed",
+    "edited_html_download_escaping": "passed",
+    "cycle_selection": "one Retry Transmission needed"
+  },
+  "packaged_desktop": {
+    "observations_unknowns_editing": "passed",
+    "source_inspection_exact_journal_navigation": "passed",
+    "edited_html_download": "passed",
+    "native_read_html_bridge": "passed"
+  },
+  "fresh_outputs": [
+    {
+      "sample": "completed",
+      "primary_agent_factual_review": "passed",
+      "corrections": 0,
+      "human_usefulness": "unmeasured"
+    },
+    {
+      "sample": "unchanged",
+      "primary_agent_factual_review": "passed",
+      "corrections": 0,
+      "human_usefulness": "unmeasured"
+    },
+    {
+      "sample": "missing",
+      "primary_agent_factual_review": "passed",
+      "corrections": 0,
+      "human_usefulness": "unmeasured"
+    }
+  ],
+  "cleanup": {
+    "owned_fixture_process_trees": "stopped",
+    "web_tab": "closed",
+    "original_fixture_inputs": "unchanged outside intended Holocron outputs",
+    "synthetic_downloads": "retained under ignored fixture folder; owned Downloads copies removed"
+  },
+  "limits": [
+    "Deterministic checkbox comparison, not narrative or causal inference.",
+    "First unchecked item is a review prompt, not a ranked priority.",
+    "Suggestion edits are session-local; direct server HTML contains generated fallback.",
+    "No new AI calls, scheduled generation, task creation or commitments.",
+    "Synthetic feature checks only; no live Vault operation or live Ollama call.",
+    "Human feature usefulness and timing unmeasured; independent review pending."
+  ],
+  "review": {
+    "primary_agent_source_audit": "complete; no remaining actionable findings",
+    "independent_review": "pending"
+  }
+}

@@ -34,10 +34,7 @@ Unavailable roots do not create weekly artifacts or manifests.
 
 ## Relationship to S006
 
-[S006](../issues/NAVIS-S006.md) remains conditional on S005's passing three-cycle
-trial and keep decision. It should extend this evidence schema, panel and export
-snapshot rather than introducing a second provenance interface. S013 makes no
-claim that those trial gates or decision-focused features are complete.
+[S006](../issues/NAVIS-S006.md) extends this evidence schema, panel and export snapshot after S005 passed its three-cycle human comparison with an explicit keep decision. See [decision review](holocron-decisions.md) for implementation and verification limits. S013 remains the provenance foundation, not the decision-feature trial.
 
 ## Verification
 

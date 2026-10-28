@@ -154,6 +154,7 @@ async function mount(transport) {
     const module = { exports: {} };
     vm.runInNewContext(compile('src/components/JournalEntryComposer.js'), { React, module, exports: module.exports, console,
       require: id => id === 'react' ? React : id.includes('desktopApi') ? { supportsLocalOllama: () => false }
+        : id.endsWith('ActionableBrief') ? { __esModule: true, default: () => null }
         : { saveJournalEntry: async () => ({ xp_status: 'pending' }) },
     });
     const Composer = module.exports.default;

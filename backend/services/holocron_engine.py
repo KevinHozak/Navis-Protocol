@@ -563,6 +563,9 @@ def build_weekly_holocron(
         "logged_days": logged_days, "sources": sources, "metrics": metrics,
         "interpretation": {"kind": "deterministic_summary", "source_ids": journal_ids + ["keeper-ledger"],
                            "support": "References support input metrics only, not generated conclusions."}}
+    from services.holocron_decisions import decision_review
+    holocron_payload["decision_review"] = share_safe(decision_review(root, sources))
+    metrics["decision_review"] = {"status": task_status, "rule": "Compare matching checkbox labels on the first and last readable days; unchecked states do not prove blockers or urgency. Suggestions are rule-based review prompts.", "source_ids": holocron_payload["decision_review"]["source_ids"]}
     if not force and source_path(root, f"Bridge/Holocron/Weekly/{target_week}.json"):
         try:
             with open(artifact_path, encoding="utf-8-sig") as stream:
@@ -614,6 +617,8 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
     week_id = payload.get("week_id", "Unknown")
     summary = payload.get("summary", {})
     tactical_debrief = payload.get("tactical_debrief", "")
+    decision = payload.get("decision_review", {})
+    decision_refs = " ".join(f'<a href="#source-{source}">{source}</a>' for source in decision.get("source_ids", []))
     daily = payload.get("daily_telemetry", [])
     sectors = payload.get("sector_distribution", [])
     combat = payload.get("combat", {})
@@ -812,6 +817,14 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
         {debrief_tag}
       </div>
       <p style="font-size: 0.95rem; line-height: 1.5; color: #e2e8f0;">{tactical_debrief}</p>
+    </section>
+
+    <section class="briefing-card" id="decision-review">
+      <h2>Decision review · rule-based proposal</h2>
+      <h3>What changed</h3><p>{decision.get('changed', 'Unknown')}</p>
+      <h3>Unresolved</h3><p>{decision.get('unresolved', 'Unknown')}</p>
+      <h3>Suggested adjustment</h3><p id="decision-adjustment">{decision.get('adjustment', 'Review missing evidence.')}</p>
+      <p>{decision.get('limits', '')}</p><p>Evidence snapshot: {decision_refs}</p>
     </section>
 
     <section class="metrics-grid">

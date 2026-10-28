@@ -155,6 +155,13 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
       } catch {
         // Already raw HTML text
       }
+      const exported = new DOMParser().parseFromString(htmlText, 'text/html');
+      const adjustment = exported.getElementById('decision-adjustment');
+      if (adjustment && data.decision_review) {
+        adjustment.textContent = data.decision_review.adjustment;
+        if (data.decision_review.suggestion_source === 'user_edit') adjustment.append(' (User-edited proposal)');
+      }
+      htmlText = '<!DOCTYPE html>\n' + exported.documentElement.outerHTML;
       const blob = new Blob([htmlText], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -302,6 +309,20 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
           {exportNotice}
         </div>
       )}
+
+      <section className="p-5 rounded-xl border border-white/10 bg-zinc-950/90 backdrop-blur-md space-y-3">
+        <h2 className="text-sm font-bold text-cyan-300">Decision review</h2>
+        <p className="text-xs text-zinc-400">Rule-based observations and proposal · {data.decision_review?.suggestion_source === 'user_edit' ? 'User-edited adjustment' : 'Not AI interpretation'}</p>
+        <h3 className="text-sm text-cyan-200">What changed</h3>
+        <p className="text-sm text-zinc-300">{data.decision_review?.changed || 'Unknown'}</p>
+        <h3 className="text-sm text-cyan-200">Unresolved</h3>
+        <p className="text-sm text-zinc-300">{data.decision_review?.unresolved || 'Unknown'}</p>
+        <label className="block text-sm text-cyan-200">Suggested adjustment
+          <textarea maxLength={2000} value={data.decision_review?.adjustment || ''} onChange={event => setData(previous => ({...previous, decision_review: {...previous.decision_review, adjustment: event.target.value, suggestion_source: 'user_edit'}}))} className="mt-2 w-full rounded border border-white/10 bg-zinc-900 p-2 text-white" />
+        </label>
+        <p className="text-xs text-zinc-400">{data.decision_review?.limits || 'Evidence unavailable. Review sources before choosing an adjustment.'}</p>
+        <p className="text-xs text-zinc-500">Edits apply to this view and exports; reload resets them. Inspect supporting records under Evidence &amp; rules → decision review.</p>
+      </section>
 
       {/* Tactical Debrief Banner */}
       <section className="p-5 rounded-xl border border-white/10 border-l-4 border-l-cyan-400 bg-zinc-950/60 backdrop-blur-xl shadow-lg space-y-3">
