@@ -1,0 +1,96 @@
+{
+  "story": "NAVIS-S004",
+  "date": "2026-10-28",
+  "prerequisite": {
+    "pr": 32,
+    "merge_commit": "7b1e701a3ed1e48a92524b633a47f63c37e72167"
+  },
+  "release": {
+    "version": "1.11.31",
+    "build": "passed",
+    "exe_metadata": "1.11.31",
+    "declared_resources_matching_source": 47
+  },
+  "checks": {
+    "backend": {
+      "passed": 9
+    },
+    "frontend_transport": {
+      "passed": 52
+    },
+    "ruff": "passed",
+    "frontend_lint": "passed with existing warnings",
+    "cargo_check": "passed"
+  },
+  "ui": {
+    "web": {
+      "explicit_selection": "passed",
+      "editable_preview": "passed",
+      "destination_selection": "passed",
+      "missing_source": "passed",
+      "changed_source_rejected_draft_retained": "passed",
+      "save_readback_provenance": "passed",
+      "discard": "passed"
+    },
+    "packaged_desktop": {
+      "explicit_selection": "passed",
+      "editable_preview": "passed",
+      "destination_selection": "passed",
+      "missing_source": "passed",
+      "changed_source_rejected_draft_retained": "passed",
+      "save_readback_provenance": "passed",
+      "discard": "passed"
+    }
+  },
+  "integrity": {
+    "web": {
+      "original_files_unchanged": 13,
+      "saved_notes": 1,
+      "provenance": "passed",
+      "discard": "passed"
+    },
+    "native": {
+      "original_files_unchanged": 13,
+      "saved_notes": 1,
+      "provenance": "passed",
+      "discard": "passed"
+    }
+  },
+  "fresh_sample_review": [
+    {
+      "sample": "archive",
+      "primary_agent_review": "passed; findings supported by selected source; uncertainties and application distinguished",
+      "provenance_and_retention": "passed",
+      "unsupported_claims_found": 0,
+      "correction_rounds": 0,
+      "human_usefulness": "not measured"
+    },
+    {
+      "sample": "release",
+      "primary_agent_review": "passed; findings supported by selected source; uncertainties and application distinguished",
+      "provenance_and_retention": "passed",
+      "unsupported_claims_found": 0,
+      "correction_rounds": 0,
+      "human_usefulness": "not measured"
+    },
+    {
+      "sample": "repair",
+      "primary_agent_review": "passed; findings supported by selected source; uncertainties and application distinguished",
+      "provenance_and_retention": "passed",
+      "unsupported_claims_found": 0,
+      "correction_rounds": 0,
+      "human_usefulness": "not measured"
+    }
+  ],
+  "cleanup": {
+    "owned_process_trees": "stopped",
+    "fixture_browser_tab": "closed",
+    "deliberate_source_and_settings_changes": "restored"
+  },
+  "limits": [
+    "Synthetic fixtures only; no live Vault data used.",
+    "Manual curation; no AI generation or automatic certification of user findings.",
+    "Fresh-sample review by primary agent; human usefulness and review time unmeasured.",
+    "Long-term reuse unmeasured."
+  ]
+}

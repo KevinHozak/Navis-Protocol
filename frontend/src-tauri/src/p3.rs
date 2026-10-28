@@ -33,6 +33,10 @@ pub fn completed_tasks_request(backend: &std::path::Path) -> Result<ApiResponse,
     python_mutation(backend, "/api/tasks/completed-today", None, "native_completed_tasks.py")
 }
 
+pub fn knowledge_note_request(backend: &std::path::Path, path: &str, body: Option<Value>) -> Result<ApiResponse, String> {
+    python_mutation(backend, path, body, "native_knowledge_notes.py")
+}
+
 pub fn brief_request(backend: &std::path::Path, path: &str, body: Option<Value>) -> Result<ApiResponse, String> {
     python_mutation(backend, path, body, "native_actionable_brief.py")
 }
