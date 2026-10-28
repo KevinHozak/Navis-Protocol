@@ -20,7 +20,7 @@ RAW = '\ufeff# Fixture\r\n## 🥾 The Kinetic Outland\r\n- [ ] Keep **雪**\r\n 
 def test_release_packages_both_canonical_status_entrypoints():
     repo = Path(__file__).parents[2]
     resources = json.loads((repo / 'frontend/src-tauri/tauri.conf.json').read_text(encoding='utf-8'))['bundle']['resources']
-    for source in ('native_task_toggle.py', 'native_directive.py', 'services/task_toggle.py', 'services/directive_completion.py', 'services/task_time.py'):
+    for source in ('native_task_toggle.py', 'native_directive.py', 'services/task_toggle.py', 'services/directive_completion.py', 'services/task_time.py', 'native_completed_tasks.py', 'services/completed_today.py'):
         assert resources[f'../../backend/{source}'] == f'backend/{source}'
 
 

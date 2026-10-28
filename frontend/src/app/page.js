@@ -828,9 +828,9 @@ export default function Home() {
                 onOpenJournal={(path, day) => {
                   const chronicle = pillars.find(p => p.sectors?.some(s => s.id === 'JOURNAL'));
                   if (chronicle) setActivePillar(chronicle.id);
-                  setSelectedJournalDate(day);
+                  if (day) setSelectedJournalDate(day);
                   setActiveSector('JOURNAL');
-                  const journal = { id: path, name: day, type: 'file' };
+                  const journal = { id: path, name: day || path.split('/').pop(), type: 'file' };
                   setSectorActiveEntities(prev => ({ ...prev, JOURNAL: journal }));
                   setActiveEntity(journal);
                 }}

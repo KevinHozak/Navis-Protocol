@@ -388,3 +388,12 @@ test('subscribeVaultStream connects to EventSource in web runtime, handles vault
   assert.equal(es.closed, true);
 });
 
+
+
+test('completed-today uses a native GET with no write event or HTTP request', async () => {
+  const {api,calls,events}=await runtime({native:true});
+  const response=await api.apiFetch('/api/tasks/completed-today');
+  assert.equal(response.ok,true);
+  assert.deepEqual(calls,[{command:'vault_request',args:{path:'/api/tasks/completed-today',method:'GET',body:null}}]);
+  assert.deepEqual(events,[]);
+});

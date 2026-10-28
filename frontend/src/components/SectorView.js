@@ -1077,7 +1077,7 @@ export default function SectorView({
     }
 
     if (sectorId === 'DIRECTIVES' || activeEntity?.id === 'TASKS_COCKPIT') {
-      return <TasksCockpit />;
+      return <TasksCockpit onOpenJournal={onOpenJournal} />;
     }
 
     if (sectorId === 'SYNTHESIS_LAB' && !activeEntity) {
@@ -1328,7 +1328,7 @@ export default function SectorView({
       case 'CONFIG':
         return renderConfig();
       case 'TASKS_COCKPIT':
-        return <TasksCockpit />;
+        return <TasksCockpit onOpenJournal={onOpenJournal} />;
       default:
         if (activeEntity?.id?.startsWith('RECURRING_BOARD:')) {
           const area = activeEntity.id.split(':')[1];

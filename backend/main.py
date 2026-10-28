@@ -1462,6 +1462,12 @@ async def complete_recurring_task(task_id: str, payload: Optional[dict] = None):
         raise HTTPException(status_code=503, detail="Completion interrupted; retry Mark Done to recover") from error
 
 
+@app.get("/api/tasks/completed-today")
+async def get_completed_today():
+    from services.completed_today import build
+    return await asyncio.to_thread(build, NAVIS_ROOT)
+
+
 # --- Active Tasks API ---
 @app.get("/api/active_tasks")
 async def get_active_tasks(area: Optional[str] = None, include_completed: bool = False):

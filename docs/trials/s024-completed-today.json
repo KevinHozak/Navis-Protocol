@@ -1,0 +1,93 @@
+{
+  "story": "NAVIS-S024",
+  "status": "verified; in review pending merge",
+  "base": "304923203e37fecce2fc7116d16ce4e589427362",
+  "version": "1.11.28",
+  "checks": {
+    "python_affected": {
+      "passed": 247
+    },
+    "frontend_full": "passed",
+    "native_serial": {
+      "passed": 77,
+      "excluded": "personal Vault default probe"
+    },
+    "release_build": "passed",
+    "packaged_resources": 42
+  },
+  "web_physical": {
+    "completed": 4,
+    "groups": {
+      "domestic": 1,
+      "front": 1,
+      "world": 2
+    },
+    "unknown_activity": 1,
+    "partial_unreadable_source": true,
+    "same_text_distinct": true,
+    "area_filter": "passed",
+    "original_older_source_navigation": "passed",
+    "read_only_files": 11,
+    "intentional_reopen_saved": "Pending",
+    "post_edit_read_only_files": 14,
+    "post_edit_completed_refresh": "blocked by browser helper timeout"
+  },
+  "packaged_physical": "passed on fresh isolated fixture using unchanged release",
+  "cleanup": "owned fixture roots and descendants absent",
+  "limits": [
+    "No clean-machine installation certification",
+    "No personal Vault or live provider trial",
+    "No global snapshot transaction or exhaustive production inventory claim"
+  ],
+  "artifacts": {
+    "navis-protocol.exe": {
+      "bytes": 28444160,
+      "sha256": "59dc94ff91f0212f45417df29bda55c212e1f335c2b5157d7bd3be35c828386c"
+    },
+    "Navis Protocol_1.11.28_x64-setup.exe": {
+      "bytes": 19307605,
+      "sha256": "717a2b6ca1d922b757e29ccaece01fc101f58baab0e20558f76a6016fa29e330"
+    }
+  },
+  "initial_packaged_physical": "blocked by Windows helper discovery timeout after bounded recovery",
+  "resumed_acceptance": {
+    "client_date": "2026-10-27",
+    "fixture": "fresh synthetic Vaults and packaged WebView profile",
+    "helper": "responded without source repair; earlier timeout cause unconfirmed",
+    "native": {
+      "initial_completed": 4,
+      "groups": {
+        "domestic": 1,
+        "front": 1,
+        "world": 2
+      },
+      "separate_unknown_activity": 1,
+      "partial_warning": true,
+      "text_and_area_filters": "passed",
+      "original_source_and_note": "passed",
+      "pre_edit_read_only_files": 13,
+      "picker_reopen": "Pending saved",
+      "after_refresh_completed": 3,
+      "outland_after_refresh": 1,
+      "initial_post_edit_baseline": "invalidated by three dashboard Holocron cache writes during Command navigation",
+      "settled_refresh_read_only_files": 16
+    },
+    "web": {
+      "initial_completed": 4,
+      "pre_edit_read_only_files": 11,
+      "canonical_api_fixture_reopen": "saved Pending with original note",
+      "manual_refresh_completed": 3,
+      "outland_filter": 1,
+      "post_edit_read_only_files": 14
+    },
+    "cleanup": "native root/window and web roots/descendants absent; dedicated listeners absent; final snapshots unchanged",
+    "screenshots": {
+      "native-completed.png": {
+        "sha256": "4c3273e34733f86900d9e2eec9460a7f5abc6c0db3fe616a5363eccf6397cc9d"
+      },
+      "web-completed.png": {
+        "sha256": "2f1a5b8e40bfb06e57c769bfd79a7fb63aa3c69231aadb12f01c1d1eaacdd05d"
+      }
+    }
+  }
+}
