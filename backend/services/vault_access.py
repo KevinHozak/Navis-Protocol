@@ -40,6 +40,16 @@ def _parts(value):
     return tuple(parts)
 
 
+def is_shared_note_path(value):
+    """Whether this is a Markdown path shared by the app and MCP surfaces."""
+    try:
+        parts = _parts(value)
+    except VaultAccessError:
+        return False
+    return len(parts) >= 2 and parts[0].casefold() in {root.casefold() for root in DEFAULT_ROOTS} \
+        and Path(parts[-1]).suffix.casefold() == ".md"
+
+
 def _path_input(relative):
     """Protect literal percent escapes without expanding Unicode path lengths."""
     return relative.replace("%", "%25")
@@ -161,6 +171,61 @@ class VaultPolicy:
                 "index_state": "not_used"}
 
 
+@dataclass(frozen=True)
+class ApplicationNotePolicy:
+    """The app's root-contained Markdown access context; distinct from MCP ACLs."""
+    root: Path
+    identity: tuple
+
+    @classmethod
+    def from_root(cls, root):
+        path = Path(os.path.abspath(os.fspath(root)))
+        try:
+            _no_links(path)
+            info = path.stat()
+            if not stat.S_ISDIR(info.st_mode):
+                raise OSError
+            with os.scandir(path):
+                pass
+        except (OSError, VaultAccessError):
+            raise VaultAccessError("vault_unavailable") from None
+        return cls(path, (info.st_dev, info.st_ino))
+
+    def require_root(self):
+        try:
+            _no_links(self.root)
+            info = self.root.stat()
+            if (info.st_dev, info.st_ino) != self.identity or not stat.S_ISDIR(info.st_mode):
+                raise OSError
+            if not self.root.is_dir():
+                raise OSError
+            with os.scandir(self.root):
+                pass
+        except OSError:
+            raise VaultAccessError("vault_unavailable") from None
+
+    def resolve(self, raw):
+        self.require_root()
+        parts = _parts(raw)
+        if Path(parts[-1]).suffix.casefold() != ".md":
+            raise VaultAccessError("not_found")
+        try:
+            path = Path(resolve_relative_path(self.root, raw))
+            _no_links(path)
+            if not path.is_file():
+                raise VaultAccessError("not_found")
+        except (FileNotFoundError, NotADirectoryError, VaultPathError):
+            raise VaultAccessError("not_found") from None
+        except OSError:
+            raise VaultAccessError("source_unreadable") from None
+        return path
+
+
+def application_note_policy(root):
+    """App read context for shared Markdown paths, separate from MCP allow/deny ACLs."""
+    return ApplicationNotePolicy.from_root(root)
+
+
 def _signature(info):
     # Python/Windows lstat ctime is creation time, while fstat may expose change
     # time. Compare ctime only within the same API, not across pathname/handle.
@@ -205,6 +270,24 @@ def _snapshot(policy, raw, *, opener=None):
     except OSError:
         raise VaultAccessError("source_unreadable") from None
     return path.relative_to(policy.root).as_posix(), text, hashlib.sha256(data).hexdigest(), before
+
+
+def read_markdown_source(policy, raw, *, deadline=None):
+    """Read one bounded, stable Markdown source for any authorized transport."""
+    deadline = time.monotonic() + 10 if deadline is None else deadline
+    if not isinstance(raw, str) or not 1 <= len(raw) <= 1024:
+        raise VaultAccessError("invalid_argument")
+    if time.monotonic() >= deadline:
+        raise VaultAccessError("deadline_exceeded")
+    relative, content, digest, info = _snapshot(policy, raw)
+    if time.monotonic() >= deadline:
+        raise VaultAccessError("deadline_exceeded")
+    return {
+        "path": relative,
+        "content": content,
+        "sha256": digest,
+        "modified_at": datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(),
+    }
 
 
 def _headings(lines):
@@ -255,7 +338,10 @@ def read_note(policy, arguments, *, deadline=None):
             or type(limit) is not int or not 1 <= limit <= 200
             or (section is not None and (not isinstance(section, str) or not 1 <= len(section) <= 1024))):
         raise VaultAccessError("invalid_argument")
-    relative, text, digest, info = _snapshot(policy, path)
+    source = read_markdown_source(policy, path, deadline=deadline)
+    relative, text, digest, modified_at = (
+        source["path"], source["content"], source["sha256"], source["modified_at"]
+    )
     check_time()
     # Only CR/LF delimit physical Markdown lines, not Unicode separators.
     lines = _note_lines(text)
@@ -291,7 +377,7 @@ def read_note(policy, arguments, *, deadline=None):
         return {"status": "ok", "data": {"path": relative, "content": piece,
                 "start_line": begin + 1 if piece else None, "end_line": last if piece else None,
                 "start_column": column, "heading": heading,
-                "modified_at": datetime.fromtimestamp(info.st_mtime, timezone.utc).isoformat(),
+                "modified_at": modified_at,
                 "sha256": digest}, "coverage": coverage, "truncated": more,
                 "continuation": {"start_line": line_index + 1, "start_column": offset} if more else None}
     if not excerpt:

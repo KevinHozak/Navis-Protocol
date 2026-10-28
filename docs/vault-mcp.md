@@ -216,6 +216,34 @@ another process with the same OS account racing filesystem changes. It does not
 detect secrets embedded inside otherwise allowed notes. Configure exclusions
 before connecting a client to personal data.
 
+### Shared app and MCP reads
+
+The read-operation inventory identified one matching domain operation:
+
+| Surface | Existing operation | Share decision |
+| --- | --- | --- |
+| HTTP | `GET /api/vault/{file_path}` for Markdown files | Shared bounded source read under the four common roots |
+| Tauri IPC | `GET /api/vault/{file_path}` for Markdown files | Calls the backend reader bridge for the four common roots; a 204 bridge response leaves the existing native handler in charge |
+| MCP stdio | `read_note` | Uses the same bounded source read after the existing MCP allow/deny checks |
+
+`services.vault_access.read_markdown_source` performs the stable, bounded
+source read for those matching operations when a Markdown path is under
+`Journal`, `Operations`, `Codex` or `Documentation`. Each transport calls the
+service directly; the web and desktop apps do not launch or speak MCP.
+`ApplicationNotePolicy` pins the configured root and rejects symlink paths,
+while MCP continues to apply its own allow/deny roots and private-path
+exclusions before using the same reader.
+
+HTTP/Tauri directory listings and their non-Markdown files retain their current
+handlers. HTTP/Tauri image, JSON, text, app-specific roots, mission retrieval,
+journal-range retrieval, and MCP index search remain separate operations: they
+have different response semantics or no matching operation on all three
+surfaces. The HTTP and IPC response shapes stay unchanged, including their
+Vault-relative `path`; MCP adds its bounded excerpt, continuation and source
+metadata. MCP missing and unreadable-source errors retain their existing
+machine codes; HTTP and IPC retain 404 for missing notes and generic 500 for
+unreadable notes.
+
 No HTTP port, credential, shell tool, model call or automatic sync is exposed.
 Default read tools never write journals or XP. The opt-in append tool reconciles
 the existing XP ledger after a confirmed save. stdout carries only protocol frames. The dedicated

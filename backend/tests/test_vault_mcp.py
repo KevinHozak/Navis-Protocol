@@ -11,7 +11,7 @@ import time
 
 import pytest
 
-from services.vault_access import MAX_FILE_BYTES, VaultAccessError, VaultPolicy, read_note
+from services.vault_access import MAX_FILE_BYTES, VaultAccessError, VaultPolicy, read_markdown_source, read_note
 
 
 @pytest.fixture
@@ -344,6 +344,25 @@ def test_stdio_handshake_read_unknown_args_unavailable_reconnect_no_logs(vault):
             assert wire.proc.returncode == 0
             assert sentinel not in logs and str(vault) not in logs and "synthetic-test-credential" not in logs
         assert {p.relative_to(vault): p.read_bytes() for p in vault.rglob("*") if p.is_file()} == original
+
+
+def test_stdio_note_read_uses_shared_bounded_source_reader(vault):
+    relative = "Documentation/fixture.md"
+    note = vault / relative
+    note.write_bytes(b"\xef\xbb\xbf# Shared\r\nFixture source\r\n")
+    expected = read_markdown_source(VaultPolicy.from_env(config(vault)), relative)
+    before = {p.relative_to(vault): p.read_bytes() for p in vault.rglob("*") if p.is_file()}
+    wire = Wire(config(vault))
+    try:
+        wire.start()
+        result = wire.call("tools/call", {"name": "read_note", "arguments": {"path": relative}})["result"]
+        assert not result["isError"]
+        assert result["structuredContent"]["data"]["content"] == expected["content"]
+        assert result["structuredContent"]["data"]["sha256"] == expected["sha256"]
+    finally:
+        logs = wire.close()
+        assert wire.proc.returncode == 0 and logs == "", (wire.proc.returncode, logs)
+    assert {p.relative_to(vault): p.read_bytes() for p in vault.rglob("*") if p.is_file()} == before
 
 
 def test_stdio_invalid_startup_sanitizes_paths(vault):
