@@ -1,0 +1,69 @@
+{
+  "story": "NAVIS-S001",
+  "date": "2026-10-28",
+  "revision": 1,
+  "status": "passed",
+  "scope": "complex or tangled notes only; exclude simple chores",
+  "prompt": "Extract the important decision or dependency; preserve historical status; distinguish source facts, inferred goals and suggestions; omit non-actionable questions. Return Goal, Known facts, Uncertainties, One suggested next action.",
+  "source_policy": "Historical journal snapshots, not current task status; originals retained in Vault. Raw notes and briefs remain outside repository.",
+  "samples": [
+    {
+      "id": "R1",
+      "source": "Journal/2026/10/2026-10-21.md",
+      "topic": "test mismatch triage and build dependency",
+      "anchor": "Ranorex Oct 20 run",
+      "human_useful": true,
+      "corrections": []
+    },
+    {
+      "id": "R2",
+      "source": "Journal/2026/10/2026-10-22.md",
+      "topic": "review-tool migration and unresolved evaluation",
+      "anchor": "TechTalk: Agentic PR review",
+      "human_useful": true,
+      "corrections": []
+    },
+    {
+      "id": "R3",
+      "source": "Journal/2026/10/2026-10-22.md",
+      "topic": "QA failure versus version mismatch",
+      "anchor": "RM #44132",
+      "human_useful": true,
+      "corrections": []
+    },
+    {
+      "id": "R4",
+      "source": "Journal/2026/10/2026-10-23.md",
+      "topic": "pipeline work across multiple assigned items",
+      "anchor": "Pipeline audit/approve",
+      "human_useful": true,
+      "corrections": []
+    },
+    {
+      "id": "R5",
+      "source": "Journal/2026/10/2026-10-23.md",
+      "topic": "multi-topic huddle with mixed readiness",
+      "anchor": "CSD Huddle",
+      "human_useful": true,
+      "corrections": []
+    }
+  ],
+  "human_review_minutes": null,
+  "preparation_minutes": null,
+  "elapsed_including_wait": null,
+  "runtime": {
+    "surface": "Codex conversation",
+    "model": "gpt-6.1-sol",
+    "settings": "unavailable",
+    "usage": "unknown"
+  },
+  "manual_baseline": "not measured; no time-savings claim",
+  "agent_audit": "Source facts preserved; goals explicitly inferred; suggestions not commitments. Human audit pending.",
+  "vault_writes": 0,
+  "tasks_created": 0,
+  "decision": "keep narrowed scope: complex or tangled notes only",
+  "human_review_time_status": "unknown, explicitly reported by user",
+  "human_review_date": "2026-10-28",
+  "human_feedback": "All five clearer and useful; no corrections needed",
+  "unsupported_facts_reported": 0
+}

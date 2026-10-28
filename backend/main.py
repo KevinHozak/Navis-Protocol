@@ -774,6 +774,22 @@ from services.journal_entry import checked_journal_list_item as checked_journal_
 
 
 
+@app.post("/api/journal/brief/{operation}")
+async def actionable_brief(operation: str, body: dict):
+    import asyncio
+    from services.actionable_brief import generate, save
+    try:
+        if operation == "generate":
+            return await asyncio.to_thread(generate, body)
+        if operation == "save":
+            return await asyncio.to_thread(save, NAVIS_ROOT, body)
+        raise HTTPException(status_code=404, detail="Unknown brief operation.")
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except (OSError, KeyError, TypeError) as error:
+        raise HTTPException(status_code=503, detail="Brief service unavailable. Your original is unchanged; retry the same save if needed.") from error
+
+
 @app.post("/api/journal/entry/polish")
 async def polish_journal_entry(req: JournalEntryPolishRequest):
     entry = req.entry.strip()

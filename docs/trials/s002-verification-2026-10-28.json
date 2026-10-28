@@ -1,0 +1,85 @@
+{
+  "story": "NAVIS-S002",
+  "date": "2026-10-28",
+  "release": "1.11.30",
+  "web": {
+    "generated_preview": true,
+    "edited_and_saved": true,
+    "original_retained": true,
+    "journal_task_bytes_unchanged": true,
+    "discard_and_failure_ui": "pending"
+  },
+  "native": {
+    "release_started": true,
+    "ipc_version": "1.11.30",
+    "resources_verified": 44,
+    "ui_blocker": "Accessibility click reported coordinate geometry unavailable; screenshot-based recovery returned unchanged navigation. Remaining packaged UI flows not verified."
+  },
+  "fresh_review": {
+    "original_20b": "two timeouts and one invalid structure",
+    "local_7b": "three valid outputs, 33-62 seconds; additional web sample assumed a team meeting and required correction",
+    "decision": "not a clean acceptance pass; retain review finding"
+  },
+  "publication": "not committed or published because user conditioned publication on passing checks",
+  "live_vault_used": false,
+  "final": {
+    "status": "passed",
+    "version": "1.11.30",
+    "generation": "validated source sentence indices; no model prose accepted; local qwen2.5-coder:7b",
+    "web": [
+      "generate",
+      "edit",
+      "storage failure retained preview",
+      "retry saved exact original and edited brief",
+      "discard retained draft without saving"
+    ],
+    "packaged_desktop": [
+      "45 resources matched source",
+      "generate",
+      "edit",
+      "storage failure retained preview",
+      "retry saved exact original and edited brief",
+      "discard retained draft without additional saved record"
+    ],
+    "native_helper_recovery": "Activate target window; use freshly observed content screenshot region for coordinates and scroll. AX positions can be stale and icon-only regions have no content geometry. Verify settled screenshot after each action.",
+    "fresh_samples": [
+      {
+        "id": 1,
+        "source_grounding": "passed",
+        "unsupported_wording": 0,
+        "seconds": 21.08,
+        "reviewer": "primary agent; human product review not claimed"
+      },
+      {
+        "id": 2,
+        "source_grounding": "passed",
+        "unsupported_wording": 0,
+        "seconds": 13.67,
+        "reviewer": "primary agent; human product review not claimed"
+      },
+      {
+        "id": 3,
+        "source_grounding": "passed",
+        "unsupported_wording": 0,
+        "seconds": 14.27,
+        "reviewer": "primary agent; human product review not claimed"
+      }
+    ],
+    "checks": {
+      "backend_tests": 8,
+      "frontend_transport_tests": 52,
+      "journal_flow": "passed",
+      "ruff": "passed",
+      "lint": "passed with existing warnings",
+      "release_build": "passed",
+      "source_audit": "completed; missing packaged service fixed and regression covered"
+    },
+    "fixture_integrity": "All baseline journal/task/XP bytes unchanged; exactly one intentionally saved brief per surface",
+    "cleanup": "Stopped native release, fixture backend and frontend process trees",
+    "limits": [
+      "Source selection can omit useful context; editable human review remains necessary.",
+      "Fresh model review was performed by primary agent; no independent human usefulness claim for S002.",
+      "Live Vault, clean-machine install and external provider integrations were not exercised."
+    ]
+  }
+}

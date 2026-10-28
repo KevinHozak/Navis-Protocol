@@ -43,7 +43,7 @@ and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
 accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
 S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
 see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). S015 integrated journeys were accepted after PR #22; clean-machine and Drive/integration limits remain explicitly untested. Task-status epic E004 and its enhancements (S022-S024) are done. Evidence-gated
-AI workflow trials (S001-S008) remain a separate open workstream.
+AI workflow trials (S001-S008) remain a separate open workstream. S001 passed with a keep decision limited to complex/tangled notes. S002 implements reviewed, source-grounded briefs and has passed isolated web/packaged checks; delivery review is pending.
 
 These retain the original product direction without treating an existing component as completion of its entire initiative.
 

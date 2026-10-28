@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { apiFetch, supportsLocalOllama } from '@/lib/desktopApi';
+import ActionableBrief from './ActionableBrief';
 import { saveJournalEntry } from '@/lib/journalSave.mjs';
 
 const JOURNAL_SECTIONS = [
@@ -165,6 +166,8 @@ export default function JournalEntryComposer({ date, onSaved, onUnverified, init
             )}
             <span className="text-xs text-white/40">{canSuggestLocally ? 'Suggestions use local Ollama and are not saved automatically.' : 'Local Ollama suggestions require the desktop app or a local Navis server.'}</span>
           </div>
+
+          <ActionableBrief entry={entry} date={date} section={section} disabled={saving || polishing} available={canSuggestLocally} />
 
           {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
 
