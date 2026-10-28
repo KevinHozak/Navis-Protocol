@@ -75,7 +75,7 @@ Use issue acceptance criteria and the linked evidence records to select follow-u
 
 S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.
 
-Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 adds the
+Task-status epic [E004](../issues/NAVIS-E004.md) is in progress. S022 is done after PR #24 merged at `2f85317`, delivering the
 shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
-picker; see [semantics and persistence](task-status-semantics.md). S023 completion
+picker with verified isolated web and packaged Tauri journeys; see [semantics and persistence](task-status-semantics.md). S023 completion
 timestamps and S024 Completed today remain separate open work.

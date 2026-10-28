@@ -4,7 +4,7 @@ id: "NAVIS-S022"
 parent: ["NAVIS-E004"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Add an accessible task status picker with shared transition semantics"
 type: "enhancement"
 ---
@@ -28,9 +28,13 @@ Parent: [NAVIS-E004](NAVIS-E004.md). Current task_toggle.py accepts blank/x/X on
 
 ## Implementation checkpoint
 
-Shared contract: [task status semantics](../docs/task-status-semantics.md). HTTP and native bridges share canonical task/directive completion writers. Isolated automated and physical runtime verification is in progress; no personal Vault writes are authorized by this story.
+Shared contract: [task status semantics](../docs/task-status-semantics.md). HTTP and native bridges share canonical task/directive completion writers. Isolated automated and physical runtime verification passed; no personal Vault writes are authorized by this story.
 
 
 ## Verified delivery checkpoint - 2026-10-27
 
 Release 1.11.26 and selected real web/packaged Tauri fixtures passed status selection, keyboard access, save/readback, completion, reopening and recurring cancellation. Final journals are byte-identical with preserved BOM/CRLF/notes, one completion history item and 12 net XP after reopening; recurring next_due is unchanged. 174 affected Python cases plus two focused packaging/concurrency cases, 51 adapters/full frontend regressions, 76 native unit cases and one parity case passed. The missing native directive entrypoint found by the packaged check is repaired and covered by a resource regression; 39 bundled backend resources matched source. One earlier injected combat recovery failure passed isolated and full reruns; the trial retains it. Fixture windows/processes were closed and listeners absent. Personal Vault and provider integrations were not exercised. Independent external review is unavailable; primary-agent source review found no remaining actionable issue. S023 and S024 remain separate. See the [sanitized trial](../docs/trials/s022-task-status-2026-10-27.json).
+
+## Closeout - 2026-10-27
+
+Accepted and closed after [PR #24](https://github.com/KevinHozak/Navis-Protocol/pull/24) merged at `2f853175d9c0c86ec178c976f824e9bfc64b2f78`. All seven selected acceptance criteria are satisfied by the recorded source, automated and isolated runtime evidence above. Both CI scans passed; local main was fast-forwarded to the verified merge. Documented personal-Vault, provider, clean-machine installation and independent-review limits remain explicit. E004 remains in progress with S023 and S024 open.
