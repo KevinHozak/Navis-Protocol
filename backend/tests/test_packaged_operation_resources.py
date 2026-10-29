@@ -23,6 +23,23 @@ def test_resource_import_closure_and_isolated_fixture_sync(fixture_vault, tmp_pa
         destination = bundle / target
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, destination)
+
+    biometrics_source = (REPO / "backend/scripts/sync_biometrics.py").resolve()
+    biometrics_target = bundle / "backend/scripts/sync_biometrics.py"
+    assert config["bundle"]["resources"]["../../backend/scripts/sync_biometrics.py"] == "backend/scripts/sync_biometrics.py"
+    assert biometrics_source in included
+    assert biometrics_target.is_file()
+    help_process = subprocess.run(
+        [sys.executable, str(biometrics_target), "--help"],
+        cwd=bundle,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=20,
+    )
+    assert help_process.returncode == 0, help_process.stdout + help_process.stderr
+    assert "--reauthorize-only" in help_process.stdout
+
     backend = REPO / "backend"
     pending = [backend / "native_operations.py", backend / "native_operation_status.py"]
     visited = set()

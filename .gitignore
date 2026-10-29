@@ -85,6 +85,8 @@ search_results.json
 *credentials*.json
 secrets*.json
 token.json
+biometrics_token.json
+.biometrics-token-*.tmp
 tokens.json
 token_*.json
 oauth*.json
