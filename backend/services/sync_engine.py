@@ -44,7 +44,7 @@ def _git_identity_args(repo_root):
     return args
 
 
-def sync_work_journal():
+def sync_work_journal(defer_missing_until=None):
     """Natively synchronizes the work journal from Daily_Work.md to the current daily log."""
     if not os.path.exists(SETTINGS_FILE):
         return "Error: settings.json not found."
@@ -130,6 +130,10 @@ def sync_work_journal():
         )
 
         if not os.path.exists(daily_path):
+            if (defer_missing_until is not None and target_date < current_date
+                    and dt.date() <= defer_missing_until):
+                operation_note(f"Work journal for {current_date} retained until rollover creates its journal.")
+                continue
             operation_failure()
             print(f"Daily log not found for {current_date} at {daily_path}. Skipping.")
             continue
@@ -218,6 +222,8 @@ def sync_work_journal():
 
     # Remove only successfully merged date blocks; preserve pending work when
     # a journal is missing or malformed.
+    if not synced_dates:
+        return "0 work items merged. Any pending entries retained unchanged."
     try:
         remaining_sections = [
             f"## {current_date}\n{''.join(date_sections[current_date]).rstrip()}"
@@ -254,7 +260,9 @@ def execute_git_backup(log_callback=None):
     try:
         if log_callback:
             log_callback("⏳ Syncing Work Journal...")
-        sync_res = sync_work_journal()
+        from services.operation_outcomes import is_rollover
+        sync_res = (sync_work_journal(defer_missing_until=datetime.now().date())
+                    if is_rollover() else sync_work_journal())
         _log(sync_res)
     except Exception as e:
         operation_failure()
@@ -442,52 +450,6 @@ def run_midnight_rollover(log_callback=None):
             raise RuntimeError(f"active task sweep failed: {e}") from e
         _log(f"⚠️ SWEEP ERROR: {e}")
 
-    operation_step("work")
-    # 1.5 Sync work journal
-    try:
-        if log_callback:
-            log_callback("⏳ Syncing Work Journal...")
-        sync_res = sync_work_journal()
-        _log(sync_res)
-    except Exception as e:
-        operation_failure()
-        if fixture_mode:
-            raise RuntimeError(f"work journal sync failed: {e}") from e
-        _log(f"⚠️ WORK SYNC ERROR: {str(e)}")
-
-    operation_step("xp")
-    # 2. Apply XP via native imported module
-    try:
-        if log_callback:
-            log_callback("⏳ Processing XP Accrual...")
-        from services.rpg_engine import calculate_and_apply_xp
-
-        calculate_and_apply_xp()
-        _log("📊 XP ACCRUAL: Processed current cycle achievements...")
-    except Exception as e:
-        operation_failure()
-        if fixture_mode:
-            raise RuntimeError(f"XP processing failed: {e}") from e
-        _log(f"⚠️ XP ERROR: {e}")
-
-    operation_step("watch")
-    # 2.5 Sync Jellyfin watch history into journals
-    try:
-        if log_callback:
-            log_callback("⏳ Syncing Jellyfin Watch History...")
-        if fixture_mode:
-            _log("🧪 FIXTURE MODE: Jellyfin watch history integration disabled.")
-        else:
-            from scripts.sync_watch_history import sync_watch_history
-
-            sync_watch_history()
-            _log("🎬 WATCH HISTORY: Jellyfin history synced into The Sanctum.")
-    except Exception as e:
-        operation_failure()
-        if fixture_mode:
-            raise RuntimeError(f"watch history sync failed: {e}") from e
-        _log(f"⚠️ WATCH HISTORY ERROR: {e}")
-
     operation_step("journals")
     # 3. Determine missing days from last_updated through today
     status = {}
@@ -654,6 +616,52 @@ def run_midnight_rollover(log_callback=None):
             if fixture_mode:
                 raise RuntimeError(f"status write failed at {status_path}") from e
             _log(f"⚠️ STATUS WRITE ERROR: {e}")
+
+    operation_step("work")
+    # 1.5 Sync work journal
+    try:
+        if log_callback:
+            log_callback("⏳ Syncing Work Journal...")
+        sync_res = sync_work_journal()
+        _log(sync_res)
+    except Exception as e:
+        operation_failure()
+        if fixture_mode:
+            raise RuntimeError(f"work journal sync failed: {e}") from e
+        _log(f"⚠️ WORK SYNC ERROR: {str(e)}")
+
+    operation_step("xp")
+    # 2. Apply XP via native imported module
+    try:
+        if log_callback:
+            log_callback("⏳ Processing XP Accrual...")
+        from services.rpg_engine import calculate_and_apply_xp
+
+        calculate_and_apply_xp()
+        _log("📊 XP ACCRUAL: Processed current cycle achievements...")
+    except Exception as e:
+        operation_failure()
+        if fixture_mode:
+            raise RuntimeError(f"XP processing failed: {e}") from e
+        _log(f"⚠️ XP ERROR: {e}")
+
+    operation_step("watch")
+    # 2.5 Sync Jellyfin watch history into journals
+    try:
+        if log_callback:
+            log_callback("⏳ Syncing Jellyfin Watch History...")
+        if fixture_mode:
+            _log("🧪 FIXTURE MODE: Jellyfin watch history integration disabled.")
+        else:
+            from scripts.sync_watch_history import sync_watch_history
+
+            sync_watch_history()
+            _log("🎬 WATCH HISTORY: Jellyfin history synced into The Sanctum.")
+    except Exception as e:
+        operation_failure()
+        if fixture_mode:
+            raise RuntimeError(f"watch history sync failed: {e}") from e
+        _log(f"⚠️ WATCH HISTORY ERROR: {e}")
 
     operation_step("indexes")
     # 7. Update Legacy Indexes natively
