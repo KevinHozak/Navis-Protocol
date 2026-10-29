@@ -44,6 +44,30 @@ def _git_identity_args(repo_root):
     return args
 
 
+def _biometrics_script_path():
+    """Resolve the bundled helper, allowing an explicit local override."""
+    configured = os.environ.get("NAVIS_BIOMETRICS_SCRIPT")
+    if configured:
+        return configured
+    backend_root = Path(__file__).resolve().parents[1]
+    return str(backend_root / "scripts" / "sync_biometrics.py")
+
+
+def _run_biometrics_sync(script_path):
+    """Run the helper with this engine's Vault root and inherited credential paths."""
+    import sys
+
+    child_env = os.environ.copy()
+    child_env["NAVIS_ROOT"] = NAVIS_ROOT
+    return subprocess.run(
+        [sys.executable, script_path],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=child_env,
+    )
+
+
 def sync_work_journal(defer_missing_until=None):
     """Natively synchronizes the work journal from Daily_Work.md to the current daily log."""
     if not os.path.exists(SETTINGS_FILE):
@@ -704,20 +728,11 @@ def run_midnight_rollover(log_callback=None):
     try:
         if log_callback:
             log_callback("⏳ Syncing Biometrics...")
-        import sys
-
-        biometrics_script = os.environ.get(
-            "NAVIS_BIOMETRICS_SCRIPT", r"C:\Projects\Agents\Scripts\sync_biometrics.py"
-        )
+        biometrics_script = _biometrics_script_path()
         if fixture_mode:
             _log("🧪 FIXTURE MODE: biometrics integration disabled.")
         elif os.path.exists(biometrics_script):
-            subprocess.run(
-                [sys.executable, biometrics_script],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+            _run_biometrics_sync(biometrics_script)
             _log("⚕️ BIOMETRICS: Synced latest Google Health/Fitbit telemetry.")
         else:
             _log("⚠️ BIOMETRICS: sync_biometrics.py not found.")

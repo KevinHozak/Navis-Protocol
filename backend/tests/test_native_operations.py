@@ -2,6 +2,9 @@ import json
 import os
 import subprocess
 import sys
+import queue
+import threading
+import time
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -335,17 +338,35 @@ def test_native_operations_watch(fixture_vault, monkeypatch):
         encoding="utf-8",
     )
 
+    lines = queue.Queue()
+    output = []
+
+    def read_output(stream, label):
+        for line in stream:
+            output.append(f"{label}: {line.rstrip()}")
+            if label == "stdout":
+                lines.put(line)
+
+    readers = [threading.Thread(target=read_output, args=(stream, label), daemon=True)
+               for stream, label in ((proc.stdout, "stdout"), (proc.stderr, "stderr"))]
+    for reader in readers:
+        reader.start()
+
+    def wait_for_line(prefix):
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            try:
+                line = lines.get(timeout=min(0.1, max(0.001, deadline - time.monotonic())))
+            except queue.Empty:
+                if proc.poll() is not None:
+                    break
+                continue
+            if line.startswith(prefix):
+                return line
+        pytest.fail(f"Watcher did not emit {prefix}; exit={proc.poll()}; output={output}")
+
     try:
-        import time
-        # Read lines until WATCHER:READY
-        ready = False
-        start_t = time.time()
-        while time.time() - start_t < 10:
-            line = proc.stdout.readline()
-            if "WATCHER:READY" in line:
-                ready = True
-                break
-        assert ready, "Watcher did not emit WATCHER:READY"
+        wait_for_line("WATCHER:READY")
 
         time.sleep(0.5)
 
@@ -354,14 +375,7 @@ def test_native_operations_watch(fixture_vault, monkeypatch):
         test_file.write_text("# Test\n- [ ] reactive check\n", encoding="utf-8-sig")
 
         # Read for EVENT: line
-        event_payload = None
-        start_t = time.time()
-        while time.time() - start_t < 10:
-            line = proc.stdout.readline()
-            if line.startswith("EVENT:"):
-                raw = line[len("EVENT:"):].strip()
-                event_payload = json.loads(raw)
-                break
+        event_payload = json.loads(wait_for_line("EVENT:")[len("EVENT:"):].strip())
 
         assert event_payload is not None, "Watcher did not emit EVENT: line"
         assert event_payload["type"] == "journal"
@@ -372,7 +386,12 @@ def test_native_operations_watch(fixture_vault, monkeypatch):
         proc.terminate()
         try:
             proc.wait(timeout=5)
-        except Exception:
+        except subprocess.TimeoutExpired:
             proc.kill()
+            proc.wait(timeout=5)
+        for reader in readers:
+            reader.join(timeout=2)
+        proc.stdout.close()
+        proc.stderr.close()
 
 
