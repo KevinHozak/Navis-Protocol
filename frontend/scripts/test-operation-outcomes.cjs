@@ -12,13 +12,17 @@ const code = swc.transformSync(source, {
   module: { type: 'commonjs' },
 }).code;
 
-async function mount(report, { native = false, previous = null, operation = 'sync' } = {}) {
+async function mount(report, { native = false, previous = null, operation = 'sync', portal = false } = {}) {
   const requests = [], events = [], cancel = [], writes = [];
+  const portalTargets = [], body = { fixtureBody: true };
   const module = { exports: {} };
   vm.runInNewContext(code, {
     React, module, exports: module.exports, console, Event,
+    ...(portal ? { document: { body } } : {}),
     window: { dispatchEvent: () => {}, confirm: () => true }, setTimeout: () => 0, clearTimeout: () => {},
-    require: id => id === 'react' ? React : {
+    require: id => id === 'react' ? React : id === 'react-dom' ? {
+      createPortal: (element, target) => { portalTargets.push(target); return element; },
+    } : {
       apiFetch: async (path, options) => {
         requests.push(path);
         const value = previous && (path === '/api/ops/latest' || path.includes(previous.job_id)) ? previous : { job_id: 'random-request-id', ...report };
@@ -33,7 +37,7 @@ async function mount(report, { native = false, previous = null, operation = 'syn
   let completed = 0, root;
   const props = { operation, jobId: 'random-request-id', onClose: () => {}, onComplete: () => completed++ };
   await renderer.act(async () => { root = renderer.create(React.createElement(module.exports.default, props)); });
-  return { root, requests, events, cancel, writes, completed: () => completed,
+  return { root, requests, events, cancel, writes, portalTargets, body, completed: () => completed,
     text: () => JSON.stringify(root.toJSON()),
     async reconnect() {
       const button = root.root.findAllByType('button').find(b => b.props.children === 'Reconnect status');
@@ -69,6 +73,11 @@ async function main() {
       assert.match(test.text(), /Partially completed/);
     }
     await test.unmount();
+    const portalled = await mount(report, { native, portal: true });
+    assert(portalled.portalTargets.length > 0);
+    assert(portalled.portalTargets.every(target => target === portalled.body));
+    assert.equal(portalled.root.root.findByProps({ role: 'dialog' }).props['aria-modal'], 'true');
+    await portalled.unmount();
   }
   const interrupted = await mount({ status: 'interrupted', steps: [{ id: 'work', label: 'Work journal', status: 'unknown' }], recovery: 'review_saved_changes' });
   assert.match(interrupted.text(), /Interrupted/);

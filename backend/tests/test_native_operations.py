@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -80,6 +80,26 @@ def run_native(vault, git_dir, operation):
         timeout=20,
         check=False,
     )
+
+
+def test_rollover_imports_work_for_a_day_not_created_yet(fixture_vault):
+    vault, office_log, git_dir = fixture_vault
+    today = date.today().isoformat()
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    (vault / "Bridge/status.json").write_text(json.dumps({"last_updated": yesterday, "squad": []}), encoding="utf-8-sig")
+    previous_day = vault / f"Journal/{yesterday[:4]}/{yesterday[5:7]}/{yesterday}.md"
+    previous_day.parent.mkdir(parents=True, exist_ok=True)
+    previous_day.write_text("# Previous synthetic day\n## 🛡️ The High-Velocity Front\n", encoding="utf-8-sig")
+    office_log.write_text(f"## {today}\n- Retained missing-day fixture item\n", encoding="utf-8-sig")
+    original = vault / "Journal/2026/09/2026-09-28.md"
+    before = original.read_bytes()
+    target = vault / f"Journal/{today[:4]}/{today[5:7]}/{today}.md"
+    assert not target.exists()
+    result = run_native(vault, git_dir, "rollover")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert target.read_text(encoding="utf-8-sig").count("Retained missing-day fixture item") == 1
+    assert "Retained missing-day fixture item" not in office_log.read_text(encoding="utf-8-sig")
+    assert original.read_bytes() == before
 
 
 def test_disconnected_vault_fails_before_mutation(fixture_root):

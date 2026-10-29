@@ -121,6 +121,11 @@ def read_operation(root, job_id):
     return result
 
 
+def is_rollover():
+    report = _current.get()
+    return report is not None and report.value["operation"] == "rollover"
+
+
 def read_latest(root):
     latest = _read(_directory(root) / "latest.json")
     return read_operation(root, _identifier(latest["job_id"]))
@@ -184,7 +189,7 @@ class _Report:
         self.active = None
         names = ["work", "xp", "watch", "backup"]
         if operation == "rollover":
-            names += ["sweep", "work", "xp", "watch", "journals", "indexes", "banter", "biometrics", "holocron"]
+            names += ["sweep", "journals", "work", "xp", "watch", "indexes", "banter", "biometrics", "holocron"]
         names += ["cache"]
         self.value = {"job_id": job_id, "operation": operation, "status": "running",
                       "steps": [{"id": name, "label": LABELS[name], "status": "not_run",

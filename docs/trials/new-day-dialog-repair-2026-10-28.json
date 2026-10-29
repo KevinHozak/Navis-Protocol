@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-28",
+  "change": "Repair New Day missing-work-target dependency and viewport dialog placement",
+  "root_causes": [
+    "A fixed operation dialog inherited the transformed narrow calendar containing block.",
+    "Pre-rollover backup treated a current-day work entry with no target journal as a failure, preventing journal initialization."
+  ],
+  "behavior": [
+    "Operation dialog portals to document.body with a viewport height limit and scrollable content.",
+    "Only pending rollover dates after the recorded journal day and no later than today may defer missing work targets.",
+    "Deferred work remains byte-identical until target creation; ordinary sync and out-of-window missing targets retain failure behavior.",
+    "Rollover creates missing journals before its work import, XP and watch pass.",
+    "Prior partial-operation review remains required; no automatic acknowledgement or replay."
+  ],
+  "verification": {
+    "backend_checks": 36,
+    "frontend_transport_checks": 52,
+    "mounted_operation_scenarios": "passed including web/native body portal assertions",
+    "ruff": "passed",
+    "frontend_lint": "passed with existing warnings",
+    "release": "1.11.33; executable metadata and NSIS verified",
+    "packaged_resources_matching_source": 48,
+    "browser_fixture": {
+      "transformed_ancestor_width": 210,
+      "dialog_width": 672,
+      "dialog_height": 672,
+      "viewport_height": 720,
+      "outside_transformed_ancestor": true,
+      "close_callback": "reachable"
+    }
+  },
+  "live_data": "Read-only diagnosis of operation status and missing target availability; no live rollover, review acknowledgement or journal writes.",
+  "limits": [
+    "Native operation behavior verified through isolated fixture subprocesses; packaged application UI was not manually rerun.",
+    "Existing partial live operation still requires operator review before starting a new request.",
+    "S007/S008 staged work preserved; S008 remains gated."
+  ],
+  "biometrics_followup": {
+    "observed": "Live screenshot shows journals and work import completed; biometrics helper failed importing requests.",
+    "runtime": "Configured backend/.venv Python",
+    "repair": "Installed and declared requests 2.33.0, google-auth 2.49.1 and google-auth-oauthlib 1.3.1.",
+    "verification": [
+      "All helper top-level imports passed without executing the helper body.",
+      "pip check: no broken requirements."
+    ],
+    "live_health_sync": "not run",
+    "rollover_replay": "not run"
+  }
+}

@@ -5,8 +5,41 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
+from datetime import datetime, date
 
 from services import sync_engine
+
+
+def test_rollover_creates_missing_target_before_importing_retained_work(work_vault, monkeypatch):
+    root, office, previous = work_vault
+    before = previous.read_bytes()
+    office.write_text("## 2026-10-01\n- Preserve synthetic next-day work\n", encoding="utf-8")
+    original_work = office.read_bytes()
+    failed = Mock()
+    monkeypatch.setattr(sync_engine, "operation_failure", failed)
+    sync_engine.sync_work_journal(defer_missing_until=date(2026, 10, 1))
+    assert office.read_bytes() == original_work
+    failed.assert_not_called()
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 10, 1, 12)
+
+    monkeypatch.setattr(sync_engine, "datetime", Clock)
+    monkeypatch.setenv("NAVIS_FIXTURE_GIT_DIR", str(root / "fixture.git"))
+    monkeypatch.setattr(sync_engine, "sync_active_tasks", lambda: "synthetic sweep")
+    monkeypatch.setattr(sync_engine, "reindex_journal", lambda: "synthetic index")
+    monkeypatch.setattr(sync_engine, "update_readiness", lambda: "synthetic readiness")
+    from services import rpg_engine
+    monkeypatch.setattr(rpg_engine, "calculate_and_apply_xp", lambda: None)
+    (root / "Journal/daily_template.md").write_text("# {{DATE}}\n## ⚔️ The High-Velocity Front\n", encoding="utf-8")
+    sync_engine.run_midnight_rollover()
+    target = root / "Journal/2026/10/2026-10-01.md"
+    assert target.read_text(encoding="utf-8-sig").count("Preserve synthetic next-day work") == 1
+    assert "Preserve synthetic next-day work" not in office.read_text(encoding="utf-8-sig")
+    assert previous.read_bytes() == before
+    failed.assert_not_called()
 
 
 @pytest.fixture

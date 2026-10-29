@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { apiFetch, cancelSyncOperation, isTauriRuntime, listenNativeEvent, OPERATION_EVENT } from '../lib/desktopApi';
 
 export default function AsyncJobModal({ jobId, title, onClose, onComplete, operation }) {
@@ -140,9 +141,9 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, opera
     finally { setReviewing(false); }
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] bg-[#050505]/80 backdrop-blur-md flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl glass-dark p-6 rounded-lg border border-white/10 shadow-2xl flex flex-col space-y-4">
+  const dialog = (
+    <div role="dialog" aria-modal="true" aria-label={title || 'Executing Sequence'} className="fixed inset-0 z-[9999] bg-[#050505]/80 backdrop-blur-md flex items-center justify-center p-6">
+      <div style={{ maxHeight: 'calc(100dvh - 3rem)' }} className="w-full min-w-0 max-w-2xl overflow-y-auto glass-dark p-6 rounded-lg border border-white/10 shadow-2xl flex flex-col space-y-4">
         <div className="flex justify-between items-center border-b border-white/5 pb-4">
           <div>
             <h2 className="text-xl font-bold text-white tracking-[0.2em] uppercase">{title || 'Executing Sequence'}</h2>
@@ -191,4 +192,5 @@ export default function AsyncJobModal({ jobId, title, onClose, onComplete, opera
       </div>
     </div>
   );
+  return typeof document !== 'undefined' && document.body ? createPortal(dialog, document.body) : dialog;
 }
