@@ -25,6 +25,7 @@ const scripts = [
   'test-reactive-client-invalidation.mjs',
   'test-operation-outcomes.cjs',
   'test-holocron-evidence.cjs',
+  'test-journey-simplifications.cjs',
   'test-journal-calendar.cjs',
   'test-journal-save-verification.cjs',
   'test-refresh-freshness.cjs',

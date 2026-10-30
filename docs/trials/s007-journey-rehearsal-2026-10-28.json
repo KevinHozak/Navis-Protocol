@@ -1,0 +1,136 @@
+{
+  "story": "NAVIS-S007",
+  "date": "2026-10-28",
+  "status": "closed with explicit human-rehearsal waiver on 2026-10-30",
+  "base_commit": "f3e3215a25d5a5c80a4fb39d2cfbd80b9de336a0",
+  "scope": "Synthetic preserved-output review/finalization rehearsal; generation, real saves and full app navigation excluded.",
+  "prototype": "s007-journey-rehearsal.html",
+  "candidate_changes": [
+    {
+      "journey": "rough note to saved brief",
+      "baseline": [
+        "Open original preview",
+        "Review/edit preserved draft",
+        "Explicit save"
+      ],
+      "candidate": [
+        "Original visible beside draft",
+        "Review/edit identical preserved draft",
+        "Explicit save"
+      ]
+    },
+    {
+      "journey": "selected source to saved knowledge note",
+      "baseline": [
+        "Explicitly load selected source",
+        "Open source preview",
+        "Review/edit identical preserved draft",
+        "Enter filename; destination remains editable",
+        "Explicit save"
+      ],
+      "candidate": [
+        "Explicitly load same selected source; preview visible",
+        "Review/edit identical preserved draft",
+        "Suggested filename remains editable; same destination controls",
+        "Explicit save"
+      ]
+    },
+    {
+      "journey": "Holocron to chosen adjustment",
+      "baseline": [
+        "Open supporting evidence",
+        "Review/edit suggestion",
+        "Explicitly choose adjustment"
+      ],
+      "candidate": [
+        "Supporting evidence visible beside suggestion",
+        "Review/edit same suggestion",
+        "Explicitly choose adjustment"
+      ]
+    }
+  ],
+  "agent_smoke": {
+    "operator": "agent-check; separate storage key from human",
+    "all_six_runs": "completed",
+    "observed_interactions": {
+      "brief": {
+        "baseline": 2,
+        "candidate": 1
+      },
+      "knowledge": {
+        "baseline": 4,
+        "candidate": 2
+      },
+      "holocron": {
+        "baseline": 2,
+        "candidate": 1
+      }
+    },
+    "result": "Prototype functional evidence only; not human acceptance or production timing."
+  },
+  "human": {
+    "completion": null,
+    "completion_times": null,
+    "correction_effort": null,
+    "factual_errors": null,
+    "confusion_or_explanation": null
+  },
+  "invariants": [
+    "Identical synthetic original/source retained in trial receipts",
+    "Draft/suggestion editing retained",
+    "Explicit source load for knowledge note",
+    "Explicit save/choose controls retained",
+    "No Vault writes, model calls, task creation or commitments"
+  ],
+  "decision": "Revise rehearsal; no passing human acceptance and S008 remains gated",
+  "limits": [
+    "Prototype uses modeled review/finalization controls, not deployed application measurements.",
+    "Preserved synthetic outputs omit generation latency and data-dependent failures.",
+    "Alternating order reduces but does not eliminate learning bias.",
+    "Agent interaction counts cannot satisfy human unassisted-completion acceptance.",
+    "No time savings claimed."
+  ],
+  "confusion_record": {
+    "observations": [
+      "Item-save receipt was interpreted as full-trial completion/download.",
+      "Source load and source-preview review were separate gates.",
+      "Record run and Start next run required separate actions after item save.",
+      "User requested agent operation after needing clarification."
+    ],
+    "human_completion": "Incomplete; last observed 3/6 recorded. Existing version-1 human browser storage preserved.",
+    "factual_error_result": "No complete human error/correction measurements available."
+  },
+  "agent_run_record": "s007-agent-run-2026-10-28.json",
+  "revision": {
+    "version": 2,
+    "changes": [
+      "Run number and current phase always visible.",
+      "Source-preview prerequisite stated at its control and save message.",
+      "Successful save scrolls/focuses required feedback; receipt explicitly says feedback remains.",
+      "One feedback submission records the run and opens the next.",
+      "Separate help-needed choice; confusion text required only when help was needed.",
+      "Explicit final completion/download label and visible JSON results.",
+      "Fresh v2 human storage isolated from v1 human and agent results."
+    ],
+    "unchanged": [
+      "Original/source retention",
+      "Draft editing",
+      "Explicit source load and save/choice",
+      "Same baseline/candidate samples and measured work actions"
+    ],
+    "validation": "All six v2 agent smoke runs completed; automatic progression, final results visibility and fresh human 0/6 observed. Not human acceptance."
+  },
+  "accepted_decision": {
+    "decision": "Keep narrow controls",
+    "authority": "explicit user instruction 2026-10-30",
+    "human_rehearsal": "waived, not passed",
+    "evidence": "s007-agent-run-2026-10-28.json",
+    "limits": [
+      "Agent interaction counts only",
+      "No human or production time-savings claim",
+      "No independent factual review",
+      "Initial human confusion retained"
+    ],
+    "next": "S008 narrow implementation and verification"
+  }
+}

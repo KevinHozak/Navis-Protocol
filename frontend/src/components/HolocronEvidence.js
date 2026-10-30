@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/desktopApi';
 
-export default function HolocronEvidence({ weekId, evidence, onOpenJournal }) {
+export default function HolocronEvidence({ weekId, evidence, onOpenJournal, decisionOnly = false }) {
   const [inspection, setInspection] = useState(null);
   const revision = useRef(0);
   useEffect(() => { revision.current += 1; setInspection(null); return () => { revision.current += 1; }; }, [weekId, evidence]);
@@ -23,11 +23,11 @@ export default function HolocronEvidence({ weekId, evidence, onOpenJournal }) {
   };
   return (
     <section className="p-5 rounded-xl border border-white/10 bg-zinc-950/90 backdrop-blur-md space-y-3">
-      <h2 className="text-sm font-bold text-cyan-300">Evidence &amp; rules</h2>
+      <h2 className="text-sm font-bold text-cyan-300">{decisionOnly ? 'Supporting evidence' : 'Evidence & rules'}</h2>
       <p className="text-xs text-zinc-400">{evidence?.start_date} – {evidence?.end_date} · {evidence?.logged_days ?? 0}/7 readable journal days</p>
       {!evidence && <p>Evidence unavailable. Regenerate this cycle.</p>}
-      {Object.entries(evidence?.metrics || {}).map(([key, metric]) => (
-        <details key={key} className="text-xs text-zinc-300">
+      {Object.entries(evidence?.metrics || {}).filter(([key]) => !decisionOnly || key === 'decision_review').map(([key, metric]) => (
+        <details open={decisionOnly} key={key} className="text-xs text-zinc-300">
           <summary className="cursor-pointer">{key.replaceAll('_', ' ')} · {metric.status}</summary>
           <p className="py-2">{metric.rule}</p>
           <div className="flex flex-wrap gap-2">{metric.source_ids.map(id => {
@@ -36,9 +36,9 @@ export default function HolocronEvidence({ weekId, evidence, onOpenJournal }) {
           })}</div>
         </details>
       ))}
-      <details className="text-xs text-zinc-400"><summary>Source coverage</summary>
+      {!decisionOnly && <details className="text-xs text-zinc-400"><summary>Source coverage</summary>
         {evidence?.sources?.map(source => <div key={source.id}>{source.date || source.label}: {source.status}</div>)}
-      </details>
+      </details>}
       {inspection && <div role="status" className="text-xs text-amber-200">
         Source: {inspection.date || inspection.id || ''} · {inspection.status}
         {inspection.counts && <span> · {inspection.counts.completed}/{inspection.counts.total} checked items</span>}

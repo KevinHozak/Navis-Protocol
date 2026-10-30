@@ -1,0 +1,216 @@
+{
+  "story": "NAVIS-S007",
+  "operator": "agent-check",
+  "kind": "synthetic preserved-output rehearsal",
+  "decision": "Revise",
+  "production_timing": false,
+  "records": [
+    {
+      "journey": "brief",
+      "variant": "baseline",
+      "elapsed_ms": 14900,
+      "interactions": 2,
+      "actions": [
+        {
+          "action": "open-source",
+          "elapsed_ms": 13853
+        },
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 14900
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "I have two archive exports. One retains attachments; the other has clearer dates. Keep both originals. I need to compare overlapping messages before choosing a canonical copy.",
+        "fields": {
+          "Goal": "Compare two archive exports before choosing a canonical copy.",
+          "Facts": "One retains attachments; the other has clearer dates.",
+          "Uncertainty": "Which export should become canonical remains undecided.",
+          "Application": "Compare overlapping messages; keep both originals."
+        },
+        "destination": "Library/Briefs",
+        "filename": null,
+        "source_reference": null
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Opening the original is required before save; the receipt can be mistaken for full-trial completion."
+    },
+    {
+      "journey": "brief",
+      "variant": "candidate",
+      "elapsed_ms": 336,
+      "interactions": 1,
+      "actions": [
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 336
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "I have two archive exports. One retains attachments; the other has clearer dates. Keep both originals. I need to compare overlapping messages before choosing a canonical copy.",
+        "fields": {
+          "Goal": "Compare two archive exports before choosing a canonical copy.",
+          "Facts": "One retains attachments; the other has clearer dates.",
+          "Uncertainty": "Which export should become canonical remains undecided.",
+          "Application": "Compare overlapping messages; keep both originals."
+        },
+        "destination": "Library/Briefs",
+        "filename": null,
+        "source_reference": null
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Inline original is clear; separate Record run then Start next run remains easy to miss."
+    },
+    {
+      "journey": "knowledge",
+      "variant": "candidate",
+      "elapsed_ms": 8077,
+      "interactions": 2,
+      "actions": [
+        {
+          "action": "load-selected-source",
+          "elapsed_ms": 7792
+        },
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 8077
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "Documentation/Archive.md\nThe first export retains attachments. The second has clearer dates. Neither original should be deleted; canonical timestamps remain undecided.",
+        "fields": {
+          "Question": "How should the archive exports be compared?",
+          "Findings": "The first retains attachments; the second has clearer dates [1].",
+          "Uncertainty": "Canonical timestamps remain undecided.",
+          "Application": "Compare overlapping messages without deleting either original."
+        },
+        "destination": "Library/Knowledge Notes",
+        "filename": "archive-comparison",
+        "source_reference": "Documentation/Archive.md"
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Explicit load and inline source work; finalization still requires another feedback step."
+    },
+    {
+      "journey": "knowledge",
+      "variant": "baseline",
+      "elapsed_ms": 834,
+      "interactions": 4,
+      "actions": [
+        {
+          "action": "load-selected-source",
+          "elapsed_ms": 270
+        },
+        {
+          "action": "open-source",
+          "elapsed_ms": 540
+        },
+        {
+          "action": "edit-filename",
+          "elapsed_ms": 776
+        },
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 833
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "Documentation/Archive.md\nThe first export retains attachments. The second has clearer dates. Neither original should be deleted; canonical timestamps remain undecided.",
+        "fields": {
+          "Question": "How should the archive exports be compared?",
+          "Findings": "The first retains attachments; the second has clearer dates [1].",
+          "Uncertainty": "Canonical timestamps remain undecided.",
+          "Application": "Compare overlapping messages without deleting either original."
+        },
+        "destination": "Library/Knowledge Notes",
+        "filename": "archive-comparison",
+        "source_reference": "Documentation/Archive.md"
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Load alone is insufficient: source preview must also open; filename entry is separate."
+    },
+    {
+      "journey": "holocron",
+      "variant": "baseline",
+      "elapsed_ms": 8454,
+      "interactions": 2,
+      "actions": [
+        {
+          "action": "open-source",
+          "elapsed_ms": 8146
+        },
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 8454
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "Journal/2026/09/2026-09-28.md\n- [ ] Compare fixture exports\n- [ ] Review fixture backlog\n\nJournal/2026/09/2026-09-30.md\n- [x] Compare fixture exports\n- [ ] Review fixture backlog",
+        "fields": {
+          "Changed": "Compare fixture exports changed from unchecked on September 28 to checked on September 30. Checkbox state is not an independently verified outcome.",
+          "Unresolved": "Review fixture backlog is unchecked on September 30. Cause, urgency and subsequent outcome are unknown.",
+          "Adjustment": "Review whether the fixture backlog still needs action; explicitly retain, defer or remove it."
+        },
+        "destination": "Trial-only decision receipt",
+        "filename": null,
+        "source_reference": null
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Supporting evidence is hidden until expanded; choosing an adjustment does not record the run."
+    },
+    {
+      "journey": "holocron",
+      "variant": "candidate",
+      "elapsed_ms": 291,
+      "interactions": 1,
+      "actions": [
+        {
+          "action": "explicit-save",
+          "elapsed_ms": 291
+        }
+      ],
+      "original_retained": true,
+      "explicit_save": true,
+      "source_reviewed": true,
+      "output": {
+        "original": "Journal/2026/09/2026-09-28.md\n- [ ] Compare fixture exports\n- [ ] Review fixture backlog\n\nJournal/2026/09/2026-09-30.md\n- [x] Compare fixture exports\n- [ ] Review fixture backlog",
+        "fields": {
+          "Changed": "Compare fixture exports changed from unchecked on September 28 to checked on September 30. Checkbox state is not an independently verified outcome.",
+          "Unresolved": "Review fixture backlog is unchecked on September 30. Cause, urgency and subsequent outcome are unknown.",
+          "Adjustment": "Review whether the fixture backlog still needs action; explicitly retain, defer or remove it."
+        },
+        "destination": "Trial-only decision receipt",
+        "filename": null,
+        "source_reference": null
+      },
+      "factual_corrections": "0",
+      "correction_effort_minutes": "0",
+      "confusion_or_help": "Agent-operated. Inline evidence reduces one interaction. The six-run completion and download stage remains separate."
+    }
+  ],
+  "classification": "agent-operated; not human acceptance",
+  "limitations": [
+    "Timing includes agent/tool waiting; no human or production time savings claimed.",
+    "Factual correction counts are primary-agent review only."
+  ]
+}
