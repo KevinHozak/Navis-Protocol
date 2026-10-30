@@ -317,11 +317,12 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
         <p className="text-sm text-zinc-300">{data.decision_review?.changed || 'Unknown'}</p>
         <h3 className="text-sm text-cyan-200">Unresolved</h3>
         <p className="text-sm text-zinc-300">{data.decision_review?.unresolved || 'Unknown'}</p>
+        <HolocronEvidence weekId={data.week_id} evidence={data.evidence} onOpenJournal={onOpenJournal} decisionOnly />
         <label className="block text-sm text-cyan-200">Suggested adjustment
           <textarea maxLength={2000} value={data.decision_review?.adjustment || ''} onChange={event => setData(previous => ({...previous, decision_review: {...previous.decision_review, adjustment: event.target.value, suggestion_source: 'user_edit'}}))} className="mt-2 w-full rounded border border-white/10 bg-zinc-900 p-2 text-white" />
         </label>
         <p className="text-xs text-zinc-400">{data.decision_review?.limits || 'Evidence unavailable. Review sources before choosing an adjustment.'}</p>
-        <p className="text-xs text-zinc-500">Edits apply to this view and exports; reload resets them. Inspect supporting records under Evidence &amp; rules → decision review.</p>
+        <p className="text-xs text-zinc-500">Edits apply to this view and exports; reload resets them.</p>
       </section>
 
       {/* Tactical Debrief Banner */}

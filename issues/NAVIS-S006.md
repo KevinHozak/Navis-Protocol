@@ -4,7 +4,7 @@ id: "NAVIS-S006"
 parent: ["NAVIS-E001"]
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Implement a decision-focused Holocron section after a passing trial"
 type: "enhancement"
 ---
@@ -41,3 +41,7 @@ S005 passed 3/3 human preferences with zero corrections and explicit keep decisi
 ## Verified candidate
 
 Release 1.11.32, affected backend/transport/full frontend checks, isolated web/native editing, source inspection, native journal navigation and edited HTML exports passed. Three fresh synthetic outputs passed primary-agent factual review; human feature usefulness and timing unmeasured. Owned fixture processes/tab cleaned up and inputs preserved. [Verification](../docs/trials/s006-holocron-decisions-2026-10-28.json) and [behavior/limits](../docs/holocron-decisions.md). Pending publication and merge; no S006 closeout.
+
+## Closeout - 2026-10-28
+
+PR #34 merged as f3e3215a25d5a5c80a4fb39d2cfbd80b9de336a0. Local main independently synchronized, dropping only the identical squash-merged patch preserved on its codex branch. Acceptance and documented verification limits retained. S006 is closed; no live data-quality or long-term benefit claim.

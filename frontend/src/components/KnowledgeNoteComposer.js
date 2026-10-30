@@ -5,6 +5,10 @@ import { apiFetch } from '@/lib/desktopApi';
 
 const empty = { question: '', findings: '', uncertainty: '', application: '' };
 const labels = { question: 'Question', findings: 'Findings (cite source numbers)', uncertainty: 'Uncertainty and disagreements', application: 'One practical application' };
+function suggestedFilename(question) {
+  const value = question.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80).replace(/-$/g, '');
+  return !value || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(value) || /^(secrets?|credentials?|tokens?|oauth\d*|client-secrets?|service-accounts?|private-keys?|configs?|settings)(-|$)/i.test(value) ? 'knowledge-note' : value;
+}
 export default function KnowledgeNoteComposer({ candidates = [] }) {
   const [open, setOpen] = useState(false);
   const [paths, setPaths] = useState('');
@@ -12,6 +16,7 @@ export default function KnowledgeNoteComposer({ candidates = [] }) {
   const [fields, setFields] = useState(empty);
   const [destination, setDestination] = useState('Library/Notes');
   const [filename, setFilename] = useState('');
+  const [filenameEdited, setFilenameEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState('');
@@ -50,12 +55,12 @@ export default function KnowledgeNoteComposer({ candidates = [] }) {
       {choices.length > 0 && <div className="flex flex-wrap gap-2">{choices.map(doc => <button type="button" key={doc.id} disabled={busy} onClick={() => changePaths([...new Set([...paths.split('\n').filter(Boolean), doc.id])].join('\n'))} className="rounded border border-white/15 px-2 py-1 text-xs text-cyan-200">Add source: {doc.name}</button>)}</div>}
       <button type="button" onClick={load} disabled={busy || !paths.trim()} className="rounded border border-cyan-400/30 px-3 py-2 text-sm text-cyan-300 disabled:opacity-40">{busy ? 'Working…' : 'Load selected sources'}</button>
       {sources && <>
-        {sources.map((source, i) => <details key={source.path} className="text-sm text-white/70"><summary>[{i + 1}] {source.path}</summary><pre className="max-h-64 overflow-auto whitespace-pre-wrap p-2">{source.content}</pre></details>)}
-        {Object.entries(labels).map(([key,label]) => <label key={key} className="block text-sm text-white/70">{label}<textarea value={fields[key]} onChange={e => { setFields(previous => ({...previous, [key]: e.target.value})); setReceipt(''); }} disabled={busy} rows={key === 'findings' ? 5 : 2} maxLength={10000} className="mt-1 w-full rounded border border-white/10 bg-zinc-900 p-2 text-white" /></label>)}
+        {sources.map((source, i) => <details open key={source.path} className="text-sm text-white/70"><summary>[{i + 1}] {source.path}</summary><pre className="max-h-64 overflow-auto whitespace-pre-wrap p-2">{source.content}</pre></details>)}
+        {Object.entries(labels).map(([key,label]) => <label key={key} className="block text-sm text-white/70">{label}<textarea value={fields[key]} onChange={e => { setFields(previous => ({...previous, [key]: e.target.value})); if (key === 'question' && !filenameEdited) setFilename(suggestedFilename(e.target.value)); setReceipt(''); }} disabled={busy} rows={key === 'findings' ? 5 : 2} maxLength={10000} className="mt-1 w-full rounded border border-white/10 bg-zinc-900 p-2 text-white" /></label>)}
         <label className="block text-sm text-white/70">Destination<select value={destination} onChange={e => { setDestination(e.target.value); setReceipt(''); }} disabled={busy} className="ml-2 rounded bg-zinc-900 p-2"><option>Library/Notes</option><option>Library/Knowledge Notes</option></select></label>
-        <label className="block text-sm text-white/70">Filename (letters, numbers, hyphens or underscores)<input value={filename} onChange={e => { setFilename(e.target.value); setReceipt(''); }} disabled={busy} maxLength={80} className="mt-1 w-full rounded border border-white/10 bg-zinc-900 p-2" /></label>
+        <label className="block text-sm text-white/70">Filename (letters, numbers, hyphens or underscores)<input value={filename} onChange={e => { setFilename(e.target.value); setFilenameEdited(true); setReceipt(''); }} disabled={busy} maxLength={80} className="mt-1 w-full rounded border border-white/10 bg-zinc-900 p-2" /></label>
         <p className="text-xs text-white/50">References are retained with source digests. Sources are rechecked before saving; existing notes are never overwritten.</p>
-        <div className="flex gap-2"><button type="button" onClick={save} disabled={busy || !filename.trim() || Object.values(fields).some(value => !value.trim())} className="rounded bg-cyan-400 px-3 py-2 text-sm font-bold text-zinc-950 disabled:opacity-40">Save knowledge note</button><button type="button" disabled={busy} onClick={() => { setSources(null); setFields(empty); setError(''); setReceipt(''); }} className="px-3 py-2 text-sm text-white/70">Discard note</button></div>
+        <div className="flex gap-2"><button type="button" onClick={save} disabled={busy || !filename.trim() || Object.values(fields).some(value => !value.trim())} className="rounded bg-cyan-400 px-3 py-2 text-sm font-bold text-zinc-950 disabled:opacity-40">Save knowledge note</button><button type="button" disabled={busy} onClick={() => { setSources(null); setFields(empty); setFilename(''); setFilenameEdited(false); setError(''); setReceipt(''); }} className="px-3 py-2 text-sm text-white/70">Discard note</button></div>
       </>}
       {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
       {receipt && <p role="status" className="text-sm text-cyan-300">Saved: {receipt}</p>}
