@@ -120,7 +120,7 @@ def proposal_path(root, proposal_id):
     return store(root) / (proposal_id + ".json")
 
 
-async def submit(root, request, provider=None):
+async def submit(root, request, provider=None, *, transient=False):
     kind = validate(request.get("entity_type"), request.get("name"))
     name, concept = request["name"], request.get("prompt")
     if not isinstance(concept, str) or not concept.strip() or len(concept) > 16000:
@@ -135,24 +135,36 @@ async def submit(root, request, provider=None):
         + ". voice_id must be an Edge TTS identifier. The name must match exactly.\n"
         + json.dumps({"entity_type": kind, "name": name, "concept": concept})
     )
-    text = await (provider or get_provider()).generate(
-        prompt, system="Return only the requested JSON object."
-    )
+    from services import forge_volatile
     try:
-        blueprint = json.loads(text)
-    except (ValueError, TypeError) as exc:
-        raise ForgeError(
-            "The local model returned invalid JSON. Retry generation."
-        ) from exc
-    validate(kind, name, blueprint)
-    proposal_id = uuid.uuid4().hex
-    record = {
-        "entity_type": kind,
-        "name": name,
-        "blueprint": blueprint,
-        "created": time.time(),
-    }
-    proposal_path(root, proposal_id).write_text(json.dumps(record), encoding="utf-8")
+        proposal_id = forge_volatile.reserve(root) if transient else uuid.uuid4().hex
+    except ValueError as exc:
+        raise ForgeError(str(exc)) from None
+    try:
+        text = await (provider or get_provider()).generate(
+            prompt, system="Return only the requested JSON object."
+        )
+        try:
+            blueprint = json.loads(text)
+        except (ValueError, TypeError) as exc:
+            raise ForgeError(
+                "The local model returned invalid JSON. Retry generation."
+            ) from exc
+        validate(kind, name, blueprint)
+        record = {
+            "entity_type": kind,
+            "name": name,
+            "blueprint": blueprint,
+            "created": time.time(),
+        }
+        if transient:
+            forge_volatile.fill(root, proposal_id, record)
+        else:
+            proposal_path(root, proposal_id).write_text(json.dumps(record), encoding="utf-8")
+    except BaseException:
+        if transient:
+            forge_volatile.discard(root, proposal_id)
+        raise
     return {
         "status": "success",
         "blueprint": blueprint,
@@ -203,9 +215,13 @@ def approve(root, request, progress=lambda message: None):
     if request.get("approved") is not True:
         raise ForgeError("Explicit approval is required before writing to the Vault.")
     proposal_id = request.get("proposal_id")
-    path = proposal_path(root, proposal_id)
+    transient = isinstance(proposal_id, str) and proposal_id.startswith("portal-")
     try:
-        record = json.loads(path.read_text(encoding="utf-8"))
+        if transient:
+            from services import forge_volatile
+            record = forge_volatile.read(root, proposal_id)
+        else:
+            record = json.loads(proposal_path(root, proposal_id).read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise ForgeError(
             "Proposal is missing or discarded. Generate a new preview."
@@ -289,11 +305,21 @@ def approve(root, request, progress=lambda message: None):
                 raise ForgeError("Destination became occupied before publication.")
             output.rename(target)
         progress("Manifestation complete.")
+        if transient:
+            forge_volatile.discard(root, proposal_id)
         return {"status": "success", "message": "Manifestation complete."}
 
 
 def discard(root, request):
-    proposal_path(root, request.get("proposal_id")).unlink(missing_ok=True)
+    identity = request.get("proposal_id")
+    if isinstance(identity, str) and identity.startswith("portal-"):
+        from services import forge_volatile
+        try:
+            forge_volatile.discard(root, identity)
+        except ValueError as exc:
+            raise ForgeError(str(exc)) from None
+    else:
+        proposal_path(root, identity).unlink(missing_ok=True)
     return {"status": "success", "message": "Proposal discarded."}
 
 

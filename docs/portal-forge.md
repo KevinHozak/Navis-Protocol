@@ -52,3 +52,9 @@ The integration does not claim that all pre-existing paths are always local. No 
 ## Offline qualification
 
 `tests/test_protocol_client.py` runs Protocol's real FastAPI endpoint in its own virtualenv against an installed temporary Portal package, authenticated loopback service and fake upstream. Fixtures use an empty disposable Vault, dummy scoped app credential (removed afterward), separate cap ledger and unchanged sentinel Google usage bytes. External sockets and fallback providers are forbidden. Cases cover completion, duplicate/restart, missing usage, disabled/privacy gates, unsupported capability, budget cap, stale commitment, unavailable gateway and backend termination with retained holds. Protocol's own `test_portal_forge.py` additionally covers admission, bounded concurrency, cancellation and invalid charged blueprints. No real Vault, provider credential, paid inference, deployment or live trial is part of qualification.
+
+## Session-only Portal previews
+
+Portal-generated previews are not written to disk. Up to 32 active reviews are retained in process memory for ten minutes, with scheduled expiry. Discard, failure and successful explicit manifestation remove the review body. A server restart loses the preview; it never automatically retries generation or releases billing holds. Only an explicit approval writes the requested final entity. Default/local-provider Forge preview storage is unchanged.
+
+Historical proposal files have no provider marker, so this change does not inspect or delete ambiguous existing private files. Any legacy cleanup needs operator identification. Tests use generated empty Vaults only; no live provider, real import or route activation is involved.
