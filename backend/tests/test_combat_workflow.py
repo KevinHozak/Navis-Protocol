@@ -3,6 +3,7 @@ import json
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+from services import task_time
 
 from test_combat_completion import (
     link, state, assert_contract, subprocess_call,
@@ -102,7 +103,12 @@ def test_journal_write_failure_can_recover_after_restart(vault, call, monkeypatc
     assert state(vault)["active_links"]
     assert not (vault / "Keeper/navis_progression.db").exists()
     assert_contract(subprocess_call(vault, "/api/battle/resolve", command), "completed")
-    assert journal.read_bytes() == before.replace(b"[ ]", b"[x]", 1)
+    completed = journal.read_bytes()
+    assert completed.startswith(b"\xef\xbb\xbf")
+    assert task_time.strip(completed.decode("utf-8-sig")).encode("utf-8-sig") == before.replace(b"[ ]", b"[x]", 1)
+    metadata = task_time.read(completed.decode("utf-8-sig"))
+    assert task_time.valid_instant(metadata["completed_at"])
+    assert metadata["history"] == []
     assert progression_db.get_entity_total("keeper") == 12
 
 

@@ -13,6 +13,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from services import ai_benchmark as benchmark, online_ai
 
 
+@pytest.fixture(autouse=True)
+def synthetic_review_dates(monkeypatch):
+    # Synthetic rates stay fresh; explicit stale-price tests override this fixture.
+    today = online_ai.datetime.now(online_ai.timezone.utc).date().isoformat()
+    monkeypatch.setattr(online_ai, "PRICE_REVIEW_DATE", today)
+    monkeypatch.setattr(benchmark, "CANDIDATES", tuple(replace(price, reviewed=today) for price in benchmark.CANDIDATES))
+
+
 @pytest.fixture
 def guard(tmp_path, monkeypatch):
     paths = (tmp_path / "settings.json", tmp_path / "usage.sqlite3")

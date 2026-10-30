@@ -1,10 +1,9 @@
 """End-to-End smoke and integration validation for Sector Task Boards and Directive Lifecycles (Issue #205)."""
 import json
-from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 import main
-from services import rpg_engine, progression_db
+from services import rpg_engine, progression_db, task_time
 
 
 @pytest.fixture
@@ -97,7 +96,11 @@ def test_active_task_e2e_lifecycle(mock_navis_env):
     journal_text = journal_bytes.decode('utf-8-sig')
     assert 'Initial Sanctum Note 🌟' in journal_text
     expected_line = '- [x] Calibrate primary & secondary telescope sensors <!-- navis-directive:'
-    assert expected_line in journal_text, f"Journal missing completion marker: {journal_text}"
+    assert expected_line in task_time.strip(journal_text), f"Journal missing completion marker: {journal_text}"
+
+    completed_line = next(line for line in journal_text.splitlines() if line.startswith('- [x] Calibrate'))
+    assert task_time.valid_instant(task_time.read(completed_line)['completed_at'])
+    assert task_time.read(completed_line)['completed_at'] == completed_body['task']['completed_at']
 
     # Verify task is no longer pending in active tasks list
     res_active = client.get('/api/active_tasks?area=Sanctum')
@@ -135,25 +138,31 @@ def test_recurring_task_e2e_completion_and_progression(mock_navis_env):
     # 3. Journal evidence verification
     journal_text = journal_path.read_bytes().decode('utf-8-sig')
     assert 'Home Note 雪' in journal_text
-    assert '- [x] Domestic water filter purge <!-- navis-directive:' in journal_text
+    assert '- [x] Domestic water filter purge <!-- navis-directive:' in task_time.strip(journal_text)
+
+    completed_line = next(line for line in journal_text.splitlines() if line.startswith('- [x] Domestic'))
+    assert task_time.valid_instant(task_time.read(completed_line)['completed_at'])
+    assert task_time.read(completed_line)['completed_at'] == completed['completed_at']
 
     # 4. XP Accrual verification
     xp_total = progression_db.get_entity_total('keeper')
     assert xp_total > 0, "XP must be accrued after recurring mandate completion"
 
 
-def test_ops_state_regression_no_missing_field_crashes():
-    """Verify existing tasks from real ops_state.json render and deserialize seamlessly."""
-    real_path = Path(r"G:\My Drive\Navis-Vault\Bridge\ops_state.json")
-    if not real_path.is_file():
-        pytest.skip("Physical Vault ops_state.json not available in current environment")
-
-    data = json.loads(real_path.read_text(encoding='utf-8-sig'))
+def test_ops_state_regression_no_missing_field_crashes(tmp_path):
+    """Exercise legacy optional fields from a synthetic serialized ops state."""
+    path = tmp_path / 'ops_state.json'
+    active = [{'id': f'active-{i}', 'text': f'Synthetic task {i}',
+               **({'priority': [None, 1, '2'][i % 3], 'labels': [None, [], ['@fixture']][i % 3]} if i % 2 else {})}
+              for i in range(200)]
+    recurring = [{'id': f'recurring-{i}', 'text': f'Synthetic recurring {i}', 'frequency': 'weekly'} for i in range(45)]
+    path.write_text(json.dumps({'active_tasks': active, 'tasks': recurring}), encoding='utf-8-sig')
+    data = json.loads(path.read_text(encoding='utf-8-sig'))
     active_tasks = data.get('active_tasks', [])
     recurring_tasks = data.get('tasks', [])
 
-    assert len(active_tasks) >= 190, f"Expected 190+ active tasks, found {len(active_tasks)}"
-    assert len(recurring_tasks) >= 40, f"Expected 40+ recurring tasks, found {len(recurring_tasks)}"
+    assert len(active_tasks) >= 190, f"Expected 190+ synthetic active tasks, found {len(active_tasks)}"
+    assert len(recurring_tasks) >= 40, f"Expected 40+ synthetic recurring tasks, found {len(recurring_tasks)}"
 
     # Check each active task has valid structure and doesn't fail basic access
     for t in active_tasks:

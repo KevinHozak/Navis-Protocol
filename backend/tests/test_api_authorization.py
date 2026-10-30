@@ -24,6 +24,7 @@ def auth_vault(tmp_path, monkeypatch):
     )
 
     monkeypatch.setattr(main, "NAVIS_ROOT", str(vault))
+    monkeypatch.setattr(main, "STATUS_PATH", str(bridge / "status.json"))
     return vault
 
 
