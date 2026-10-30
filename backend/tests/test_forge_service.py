@@ -190,7 +190,8 @@ class ForgeTests(unittest.TestCase):
         import ast
         from fastapi import FastAPI, BackgroundTasks, HTTPException
         from fastapi.testclient import TestClient
-        from pydantic import BaseModel, StrictBool
+        from pydantic import BaseModel, StrictBool, model_validator
+        from typing import Optional
 
         tree = ast.parse(
             (Path(__file__).resolve().parents[1] / "main.py").read_text(
@@ -214,6 +215,8 @@ class ForgeTests(unittest.TestCase):
             "app": FastAPI(),
             "BaseModel": BaseModel,
             "StrictBool": StrictBool,
+            "model_validator": model_validator,
+            "Optional": Optional,
             "BackgroundTasks": BackgroundTasks,
             "HTTPException": HTTPException,
             "NAVIS_ROOT": str(self.root),

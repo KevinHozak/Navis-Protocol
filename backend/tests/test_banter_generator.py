@@ -117,8 +117,11 @@ def test_recent_usable_thread_skips_repeated_local_work(banter_vault, monkeypatc
     assert len(provider.calls) == banter_generator.MAX_BANTER_THREADS_PER_RUN
 
 
-def test_banter_trigger_is_sync_route_for_threadpool_execution(monkeypatch):
+def test_banter_trigger_is_sync_route_for_threadpool_execution(banter_vault, monkeypatch):
+    import main
     from main import trigger_banter_generation
+
+    monkeypatch.setattr(main, "STATUS_PATH", banter_generator.STATUS_PATH)
 
     monkeypatch.setattr(banter_generator, "generate_squad_banter", lambda count: True)
     assert not inspect.iscoroutinefunction(trigger_banter_generation)

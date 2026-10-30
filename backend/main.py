@@ -63,6 +63,19 @@ class ForgeSubmitRequest(BaseModel):
     entity_type: str
     name: str
     prompt: str
+    provider: str = "default"
+    portal_opt_in: StrictBool = False
+    allow_external_text: StrictBool = False
+    operation_id: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def explicit_portal_shape(cls, value):
+        if isinstance(value, dict) and value.get("provider") == "portal":
+            allowed = {"entity_type", "name", "prompt", "provider", "portal_opt_in", "allow_external_text", "operation_id"}
+            if set(value) - allowed:
+                raise ValueError("Portal supports only an explicitly reviewed text Forge preview")
+        return value
 
 
 class ForgeApproveRequest(BaseModel):
@@ -3048,6 +3061,14 @@ async def warroom_chat(req: WarRoomChatRequest):
 
 @app.post("/api/forge/submit")
 async def forge_submit(req: ForgeSubmitRequest):
+    if req.provider == "portal":
+        from services.portal_forge import submit as portal_submit, PortalFeatureError
+        try:
+            return await portal_submit(NAVIS_ROOT, req.model_dump())
+        except PortalFeatureError as error:
+            raise HTTPException(status_code=error.status, detail=error.receipt) from None
+    if req.provider != "default" or req.portal_opt_in or req.allow_external_text or req.operation_id is not None:
+        raise HTTPException(status_code=400, detail={"code": "PORTAL_EXPLICIT_MODE_REQUIRED", "provider": "portal", "billing_state": "not_sent"})
     from services.forge_service import submit, ForgeError
     from services.ai_provider import ProviderError
     try:

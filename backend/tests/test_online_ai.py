@@ -12,6 +12,9 @@ from services import online_ai
 
 @pytest.fixture
 def isolated_guard(tmp_path, monkeypatch):
+    # Synthetic accounting tests need fresh fixture pricing, not an expired
+    # production observation. This does not change runtime pricing evidence.
+    monkeypatch.setattr(online_ai, "PRICE_REVIEW_DATE", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
     paths = (tmp_path / "ai_experiments.json", tmp_path / "ai_usage.sqlite3")
     monkeypatch.setattr(online_ai, "_paths", lambda: paths)
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
