@@ -1,5 +1,10 @@
 # Decision-focused Holocron review (S006)
 
+S028 updates transport and labels through the [configured shared provider](openrouter-text-generation.md).
+Cloud synthesis remains disabled until explicitly configured. The original local
+implementation evidence below is historical; deterministic fallback, source limits,
+editable proposals and explicit exports remain unchanged.
+
 S005 passed its retrospective three-cycle comparison: the user preferred all three candidates, required no corrections, and explicitly chose keep. Review time is unknown; no time savings or prospective outcome improvement is claimed.
 
 The existing Weekly Holocron now includes what changed, unresolved matters and one suggested adjustment. A bounded deterministic fallback compares exact checkbox labels on the first and last readable days in the week. It describes observed states, not completion dates or causal outcomes; intervening days may differ. Missing sources and insufficient comparisons remain unknown. The first unchecked item on the last readable day is a review prompt, not a priority inference. Checklist completion and signed XP never establish sustainable workload or meaningful outcomes.

@@ -152,14 +152,14 @@ def has_usable_recent_thread(db_path, realm, participants, *, now=None):
     return False
 
 
-def generate_squad_banter(count=3):
-    from services.ai_provider import ProviderError, OllamaProvider
+def generate_squad_banter(count=3, *, background=False):
+    from services.ai_provider import ProviderError, get_provider
     import asyncio
 
     try:
-        provider = OllamaProvider()
+        provider = get_provider()
     except ProviderError as e:
-        print(f"⚠️ Local banter generation unavailable: {e}")
+        print(f"⚠️ Configured banter generation unavailable: {e}")
         return False
 
     if not os.path.exists(STATUS_PATH):
@@ -321,7 +321,7 @@ REQUIRED TEMPLATE (Fill in the 'text' fields):
 {template_str}
 """
         try:
-            resp_text = asyncio.run(provider.generate(prompt))
+            resp_text = asyncio.run(provider.generate(prompt, feature="banter", background=background))
 
             # Robust extraction
             final_chain = []
@@ -384,9 +384,9 @@ REQUIRED TEMPLATE (Fill in the 'text' fields):
             else:
                 print("⚠️ Failed to parse LLM response as JSON or match regex.")
         except ProviderError as e:
-            print(f"⚠️ Local banter generation unavailable: {e}")
+            print(f"⚠️ Configured banter generation unavailable: {e}")
             return False
         except Exception as e:
             print(f"❌ Error generating banter thread: {type(e).__name__}")
 
-    return generated_count > 0
+    return generated_count == count

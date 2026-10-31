@@ -328,7 +328,7 @@ export default function BridgeHome({
                     LIVE WTD
                   </span>
                 )}
-                {holocron.debrief_source === 'ollama' && (
+                {['ollama', 'openrouter'].includes(holocron.debrief_source) && (
                   <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-400/50 text-purple-300 font-mono text-[9px] font-bold tracking-wider">
                     ✨ AI SAGE
                   </span>

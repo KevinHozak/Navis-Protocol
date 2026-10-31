@@ -572,9 +572,9 @@ def build_weekly_holocron(
                 previous = json.load(stream)
             if (previous.get("schema_version") == "2.0.0" and previous.get("summary") == summary
                     and previous.get("evidence", {}).get("sources") == sources
-                    and previous.get("debrief_source") == "ollama"):
+                    and previous.get("debrief_source") in {"ollama", "openrouter"}):
                 holocron_payload["tactical_debrief"] = previous["tactical_debrief"]
-                holocron_payload["debrief_source"] = "ollama"
+                holocron_payload["debrief_source"] = previous["debrief_source"]
                 holocron_payload["evidence"]["interpretation"]["kind"] = "ai_interpretation"
         except (OSError, ValueError, KeyError):
             pass
@@ -733,7 +733,7 @@ def export_standalone_html(payload: Dict[str, Any], output_path: Optional[str] =
           </div>"""
 
     status_badge = '<span class="badge" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">⚡ LIVE WTD</span>' if payload.get("is_in_flight") else '<span class="badge" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); color: #94a3b8;">🔒 CONCLUDED</span>'
-    debrief_tag = '<span style="font-size: 0.65rem; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.5rem;">✨ OLLAMA SAGE AI</span>' if payload.get("debrief_source") == "ollama" else '<span style="font-size: 0.65rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.5rem;">RULE-BASED</span>'
+    debrief_tag = '<span style="font-size: 0.65rem; background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #d8b4fe; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.5rem;">✨ AI INTERPRETATION</span>' if payload.get("debrief_source") in {"ollama", "openrouter"} else '<span style="font-size: 0.65rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #94a3b8; padding: 0.15rem 0.4rem; border-radius: 4px; margin-left: 0.5rem;">RULE-BASED</span>'
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1110,8 +1110,8 @@ async def synthesize_ollama_debrief(holocron_payload: Dict[str, Any]) -> Tuple[s
     )
 
     try:
-        from services.ai_provider import OllamaProvider
-        provider = OllamaProvider()
+        from services.ai_provider import get_provider
+        provider = get_provider()
         is_online = await provider.check()
         if not is_online:
             return (rule_based, "rule_based_fallback")
@@ -1119,7 +1119,7 @@ async def synthesize_ollama_debrief(holocron_payload: Dict[str, Any]) -> Tuple[s
         response = await provider.generate(prompt, system=system_prompt, feature="holocron")
         cleaned = clean_debrief_output(response)
         if cleaned and len(cleaned) > 20:
-            return (cleaned, "ollama")
+            return (cleaned, "openrouter" if type(provider).__name__ == "GuardedOpenRouterProvider" else "ollama")
         return (rule_based, "rule_based_fallback")
     except Exception:
         return (rule_based, "rule_based_fallback")

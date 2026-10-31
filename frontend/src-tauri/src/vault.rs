@@ -2219,7 +2219,7 @@ fn python_holocron(
         .arg(backend.join("native_holocron.py"))
         .current_dir(backend)
         .env_clear();
-    for key in ["PATH", "SystemRoot", "TEMP", "TMP"] {
+    for key in ["PATH", "SystemRoot", "TEMP", "TMP", "NAVIS_AI_PROVIDER", "NAVIS_OPENROUTER_CONFIG", "OPENROUTER_API_KEY"] {
         if let Ok(value) = std::env::var(key) {
             command.env(key, value);
         }

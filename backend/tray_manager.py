@@ -58,28 +58,6 @@ frontend_proc = subprocess.Popen(
     creationflags=CREATE_NO_WINDOW,
 )
 
-import threading
-import urllib.request
-import json
-
-
-def preload_ollama():
-    try:
-        # Pinging Ollama with an empty request to preload the model into VRAM
-        data = json.dumps({"model": "Kimiko-20B:latest", "keep_alive": "1h"}).encode(
-            "utf-8"
-        )
-        req = urllib.request.Request(
-            "http://localhost:11434/api/generate",
-            data=data,
-            headers={"Content-Type": "application/json"},
-        )
-        urllib.request.urlopen(req, timeout=10)
-    except Exception:
-        pass
-
-
-threading.Thread(target=preload_ollama, daemon=True).start()
 
 
 def launch_portal(icon, item):

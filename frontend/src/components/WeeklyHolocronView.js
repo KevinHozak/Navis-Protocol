@@ -195,7 +195,7 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
         debrief_source: result.debrief_source,
         evidence: result.holocron?.evidence || prev.evidence
       }));
-      setExportNotice(result.debrief_source === 'ollama' ? '✨ Tactical Sage debrief synthesized by Ollama!' : '⚠️ Ollama offline. Retained rule-based debrief.');
+      setExportNotice(['ollama', 'openrouter'].includes(result.debrief_source) ? '✨ Tactical Sage debrief synthesized by the configured provider!' : '⚠️ Provider unavailable or disabled. Retained rule-based debrief.');
       setTimeout(() => setExportNotice(null), 4000);
     } catch (err) {
       if (revision === requestRevision.current) setError(err.message);
@@ -331,9 +331,9 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
           <div className="flex items-center gap-2 text-cyan-300 text-xs font-mono font-bold uppercase tracking-widest">
             <span>💠</span>
             <span>Command Tactical Debrief // {data.week_id}</span>
-            {data.debrief_source === 'ollama' ? (
+            {['ollama', 'openrouter'].includes(data.debrief_source) ? (
               <span className="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-400/50 text-purple-300 text-[10px] font-mono font-bold tracking-wider">
-                ✨ OLLAMA SAGE AI
+                ✨ AI INTERPRETATION
               </span>
             ) : (
               <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-400 text-[10px] font-mono tracking-wider">
@@ -345,12 +345,12 @@ export default function WeeklyHolocronView({ activeWeekId, onOpenBestiary, onOpe
             onClick={handleSynthesizeAiDebrief}
             disabled={loading || regenerating || synthesizingAi}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-purple-500/20 border border-purple-400/50 text-purple-200 text-xs font-mono font-bold hover:bg-purple-500/30 hover:border-purple-300 transition-all disabled:opacity-50"
-            title="Synthesize an inspiring tactical debrief using local Ollama"
+            title="Synthesize an inspiring tactical debrief using the configured provider"
           >
             {synthesizingAi ? '✨ Synthesizing...' : '✨ AI Tactical Debrief'}
           </button>
         </div>
-        <p className="text-xs text-zinc-400">{data.debrief_source === 'ollama' ? 'AI interpretation; not verified conclusions.' : 'Deterministic summary of observed inputs.'}</p>
+        <p className="text-xs text-zinc-400">{['ollama', 'openrouter'].includes(data.debrief_source) ? 'AI interpretation; not verified conclusions.' : 'Deterministic summary of observed inputs.'}</p>
         <p className="text-sm leading-relaxed text-zinc-200">
           {tactical_debrief}
         </p>

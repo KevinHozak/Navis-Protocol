@@ -48,7 +48,7 @@ class FakeSession:
         return FakeResponse(self.status)
 
 
-def test_local_provider_defaults_without_cloud_credentials(monkeypatch):
+def test_cloud_default_is_disabled_without_configuration(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     monkeypatch.delenv("NAVIS_AI_PROVIDER", raising=False)
@@ -56,8 +56,10 @@ def test_local_provider_defaults_without_cloud_credentials(monkeypatch):
 
     provider = ai_provider.get_provider()
 
-    assert isinstance(provider, ai_provider.OllamaProvider)
-    assert provider.config.model == "Kimiko-20B:latest"
+    assert isinstance(provider, ai_provider.GuardedOpenRouterProvider)
+    monkeypatch.delenv("NAVIS_OPENROUTER_CONFIG", raising=False)
+    with pytest.raises(ai_provider.ProviderError, match="disabled"):
+        asyncio.run(provider.generate("Synthetic input", feature="forge"))
 
 
 def test_generation_uses_configured_local_model_and_normalizes_errors(monkeypatch):
@@ -106,12 +108,11 @@ def test_missing_local_model_is_actionable_and_recovers(monkeypatch):
     assert asyncio.run(provider.generate("private prompt")) == "Recovered locally"
 
 
-def test_cloud_provider_requires_the_online_experiment_guard(monkeypatch):
+def test_legacy_gemini_is_rejected_for_migrated_text_features(monkeypatch):
     monkeypatch.setenv("NAVIS_AI_PROVIDER", "gemini")
 
-    provider = ai_provider.get_provider()
-    assert isinstance(provider, ai_provider.GuardedGeminiProvider)
-    assert asyncio.run(provider.check()) is False
+    with pytest.raises(ai_provider.ProviderError, match="retired"):
+        ai_provider.get_provider()
 
 
 def test_connectivity_check_uses_local_tags_endpoint(monkeypatch):

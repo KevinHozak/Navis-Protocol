@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock, Mock
 
 import pytest
 from services.actionable_brief import FIELDS, generate, save
@@ -38,7 +38,7 @@ def test_invalid_save_writes_nothing(tmp_path):
 
 
 def test_unavailable_model_does_not_write(tmp_path):
-    with patch("services.actionable_brief.urlopen", side_effect=OSError("offline")):
+    with patch("services.actionable_brief.get_provider", return_value=Mock(generate=AsyncMock(side_effect=OSError("offline")))):
         with pytest.raises(OSError):
             generate(body())
     assert not list(tmp_path.iterdir())
@@ -75,25 +75,20 @@ def test_http_save_matches_native_contract(tmp_path):
 
 
 def test_generation_validates_local_response():
-    from unittest.mock import MagicMock
-    response = MagicMock()
-    response.__enter__.return_value.read.return_value = json.dumps({"response": json.dumps({field: 1 for field in FIELDS})}).encode()
-    with patch("services.actionable_brief.urlopen", return_value=response) as transport:
+    provider = Mock(generate=AsyncMock(return_value=json.dumps({field: 1 for field in FIELDS})))
+    with patch("services.actionable_brief.get_provider", return_value=provider):
         assert generate(body())["brief"]["Goal"] == "Source intention: Need release but build pending;"
-        assert transport.call_args.args[0].full_url == "http://127.0.0.1:11434/api/generate"
-    response.__enter__.return_value.read.return_value = b'{"response":"{}"}'
-    with patch("services.actionable_brief.urlopen", return_value=response):
+        assert provider.generate.call_args.kwargs['feature'] == 'brief'
+    provider.generate.return_value = '{}'
+    with patch("services.actionable_brief.get_provider", return_value=provider):
         with pytest.raises(ValueError):
             generate(body())
 
 
 def test_generation_refuses_unsupported_assumptions():
-    from unittest.mock import MagicMock
-    response = MagicMock()
     candidate = {field: body()["original"] for field in FIELDS}
     candidate["One suggested next action"] = "Conduct a meeting with the team."
-    response.__enter__.return_value.read.return_value = json.dumps({"response": json.dumps(candidate)}).encode()
-    with patch("services.actionable_brief.urlopen", return_value=response):
+    with patch("services.actionable_brief.get_provider", return_value=Mock(generate=AsyncMock(return_value=json.dumps(candidate)))):
         with pytest.raises(ValueError, match="outside your note"):
             generate(body())
 

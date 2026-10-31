@@ -63,7 +63,7 @@ def dispatch(path: str, method: str = "GET", body: dict = None) -> dict:
         debrief = share_safe(debrief)
         holocron_data["tactical_debrief"] = debrief
         holocron_data["debrief_source"] = source
-        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source == "ollama" else "deterministic_summary"
+        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source in {"ollama", "openrouter"} else "deterministic_summary"
 
         # Persist updated debrief in json artifact if it exists on disk
         artifact_path = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.json")

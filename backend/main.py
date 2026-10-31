@@ -722,69 +722,7 @@ class JournalEntryRequest(BaseModel):
     expected_sha256: str | None = None
 
 
-JOURNAL_SECTION_HEADINGS = {
-    "sanctum": "## 🏰 The Sanctum",
-    "domestic": "## 🏠 The Domestic Breach",
-    "front": "## ⚔️ The High-Velocity Front",
-    "gauntlet": "## ⚖️ The Bureaucratic Gauntlet",
-    "outland": "## 🥾 The Kinetic Outland",
-}
-
-JOURNAL_SECTION_EMOJIS = {
-    "sanctum": "🏰",
-    "domestic": "🏠",
-    "front": "⚔️",
-    "gauntlet": "⚖️",
-    "outland": "🥾",
-}
-
-
-def polish_output_emoji(entry: str, section: str) -> str:
-    lowered = entry.casefold()
-    if re.search(r"\b(test|testing|experiment|diagnostic)\b", lowered):
-        return "🧪"
-    if re.search(r"\b(read|reading|book|library)\b", lowered):
-        return "📚"
-    if re.search(r"\b(watch|watched|movie|film|episode)\b", lowered):
-        return "🎬"
-    if re.search(r"\b(workout|exercise|training|lift|lifting)\b", lowered):
-        return "💪"
-    return JOURNAL_SECTION_EMOJIS.get(section, JOURNAL_SECTION_EMOJIS["sanctum"])
-
-
-def format_polished_journal_entry(suggestion: str, entry: str, section: str) -> str:
-    suggestion = suggestion.strip()
-    suggestion = re.sub(r"(?i)^(?:edited|polished)(?: journal)? entry:\s*", "", suggestion)
-    suggestion = re.sub(r"\.+\s*$", "", suggestion).rstrip()
-
-    first_letter = re.search(r"[^\W\d_]", suggestion, flags=re.UNICODE)
-    if first_letter:
-        start, end = first_letter.span()
-        suggestion = suggestion[:start] + suggestion[start:end].upper() + suggestion[end:]
-
-    emoji_pattern = r"^[\U0001F000-\U0001FAFF\u2600-\u27BF]\ufe0f?\s+"
-    leading_emoji = re.match(emoji_pattern, suggestion)
-    if leading_emoji:
-        emoji = leading_emoji.group(0).strip()
-        content = suggestion[leading_emoji.end() :]
-    else:
-        emoji = polish_output_emoji(entry, section)
-        content = suggestion
-
-    checklist_prefix = re.match(r"^([ \t]*[-*+][ \t]*\[[ xX/]\][ \t]*)", content)
-    if checklist_prefix:
-        body = content[checklist_prefix.end() :].lstrip()
-        body_emoji = re.match(emoji_pattern, body)
-        if body_emoji:
-            emoji = body_emoji.group(0).strip()
-            body = body[body_emoji.end() :]
-        return f"{content[:checklist_prefix.end()]}{emoji} {body}"
-
-    return f"{emoji} {content}"
-
-
-from services.journal_entry import checked_journal_list_item as checked_journal_list_item
-
+from services.journal_polish import JOURNAL_SECTION_HEADINGS, polish_output_emoji, format_polished_journal_entry  # noqa: F401 -- compatibility exports
 
 
 @app.post("/api/knowledge-notes/{operation}")
@@ -810,12 +748,15 @@ async def knowledge_note(operation: str, body: dict):
 async def actionable_brief(operation: str, body: dict):
     import asyncio
     from services.actionable_brief import generate, save
+    from services.ai_provider import ProviderError
     try:
         if operation == "generate":
             return await asyncio.to_thread(generate, body)
         if operation == "save":
             return await asyncio.to_thread(save, NAVIS_ROOT, body)
         raise HTTPException(status_code=404, detail="Unknown brief operation.")
+    except ProviderError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from None
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except (OSError, KeyError, TypeError) as error:
@@ -824,106 +765,14 @@ async def actionable_brief(operation: str, body: dict):
 
 @app.post("/api/journal/entry/polish")
 async def polish_journal_entry(req: JournalEntryPolishRequest):
-    entry = req.entry.strip()
-    if not entry:
-        raise HTTPException(status_code=422, detail="Journal entry cannot be empty.")
-    if len(entry) > 10000:
-        raise HTTPException(
-            status_code=422,
-            detail="Journal entry must be 10,000 characters or fewer.",
-        )
+    from services.journal_polish import polish
+    return await polish(req.entry, req.section)
 
-    section = req.section if req.section in JOURNAL_SECTION_HEADINGS else "sanctum"
-    section_heading = JOURNAL_SECTION_HEADINGS[section].removeprefix("## ")
-    prompt = (
-        "You copy-edit one personal journal entry. This is an editing task, never a "
-        "conversation. Return only the edited entry, preserving its existing line and "
-        "Markdown structure. Preserve meaning, facts, and checklist states. Correct "
-        "obvious spelling mistakes and accidentally "
-        "joined words using context. Always capitalize the first word, do not end with "
-        "a period, and prefix one relevant emoji chosen for BOTH the entry and its "
-        "journal section. For checklist entries, put the emoji immediately after the "
-        "existing list and checkbox markers. Do not add explanations or facts.\n\n"
-        "Examples:\n"
-        "Section: The Sanctum\n"
-        "Draft: okay this is another test of the msystem\n"
-        "Edited: 🧪 Okay, this is another test of the system\n\n"
-        "Section: The Domestic Breach\n"
-        "Draft: i fixed the broken shelf\n"
-        "Edited: 🏠 I fixed the broken shelf\n\n"
-        f"Section: {section_heading}\n"
-        f"Draft: {entry}\n"
-        "Edited:"
-    )
-    payload = {
-        "model": "Kimiko-20B:latest",
-        "prompt": prompt,
-        "stream": False,
-        "keep_alive": "1h",
-        "options": {"temperature": 0.2, "num_predict": 1024},
-    }
-    import aiohttp
 
-    try:
-        timeout = aiohttp.ClientTimeout(total=90)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                "http://localhost:11434/api/generate", json=payload
-            ) as response:
-                if response.status != 200:
-                    detail = (await response.text())[:400]
-                    raise HTTPException(
-                        status_code=503,
-                        detail=(
-                            "Local Ollama could not polish this draft: "
-                            f"{detail or response.status}"
-                        ),
-                    )
-                result = await response.json()
-    except HTTPException:
-        raise
-    except (aiohttp.ClientError, TimeoutError) as error:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Local Ollama is unavailable or timed out. "
-                "Your draft has not been changed."
-            ),
-        ) from error
-    suggestion = result.get("response", "")
-    suggestion = suggestion.strip() if isinstance(suggestion, str) else ""
-    if not suggestion:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Local Ollama returned an empty suggestion. "
-                "Your draft has not been changed."
-            ),
-        )
-    if re.search(
-        r"(?i)\b(?:i(?:'m| am) sorry|i don['’]t understand your response|please rephrase your message)\b",
-        suggestion,
-    ):
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Local Ollama returned a conversational reply instead of a polished "
-                "draft. Your draft has not been changed."
-            ),
-        )
-    suggestion = format_polished_journal_entry(suggestion, entry, section)
-    checklist_pattern = r"(?m)^[ \t]*[-*+][ \t]*\[[ xX/]\]"
-    original_checklists = re.findall(checklist_pattern, entry)
-    suggested_checklists = re.findall(checklist_pattern, suggestion)
-    if original_checklists != suggested_checklists:
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Local Ollama changed checklist formatting. "
-                "Your draft has not been changed."
-            ),
-        )
-    return {"suggestion": suggestion}
+@app.get("/api/ai/text/status")
+def text_provider_status():
+    from services.openrouter_provider import diagnostics
+    return diagnostics()
 
 
 @app.post("/api/journal/entry")
@@ -2779,14 +2628,11 @@ def get_banter():
     if not os.path.exists(persona_path):
         persona_path = os.path.join(comp_dir, speaker.split(" ")[0], "Persona.json")
 
-    system_prompt = None
-    voice_desc = None
     if os.path.exists(persona_path):
         try:
             with open(persona_path, "r", encoding="utf-8-sig") as f:
                 p_data = json.load(f)
-                system_prompt = p_data.get("system_prompt")
-                voice_desc = p_data.get("voice")
+                _ = p_data  # No generation is triggered by quote retrieval.
         except Exception as e:
             print(f"Error reading Persona.json: {e}")
 
@@ -2826,34 +2672,7 @@ def get_banter():
     if quote:
         return {"speaker": speaker, "quote": quote}
 
-    # If no static quote, use the local-first provider.
-    try:
-        import asyncio
-        from services.ai_provider import get_provider
-
-        realm = status.get("current_realm", "Unknown")
-        loc = status.get("location", "Unknown")
-
-        prompt = f"""
-Act as a Storyteller / Writer for a companion in a high-fidelity RPG.
-CHARACTER NAME: {speaker}
-CHARACTER DETAILS/VOICE: {voice_desc or system_prompt or "A loyal companion to the Keeper"}
-ENVIRONMENT: {loc} in {realm}
-
-TASK: Generate a single short sentence of immersive dialogue/banter in this character's voice as they travel with the Keeper. 
-
-CONSTRAINTS:
-1. Speak directly to the Keeper.
-2. Keep it under 20 words.
-3. No modern jargon (no tech, no stats, no files, no sensors). Focus on the RPG atmosphere, environment, or a word of encouragement/vigilance.
-4. Do NOT use emojis.
-5. Return ONLY the spoken dialogue. Do not include quotes, actions, or character name prefix. E.g. "We must tread carefully; the shadows here feel heavier than before."
-"""
-        quote = asyncio.run(get_provider().generate(prompt)).replace('"', "")
-        if quote:
-            return {"speaker": speaker, "quote": quote}
-    except Exception as e:
-        print(f"⚠️ Local dynamic banter unavailable: {type(e).__name__}")
+    # Read-only quote retrieval never triggers provider requests.
 
     # Ultimate fallback if everything else fails
     fallback_quotes = [
@@ -3017,12 +2836,12 @@ def trigger_banter_generation(count: int = 1):
     if success:
         return {
             "status": "success",
-            "message": f"Successfully generated {count} squad banter threads.",
+            "message": "Squad banter is available.",
         }
     else:
         raise HTTPException(
-            status_code=500,
-            detail="Local banter generation failed. Check the local provider and Vault access, then retry. No online fallback was used.",
+            status_code=503,
+            detail="Banter was not generated. Review configured provider, budget and squad state before retrying. No provider fallback was used.",
         )
 
 
@@ -3688,7 +3507,7 @@ async def generate_holocron_ai_debrief(week_id: str):
         debrief = share_safe(debrief)
         holocron_data["tactical_debrief"] = debrief
         holocron_data["debrief_source"] = source
-        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source == "ollama" else "deterministic_summary"
+        holocron_data["evidence"]["interpretation"]["kind"] = "ai_interpretation" if source in {"ollama", "openrouter"} else "deterministic_summary"
         
         # Persist updated debrief in json artifact if it exists on disk
         artifact_path = os.path.join(NAVIS_ROOT, "Bridge", "Holocron", "Weekly", f"{week_id}.json")

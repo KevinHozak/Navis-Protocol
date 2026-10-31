@@ -56,7 +56,7 @@ export default function JournalEntryComposer({ date, onSaved, onUnverified, init
         throw new Error(message || 'Journal entry could not be polished.');
       }
       const result = await response.json();
-      if (!result.suggestion?.trim()) throw new Error('Local Ollama returned an empty suggestion.');
+      if (!result.suggestion?.trim()) throw new Error('Configured provider returned an empty suggestion.');
       setEntry(result.suggestion);
     } catch (polishError) {
       setError(polishError instanceof TypeError
@@ -148,7 +148,7 @@ export default function JournalEntryComposer({ date, onSaved, onUnverified, init
               disabled={saving || polishing || !entry.trim()}
               className="rounded border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-bold text-accent transition hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {polishing ? 'Polishing with local AI...' : canSuggestLocally ? 'Polish with AI' : 'Local suggestions unavailable'}
+              {polishing ? 'Polishing with configured AI...' : canSuggestLocally ? 'Polish with AI' : 'Suggestions unavailable'}
             </button>
             {originalEntry !== null && (
               <button
@@ -164,7 +164,7 @@ export default function JournalEntryComposer({ date, onSaved, onUnverified, init
                 Restore original draft
               </button>
             )}
-            <span className="text-xs text-white/40">{canSuggestLocally ? 'Suggestions use local Ollama and are not saved automatically.' : 'Local Ollama suggestions require the desktop app or a local Navis server.'}</span>
+            <span className="text-xs text-white/40">{canSuggestLocally ? 'When enabled, sends this draft to the configured provider. Suggestions are not saved automatically.' : 'Configured text suggestions require the desktop app or a local Navis server.'}</span>
           </div>
 
           <ActionableBrief entry={entry} date={date} section={section} disabled={saving || polishing} available={canSuggestLocally} />
