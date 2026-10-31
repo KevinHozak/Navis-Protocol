@@ -56,7 +56,7 @@ These retain the original product direction without treating an existing compone
 | Synthesis Lab HUD | Partial | Synthesis interface exists; full creative-project/multiverse matrices remain planned. |
 | Companion Forge | Implemented bounded generation | Local proposal and explicit approval exist; full blueprint coverage and live quality validation remain follow-up work. |
 | Multiverse decision tracking | Planned | A dedicated decision-tree analysis workflow remains broader scope. |
-| AI spend audit and banter | Partial | Provider logging/guards and local banter are merged; automatic sync/rollover generation policy and native hosted accounting must be verified separately. |
+| AI spend audit and banter | Partial | S028 shared OpenRouter text routing, budgets and explicit background gating are merged and verified with cloud disabled. Live model configuration/quality and separate Portal accounting remain follow-up scope. |
 | Squad management and dossier cards | Partial | Reserve/profile UI and status reads exist; native deploy/bench/vanguard HTTP equivalents are absent. |
 | Stats dashboard | Partial | Attributes and entity UI exist; complete analytical visualization remains broader work. |
 | Talent tree | Planned | Graphical progression and perk ledger tracked in Epic [#193](https://github.com/KevinHozak/Navis-Protocol-Private/issues/193) ([#194](https://github.com/KevinHozak/Navis-Protocol-Private/issues/194)â€“[#196](https://github.com/KevinHozak/Navis-Protocol-Private/issues/196)). |
@@ -72,6 +72,14 @@ These retain the original product direction without treating an existing compone
 | Bidirectional synchronization | Partial | Journal edits and combat completion write back; real-time push synchronization tracked in Epic [#188](https://github.com/KevinHozak/Navis-Protocol-Private/issues/188). |
 
 Use issue acceptance criteria and the linked evidence records to select follow-up work. Recheck issue state before starting: merged implementation and unfinished manual verification can coexist.
+
+[S028](../issues/NAVIS-S028.md) is done after PR #40 merged at `71adbf2`:
+the shared OpenRouter text migration passed mocked provider, isolated web and
+packaged desktop checks in release 1.11.36. Cloud and background generation remain
+disabled until explicitly configured. No key/model/budget was selected and no live
+paid request or personal-Vault transmission occurred. Live configured-model quality,
+clean-machine installation and independent external review are not claimed; see the
+[configuration and verification contract](openrouter-text-generation.md).
 
 S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.
 
