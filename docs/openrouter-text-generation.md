@@ -115,11 +115,16 @@ missing key/model, disabled generation, stale pricing, model/provider review cha
 budgets, authentication/rate limiting, timeout, malformed/empty/truncated/tool output,
 unknown usage, cost overrun and retry blocking. Live calls were not authorized or run.
 
-The final copied executable started a fixture process/window, but native UI smoke
-is blocked by failed window activation/restore and unavailable document accessibility.
-This remains a draft-PR readiness gate. It is not a passed keyboard/native workflow
-check or a clean-machine installation result. Configuration and live model quality
-remain deliberately untested. No personal Vault data or credentials were modified.
+The initial executable UI attempt was blocked by failed window activation/restore
+and unavailable document accessibility. On 2026-10-31, the current computer-use
+window API resolved that helper gate without application-source changes. Fresh
+isolated copies of the same final executable passed real UI checks: IPC startup,
+disabled polish/brief diagnostics with exact draft retention and unsaved dismissal,
+explicit Holocron synthesis retaining rule-based provenance, and truthful banter
+failure with an empty feed and two synthetic squad members. Cloud config/key values
+were removed from each fixture launch. Both windows were closed and owned processes
+cleaned up. Configuration, live model quality and clean-machine installation remain
+deliberately untested. No personal Vault data or credentials were modified.
 
 The native startup preserved every original synthetic Vault file. It added only
 the deterministic weekly Holocron HTML/JSON and manifest cache; this was not a

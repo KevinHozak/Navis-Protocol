@@ -32,7 +32,7 @@ User requested the migration after New Day reported local Ollama unavailable/tim
 - [x] Reuse or extend the existing online-generation safeguards for bounded requests, usage/cost accounting and per-feature budgets. Handle unknown usage/cost honestly, prevent retries after ambiguous paid outcomes from silently multiplying charges, and define model-change/pricing-review behavior without assuming current prices.
 - [x] Preserve reviewed brief source constraints, original retention, knowledge-note provenance, editable suggestions and explicit saves. Generation must not create tasks/commitments, rewrite originals or broaden retrieval permissions. Retain deterministic Holocron fallback and do not label unavailable/failed banter as generated successfully.
 - [x] Update web and packaged Tauri capability gating, controls, labels, documentation and diagnostics to reflect the configured provider rather than assuming local Ollama. Preserve hosted-client boundaries; do not expose arbitrary remote endpoints or secrets through IPC.
-- [ ] Cover success, missing key/model, authentication/rate-limit errors, timeout, malformed/empty/unsupported output, disabled generation, budget exhaustion and ambiguous retry behavior with mocked provider responses. Verify migrated features and fallback/source-preservation behavior with fresh isolated web/native fixtures and packaged resource checks.
+- [x] Cover success, missing key/model, authentication/rate-limit errors, timeout, malformed/empty/unsupported output, disabled generation, budget exhaustion and ambiguous retry behavior with mocked provider responses. Verify migrated features and fallback/source-preservation behavior with fresh isolated web/native fixtures and packaged resource checks.
 - [x] Perform only explicitly authorized live smoke calls with synthetic input and a declared spending limit; keep personal-Vault content out of provider trials unless separately authorized. Document rollout, configuration migration and rollback without silently enabling a second provider.
 
 ## Scope and limits
@@ -61,7 +61,28 @@ preserved the synthetic draft. Copied packaged Python helpers denied generation
 without Vault/accounting writes. No live OpenRouter call, model choice, key setup,
 configuration enablement or personal-Vault transmission occurred.
 
-Native executable UI smoke remains unverified: the fixture window/process exists,
-but the computer-use helper could not activate/restore it or expose its document.
-Do not substitute copied Python helper tests for this UI check. Publish as draft
-and retain this gate; do not close S028 or claim live provider/model quality.
+The initial native executable UI attempt was blocked by window activation and
+document accessibility. The retained gate was resolved by the fresh packaged UI
+checks below. S028 remains in review pending PR merge; live provider/model quality
+is outside this disabled-by-default delivery.
+
+## Packaged UI gate passed - 2026-10-31
+
+The current computer-use window API activated fresh isolated copies of the final
+1.11.36 executable (SHA-256 a3db3aed2697e3bcc6c829c3f7225b693c98f417041b45849c18b9d5b5d91560).
+All 51 packaged resources matched source. The fixture launch explicitly selected
+OpenRouter and removed its key/config environment variables; cloud stayed disabled.
+
+The real packaged UI showed IPC online and the synthetic realm, denied both polish
+and actionable brief requests with the disabled diagnostic, retained the exact
+synthetic draft, and allowed dismissal without saving. Explicit Holocron synthesis
+retained RULE-BASED output and persisted rule_based provenance. Banter displayed a
+failure and retry control without claiming success, including a second fresh Vault
+with two synthetic squad members and an empty banter feed.
+
+Every original fixture file remained byte-identical. Only deterministic weekly
+Holocron JSON/HTML and manifest caches were added. No cloud configuration, usage
+ledger, generated banter thread, task or journal edit was created. Both app windows
+were closed and owned fixture processes were cleaned up. No live model call,
+personal-Vault access, clean-machine installation or configured-model quality is
+claimed. No application-source fix was required to resolve the helper gate.
