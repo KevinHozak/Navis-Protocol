@@ -1,10 +1,10 @@
----
+﻿---
 depends_on: []
 id: "NAVIS-S028"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "in_review"
+status: "done"
 title: "Migrate Navis text generation from Ollama to OpenRouter"
 type: "enhancement"
 ---
@@ -63,7 +63,7 @@ configuration enablement or personal-Vault transmission occurred.
 
 The initial native executable UI attempt was blocked by window activation and
 document accessibility. The retained gate was resolved by the fresh packaged UI
-checks below. S028 remains in review pending PR merge; live provider/model quality
+checks below. S028 is done after PR #40 merged; live provider/model quality
 is outside this disabled-by-default delivery.
 
 ## Packaged UI gate passed - 2026-10-31
@@ -86,3 +86,18 @@ ledger, generated banter thread, task or journal edit was created. Both app wind
 were closed and owned fixture processes were cleaned up. No live model call,
 personal-Vault access, clean-machine installation or configured-model quality is
 claimed. No application-source fix was required to resolve the helper gate.
+
+
+## Closeout - 2026-10-31
+
+PR [#40](https://github.com/KevinHozak/Navis-Protocol/pull/40) merged at
+`71adbf2bd729ce45bf0ee9a4db4dec627566b5fe`; separate GitHub readback confirmed
+the merge. Local main was fast-forwarded to that commit and matched origin/main.
+All nine acceptance criteria are satisfied within the documented disabled-by-default
+scope. Automated, fresh web and packaged desktop evidence is retained above.
+
+Cloud generation remains disabled. No key/model/budget was configured, no paid
+request was made, and no personal Vault content was transmitted. Background
+generation also remains disabled. Enabling a reviewed model/provider route and
+validating its live quality require separate explicit configuration and authorization.
+Clean-machine installation and independent external review remain unclaimed.
