@@ -23,5 +23,5 @@ assert.match(native, /fn banter_status_reports_missing_unreadable_and_malformed_
 
 const backend = readFileSync('../backend/main.py', 'utf8');
 assert.match(backend, /encoding="utf-8-sig"[\s\S]*json\.load\(status_file\)/);
-assert.match(backend, /Local banter generation failed[\s\S]*No online fallback was used/);
+assert.match(backend, /Banter was not generated[\s\S]*No provider fallback was used/);
 console.log('Banter recovery and error-state contracts passed.');

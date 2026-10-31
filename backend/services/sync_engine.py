@@ -715,8 +715,10 @@ def run_midnight_rollover(log_callback=None):
         else:
             from services.banter_generator import generate_squad_banter
 
-            generate_squad_banter(count=3)
-            _log("🗣️ NEURAL RESONANCE: Generated fresh daily banter threads.")
+            if generate_squad_banter(count=3, background=True):
+                _log("🗣️ NEURAL RESONANCE: Squad banter is available.")
+            else:
+                _log("⚠️ Squad banter was not generated; review provider configuration.")
     except Exception as e:
         operation_failure()
         if fixture_mode:

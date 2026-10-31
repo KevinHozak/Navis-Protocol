@@ -1,4 +1,4 @@
-"""Local-only brief generation and independent, original-preserving records."""
+"""Configured brief generation and independent, original-preserving records."""
 import hashlib
 import json
 import os
@@ -6,7 +6,8 @@ import re
 import tempfile
 from datetime import date, datetime, timezone
 from pathlib import Path
-from urllib.request import Request, urlopen
+import asyncio
+from services.ai_provider import get_provider
 
 FIELDS = ("Goal", "Known facts", "Uncertainties", "One suggested next action")
 
@@ -26,17 +27,11 @@ def generate(body):
         "Preserve safety constraints when choosing the most consequential constraint.\nNOTE:\n" +
         "\n".join(f"{i + 1}: {part}" for i, part in enumerate(excerpts))
     )
-    payload = {"model": "qwen2.5-coder:7b", "prompt": prompt, "stream": False,
-               "format": "json", "options": {"temperature": 0.2, "num_predict": 600}}
-    request = Request("http://127.0.0.1:11434/api/generate", data=json.dumps(payload).encode(),
-                      headers={"Content-Type": "application/json"})
-    with urlopen(request, timeout=90) as response:
-        result = json.loads(response.read(131072))
-    brief = json.loads(result["response"])
+    brief = json.loads(asyncio.run(get_provider().generate(prompt, feature="brief")))
     if not isinstance(brief, dict) or set(brief) != set(FIELDS) or any(
         not isinstance(brief[k], int) or isinstance(brief[k], bool) or not 1 <= brief[k] <= len(excerpts) for k in FIELDS
     ):
-        raise ValueError("Local AI selected evidence outside your note. No brief was accepted; your original is unchanged.")
+        raise ValueError("Configured provider selected evidence outside your note. No brief was accepted; your original is unchanged.")
     brief = {field: excerpts[brief[field] - 1] for field in FIELDS}
     brief["Goal"] = "Source intention: " + brief["Goal"]
     brief["Known facts"] = "Source detail: " + brief["Known facts"]

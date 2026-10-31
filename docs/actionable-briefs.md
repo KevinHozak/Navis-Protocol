@@ -2,7 +2,7 @@
 
 S001 passed its revised five-note trial on 2026-10-28: five useful, no corrections, review time unknown. Scope is complex/tangled notes with dependencies, competing concerns or unresolved choices. Simple chores are excluded. No time savings have been measured.
 
-S002 adds an explicit composer action with a four-field editable preview. Generation uses only local Ollama at loopback, with no external provider fallback. Hosted clients cannot generate or save briefs through the local-only feature. Discard writes nothing.
+S002 adds an explicit composer action with a four-field editable preview. S028 supersedes its original local-only transport: generation uses the [configured shared provider](openrouter-text-generation.md), with cloud disabled until explicit configuration and no automatic provider fallback. Hosted clients retain their local-runtime boundary. Discard writes nothing. Source constraints and save behavior below are unchanged.
 
 Save retains the exact draft snapshot and accepted fields in `Library/Actionable Briefs/<content-sha256>.json`. Date, section and the associated journal path are recorded as an **unsaved composer draft** reference; this does not claim the source already exists in the journal. Saving a brief does not append a journal item, create a task, alter checklist states or run XP. Journal Save Entry remains a separate explicit action.
 

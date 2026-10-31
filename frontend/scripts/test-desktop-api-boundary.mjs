@@ -22,7 +22,9 @@ for (const relativePath of targets) {
 const desktopApi = await readFile(resolve(root, 'lib/desktopApi.js'), 'utf8');
 assert.match(desktopApi, /p5_request/, 'desktopApi must route neural and biometrics calls to the native P5 adapter');
 assert.match(desktopApi, /vaultAssetUrl/, 'desktopApi must expose the shared Vault asset URL helper');
-assert.match(desktopApi, /invokeNative\('polish_journal_entry', \{\s*entry: body\?\.entry \|\| '',\s*section: body\?\.section \|\| 'sanctum',\s*\}\)/, 'Tauri Ollama polishing must run through the native command without requiring the Navis HTTP backend and must pass the selected section');
+assert.doesNotMatch(desktopApi, /invokeNative\('polish_journal_entry'/, 'polishing must not bypass the shared configured provider');
+const nativeDispatch = await readFile(resolve(root, '../src-tauri/src/lib.rs'), 'utf8');
+assert.match(nativeDispatch, /journal\/entry\/polish[\s\S]*?p3::brief_request/, 'native polishing must use the packaged shared Python provider route');
 
 const apiUrlDefinition = desktopApi.match(/export function apiUrl\(path\) \{[\s\S]*?\n\}/);
 assert.ok(apiUrlDefinition, 'desktopApi must define apiUrl');

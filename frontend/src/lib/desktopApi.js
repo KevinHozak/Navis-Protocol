@@ -233,18 +233,7 @@ async function performApiFetch(path, options = {}) {
     throw new Error('Briefs require the desktop app or a local Navis server.');
   }
   if (path === '/api/journal/entry/polish' && !supportsLocalOllama()) {
-    throw new Error('Local Ollama suggestions are available in the desktop app or when running Navis locally.');
-  }
-  if (isTauriRuntime() && path === '/api/journal/entry/polish') {
-    let body = options.body;
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch { body = {}; }
-    }
-    const result = await withAbort(invokeNative('polish_journal_entry', {
-      entry: body?.entry || '',
-      section: body?.section || 'sanctum',
-    }), options.signal);
-    return new NativeResponse(result);
+    throw new Error('Configured text suggestions are available in the desktop app or when running Navis locally.');
   }
   if (isTauriRuntime() && path.startsWith('/api/')) {
     const nativeOperation = options.method === 'POST' && (
@@ -266,7 +255,7 @@ async function performApiFetch(path, options = {}) {
     if (typeof body === 'string') {
       try { body = JSON.parse(body); } catch { body = undefined; }
     }
-    const command = path.startsWith('/api/v1/progression') ? 'progression_request' : path.startsWith('/api/v1/lounge') || path.startsWith('/api/v1/library') ? 'lounge_request' : path.startsWith('/api/battle') || path.startsWith('/api/missions/') || path.startsWith('/api/cache/') ? 'p3_request' : path.startsWith('/api/reid') || path.startsWith('/api/neural') || path.startsWith('/api/forge') || path.startsWith('/api/v1/biometrics') ? 'p5_request' : 'vault_request';
+    const command = path.split('?')[0] === '/api/neural/banter/generate' ? 'vault_request' : path.startsWith('/api/v1/progression') ? 'progression_request' : path.startsWith('/api/v1/lounge') || path.startsWith('/api/v1/library') ? 'lounge_request' : path.startsWith('/api/battle') || path.startsWith('/api/missions/') || path.startsWith('/api/cache/') ? 'p3_request' : path.startsWith('/api/reid') || path.startsWith('/api/neural') || path.startsWith('/api/forge') || path.startsWith('/api/v1/biometrics') ? 'p5_request' : 'vault_request';
     let result;
     try {
       result = await withAbort(invokeNative(command, {

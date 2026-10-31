@@ -39,7 +39,7 @@ export default function ActionableBrief({ entry, date, section, disabled, availa
   }
   return <div className="space-y-3 rounded border border-white/10 bg-zinc-950/90 p-3 backdrop-blur-md">
     <button type="button" onClick={generate} disabled={busy || disabled || !available || !entry.trim() || Boolean(preview)} className="rounded border border-accent/30 px-3 py-2 text-xs font-bold text-accent disabled:opacity-40">{busy ? 'Working…' : 'Create actionable brief'}</button>
-    <p className="text-xs text-white/50">For complex or tangled notes. Local AI; review before saving.</p>
+    <p className="text-xs text-white/50">For complex or tangled notes. When enabled, sends this draft to the configured provider. Review before saving.</p>
     {preview && <div className="space-y-3">
       <details open><summary className="text-sm text-white/70">Original · {preview.date}</summary><pre className="max-h-64 overflow-auto whitespace-pre-wrap text-sm text-white/70">{preview.original}</pre></details>
       {fields.map(field => <label key={field} className="block text-xs text-white/70">{field}<textarea value={preview.brief[field]} disabled={busy} maxLength={5000} rows={3} onChange={event => setPreview(previous => ({ ...previous, brief: { ...previous.brief, [field]: event.target.value } }))} className="mt-1 w-full rounded border border-white/10 bg-zinc-900 p-2 text-sm text-white" /></label>)}

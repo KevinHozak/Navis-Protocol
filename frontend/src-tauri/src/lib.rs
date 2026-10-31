@@ -2,7 +2,6 @@ mod recurrence;
 mod command;
 mod diagnostics;
 mod lounge;
-mod ollama;
 mod operations;
 mod p3;
 mod p5;
@@ -156,7 +155,7 @@ async fn vault_request(
             Ok(vault::ApiResponse {status:result.status, text:result.text, body:result.body})
         }).await.map_err(|error| error.to_string())?;
     }
-    if method.as_deref() == Some("POST") && matches!(path.as_str(), "/api/journal/brief/generate" | "/api/journal/brief/save") {
+    if (method.as_deref() == Some("POST") && matches!(path.split('?').next().unwrap_or(""), "/api/journal/brief/generate" | "/api/journal/brief/save" | "/api/journal/entry/polish" | "/api/neural/banter/generate")) || (method.as_deref().unwrap_or("GET") == "GET" && path == "/api/ai/text/status") {
         let backend = operations::backend_root(&app)?;
         return tauri::async_runtime::spawn_blocking(move || {
             let result = p3::brief_request(&backend, &path, body)?;
@@ -376,7 +375,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             healthcheck,
-            ollama::polish_journal_entry,
             startup_diagnostics,
             lounge_request,
             start_lounge_operation,

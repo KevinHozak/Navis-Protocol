@@ -232,7 +232,14 @@ test('hosted polish fails before transport; desktop polish preserves entry and s
   assert.equal(hosted.calls.length, 0);
   const desktop = await runtime({ native: true });
   await desktop.api.apiFetch('/api/journal/entry/polish', { method: 'POST', body: JSON.stringify({ entry: '- [ ] Synthetic draft', section: 'outland' }) });
-  assert.deepEqual(desktop.calls, [{ command: 'polish_journal_entry', args: { entry: '- [ ] Synthetic draft', section: 'outland' } }]);
+  assert.deepEqual(desktop.calls, [{ command: 'vault_request', args: { path: '/api/journal/entry/polish', method: 'POST', body: { entry: '- [ ] Synthetic draft', section: 'outland' } } }]);
+});
+
+test('native banter query uses the shared provider route', async () => {
+  const desktop = await runtime({ native: true });
+  await desktop.api.apiFetch('/api/neural/banter/generate?count=1', { method: 'POST' });
+  assert.equal(desktop.calls[0].command, 'vault_request');
+  assert.equal(desktop.calls[0].args.path, '/api/neural/banter/generate?count=1');
 });
 
 test('local web polish uses HTTP and native asset paths encode each segment', async () => {

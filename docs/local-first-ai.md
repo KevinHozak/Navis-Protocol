@@ -1,5 +1,11 @@
 # Local-first AI generation (AI-P1)
 
+S028 supersedes the provider-default and background-generation descriptions below.
+See [configured text generation](openrouter-text-generation.md): OpenRouter is the
+shared default but disabled until explicitly configured. Ollama is an explicit local
+rollback only, and rollover requires a separate cloud background opt-in. The remaining
+sections retain historical setup/benchmark context, not automatic enablement.
+
 Forge blueprint generation and background squad banter use the local Ollama provider. Neither path reads cloud API credentials or falls back to an online provider. A missing or unavailable local model produces a bounded diagnostic and the operation stops.
 
 ## Ollama setup

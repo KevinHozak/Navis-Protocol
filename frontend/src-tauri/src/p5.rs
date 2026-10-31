@@ -1,14 +1,13 @@
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpStream};
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc, Mutex,
 };
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, State};
 
 #[derive(Debug, serde::Serialize)]
@@ -157,96 +156,8 @@ fn section(content: &str, heading: &str, fallback: &str) -> String {
 }
 
 fn local_ollama_generate(prompt: &str) -> Result<String, String> {
-    let base_url =
-        std::env::var("NAVIS_OLLAMA_URL").unwrap_or_else(|_| "http://localhost:11434".into());
-    let endpoint = base_url
-        .strip_prefix("http://")
-        .unwrap_or_default()
-        .trim_end_matches('/');
-    let Some((host, port)) = endpoint.split_once(':') else {
-        return Err(
-            "Native Ollama URL must use a local HTTP endpoint such as http://localhost:11434."
-                .into(),
-        );
-    };
-    if !matches!(host, "localhost" | "127.0.0.1") || port.contains('/') {
-        return Err(
-            "Native local generation currently supports the local Ollama endpoint only.".into(),
-        );
-    }
-    let port = port
-        .parse::<u16>()
-        .map_err(|_| "Native Ollama URL has an invalid port.".to_string())?;
-    let model = std::env::var("NAVIS_OLLAMA_MODEL").unwrap_or_else(|_| "Kimiko-20B:latest".into());
-    let timeout = std::env::var("NAVIS_OLLAMA_TIMEOUT")
-        .ok()
-        .and_then(|value| value.parse::<u64>().ok())
-        .unwrap_or(90)
-        .clamp(1, 600);
-    let payload = serde_json::to_vec(&json!({
-        "model": model,
-        "prompt": prompt,
-        "stream": false,
-        "keep_alive": "1h",
-        "options": {"temperature": 0.75, "num_predict": 2048}
-    }))
-    .map_err(|_| "Could not encode the local banter request.".to_string())?;
-    let address = SocketAddr::from(([127, 0, 0, 1], port));
-    let mut stream =
-        TcpStream::connect_timeout(&address, Duration::from_secs(5)).map_err(|_| {
-            "Local Ollama is unavailable. Start Ollama and verify the configured model.".to_string()
-        })?;
-    stream
-        .set_read_timeout(Some(Duration::from_secs(timeout)))
-        .map_err(|_| "Could not configure the local Ollama connection.".to_string())?;
-    stream
-        .set_write_timeout(Some(Duration::from_secs(30)))
-        .map_err(|_| "Could not configure the local Ollama connection.".to_string())?;
-    let request = format!(
-        "POST /api/generate HTTP/1.1\r\nHost: {host}:{port}\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-        payload.len()
-    );
-    stream
-        .write_all(request.as_bytes())
-        .and_then(|_| stream.write_all(&payload))
-        .and_then(|_| stream.flush())
-        .map_err(|_| "Could not send the local banter request.".to_string())?;
-    let mut raw = Vec::new();
-    stream
-        .read_to_end(&mut raw)
-        .map_err(|_| "Local Ollama timed out or returned an incomplete response.".to_string())?;
-    let Some(header_end) = raw.windows(4).position(|window| window == b"\r\n\r\n") else {
-        return Err("Local Ollama returned an invalid HTTP response.".into());
-    };
-    let headers = String::from_utf8_lossy(&raw[..header_end]);
-    let status = headers
-        .lines()
-        .next()
-        .and_then(|line| line.split_whitespace().nth(1))
-        .and_then(|code| code.parse::<u16>().ok())
-        .unwrap_or(503);
-    if !(200..300).contains(&status) {
-        return Err(format!("Local Ollama returned HTTP {status}."));
-    }
-    let body = &raw[header_end + 4..];
-    let decoded = if headers.lines().any(|line| {
-        line.to_ascii_lowercase().starts_with("transfer-encoding:")
-            && line.to_ascii_lowercase().contains("chunked")
-    }) {
-        super::ollama::decode_chunked_for_p5(body)
-            .ok_or_else(|| "Local Ollama returned malformed chunked data.".to_string())?
-    } else {
-        body.to_vec()
-    };
-    let response: Value = serde_json::from_slice(&decoded)
-        .map_err(|_| "Local Ollama returned malformed output.".to_string())?;
-    response
-        .get("response")
-        .and_then(Value::as_str)
-        .map(str::trim)
-        .filter(|text| !text.is_empty())
-        .map(str::to_string)
-        .ok_or_else(|| "Local Ollama returned an empty response.".to_string())
+    let _ = prompt;
+    Err("Legacy native generation is retired; use the configured Python provider route.".into())
 }
 
 fn generate_banter(root: &PathBuf, requested_count: usize) -> ApiResponse {
@@ -663,7 +574,7 @@ pub fn start_p5_operation(
         );
         let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
         command.arg(script).env_clear();
-        for key in ["PATH", "SystemRoot", "TEMP", "TMP"] {
+        for key in ["PATH", "SystemRoot", "TEMP", "TMP", "NAVIS_AI_PROVIDER", "NAVIS_OPENROUTER_CONFIG", "OPENROUTER_API_KEY"] {
             if let Ok(value) = std::env::var(key) {
                 command.env(key, value);
             }
@@ -752,7 +663,7 @@ pub fn forge_request(app: &AppHandle, path: &str, method: &str, body: Option<Val
     };
     let mut command = crate::command::hidden_command(&runtime.to_string_lossy());
     command.args(["-m", "services.forge_service", action]).current_dir(backend).env_clear();
-    for key in ["PATH", "SystemRoot", "TEMP", "TMP", "NAVIS_OLLAMA_URL", "NAVIS_OLLAMA_MODEL", "NAVIS_OLLAMA_TIMEOUT", "NAVIS_AI_PROVIDER", "GOOGLE_API_KEY", "GEMINI_API_KEY"] {
+    for key in ["PATH", "SystemRoot", "TEMP", "TMP", "NAVIS_OLLAMA_URL", "NAVIS_OLLAMA_MODEL", "NAVIS_OLLAMA_TIMEOUT", "NAVIS_AI_PROVIDER", "NAVIS_OPENROUTER_CONFIG", "OPENROUTER_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"] {
         if let Ok(value) = std::env::var(key) { command.env(key, value); }
     }
     command.env("NAVIS_ROOT", root()).env("PYTHONIOENCODING", "utf-8")
@@ -849,7 +760,7 @@ pub fn conversation_request(
         "NAVIS_OLLAMA_URL",
         "NAVIS_OLLAMA_MODEL",
         "NAVIS_OLLAMA_TIMEOUT",
-        "NAVIS_AI_PROVIDER",
+        "NAVIS_AI_PROVIDER", "NAVIS_OPENROUTER_CONFIG", "OPENROUTER_API_KEY",
         "NAVIS_REID_NOTE_FILES",
         "GOOGLE_API_KEY",
         "GEMINI_API_KEY",

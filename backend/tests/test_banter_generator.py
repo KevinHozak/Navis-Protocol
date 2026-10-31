@@ -36,7 +36,7 @@ class FakeLocalProvider:
         self.error = error
         self.calls = []
 
-    async def generate(self, prompt):
+    async def generate(self, prompt, **kwargs):
         self.calls.append(prompt)
         if self.error:
             raise self.error
@@ -50,7 +50,7 @@ def install_provider(monkeypatch, provider):
     monkeypatch.setattr(banter_generator, "OllamaProvider", lambda: provider, raising=False)
 
     # banter_generator imports the provider class inside the function.
-    monkeypatch.setattr(ai_provider, "OllamaProvider", lambda: provider)
+    monkeypatch.setattr(ai_provider, "get_provider", lambda: provider)
 
 
 def test_local_generation_persists_complete_ordered_thread(banter_vault, monkeypatch):

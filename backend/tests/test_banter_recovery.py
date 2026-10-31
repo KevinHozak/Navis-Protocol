@@ -62,9 +62,9 @@ def test_banter_accepts_bom_status_and_uses_local_generation_failure(tmp_path, m
         main.trigger_banter_generation(count=1)
         assert False, "local generator failure must remain visible"
     except HTTPException as error:
-        assert error.status_code == 500
-        assert "local provider" in error.detail
-        assert "online fallback" in error.detail
+        assert error.status_code == 503
+        assert "configured provider" in error.detail
+        assert "provider fallback" in error.detail
     assert status_path.read_bytes().startswith(b"\xef\xbb\xbf")
 
 

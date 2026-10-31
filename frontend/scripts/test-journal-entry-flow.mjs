@@ -14,8 +14,8 @@ assert.match(composer, /disabled=\{saving \|\| polishing \|\| !entry\.trim\(\)\}
 assert.match(composer, /apiFetch\('\/api\/journal\/entry\/polish'/, 'composer must request suggestions through the local journal endpoint');
 assert.match(composer, /JSON\.stringify\(\{ entry, section \}\)/, 'composer must provide the selected section so the suggestion can use its context');
 assert.match(composer, /Restore original draft/, 'composer must let the user recover the original draft');
-assert.match(composer, /Suggestions use local Ollama and are not saved automatically/, 'composer must explain local-only, manual-save behavior');
-assert.match(composer, /Local Ollama suggestions require the desktop app or a local Navis server/, 'composer must explain why local suggestions are unavailable on the hosted web app');
+assert.match(composer, /sends this draft to the configured provider. Suggestions are not saved automatically/, 'composer must explain transmission and manual-save behavior');
+assert.match(composer, /Configured text suggestions require the desktop app or a local Navis server/, 'composer must explain why suggestions are unavailable on the hosted web app');
 assert.match(desktopApi, /path === '\/api\/journal\/entry\/polish' && !supportsLocalOllama\(\)/, 'polish requests must not go to a remote backend');
 assert.match(composer, /setError\(saveError\.message/, 'composer must retain a recoverable error state');
 assert.match(composer, /onSaved\?\.\(result, request\)/, 'composer must report verified results with their exact submitted identity');
