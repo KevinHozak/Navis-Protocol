@@ -19,7 +19,7 @@ export default function DesktopDiagnostics() {
           ok: result.overall_ok !== false,
           message: failures.length
             ? `Vault diagnostic · ${failures.join(' · ')}`
-            : `IPC online · v${result.version}`,
+            : 'IPC online',
         });
       })
       .catch((error) => {

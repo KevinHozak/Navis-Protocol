@@ -365,6 +365,10 @@ pub fn run() {
         .manage(vault::VaultWatcherState::default())
         .setup(|app| {
             use tauri::Manager;
+            let title = format!("Navis Protocol v{}", app.package_info().version);
+            for window in app.webview_windows().values() {
+                window.set_title(&title)?;
+            }
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 if let Some(state) = handle.try_state::<vault::VaultWatcherState>() {
