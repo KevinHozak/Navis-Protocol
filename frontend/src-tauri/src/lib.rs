@@ -148,6 +148,13 @@ async fn vault_request(
             Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text})
         }).await.map_err(|error| error.to_string())?;
     }
+    if method.as_deref().unwrap_or("GET") == "GET" && path == "/api/projects" {
+        let backend = operations::backend_root(&app)?;
+        return tauri::async_runtime::spawn_blocking(move || {
+            let result = p3::projects_request(&backend)?;
+            Ok(vault::ApiResponse {status: result.status, body: result.body, text: result.text})
+        }).await.map_err(|error| error.to_string())?;
+    }
     if method.as_deref() == Some("POST") && matches!(path.as_str(), "/api/knowledge-notes/sources" | "/api/knowledge-notes/save") {
         let backend = operations::backend_root(&app)?;
         return tauri::async_runtime::spawn_blocking(move || {

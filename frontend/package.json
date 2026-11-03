@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "1.11.38",
+  "version": "1.11.39",
   "private": true,
   "scripts": {
     "test": "npm run test:unit && npm run test:regressions",

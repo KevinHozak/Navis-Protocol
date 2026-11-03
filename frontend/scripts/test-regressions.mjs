@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 // Explicit list avoids discovering ad hoc scripts that may use live services.
 const scripts = [
+  'test-projects.cjs',
   'test-task-completion-time.mjs',
   'test-keeper-entity-recovery.mjs',
   'test-map-loading-recovery.mjs',
