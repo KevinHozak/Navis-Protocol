@@ -8,6 +8,17 @@ for (const fixture of fixtures) {
   assert.deepEqual(result.markers.map(m => m.kind), fixture.expected, fixture.name);
 }
 const current = structuredClone(fixtures[0].status);
+const apiStatus = structuredClone(current);
+apiStatus.squad = [{ name: 'Reid', role: 'Vanguard', xp: 0, level: 1 }];
+assert.ok(resolveMapTelemetry(apiStatus, 'Earth', now).markers.some(m => m.kind === 'squad'), 'Real API squad objects match member names');
+for (const squad of [[{ name: 'Other' }], [{ name: 'Reid' }, { name: 'Other' }], [{}], [null], [{ name: '' }]]) {
+  assert.ok(!resolveMapTelemetry({ ...apiStatus, squad }, 'Earth', now).markers.some(m => m.kind === 'squad'), 'Changed or invalid squad must not reuse old coordinates');
+}
+apiStatus.squad = [{ name: 'Reid' }, { name: 'Other' }];
+apiStatus.map_telemetry.squad.members = ['Reid', 'Other'];
+assert.ok(resolveMapTelemetry(apiStatus, 'Earth', now).markers.some(m => m.kind === 'squad'));
+apiStatus.squad.reverse();
+assert.ok(!resolveMapTelemetry(apiStatus, 'Earth', now).markers.some(m => m.kind === 'squad'), 'Squad order must match');
 for (const [field, value] of [['x', '12'], ['x', -1], ['y', 577], ['observed_at', 'bad'], ['observed_at', '2026-09-30T12:01:00Z'], ['realm', 'Elsewhere']]) {
   const changed = structuredClone(current);
   changed.map_telemetry.player[field] = value;
