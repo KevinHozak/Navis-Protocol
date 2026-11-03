@@ -57,3 +57,53 @@ Fixture browser/app and owned web process trees were closed after checks. Both
 synthetic source files retained their original SHA-256 bytes. No personal Vault
 records were modified. The user authorized a scoped codex branch and PR after
 verification; S028 and unrelated work are excluded.
+
+## Final verification and keep decision - 2026-11-03
+
+S008's remaining packaged brief gate passed on local source `73508e9`, which adds
+an unrelated biometrics UTF-8 fix to merged S028. That existing local commit was
+preserved and was not published by this verification. The copied executable was
+1.11.37, SHA-256 `a1be6052170b82550b8778466c1b09a3b88a9b92d8c940e718ae876ce7180df2`.
+All 51 packaged Python resources matched source before fixture instrumentation.
+
+The fresh isolated app used a synthetic-only loopback HTTP mock. Port 11434 was
+unavailable, so only the copied provider's local URL was redirected to dedicated
+port 18144; no repository application source changed. The mock returned fixed
+sentence selections and rejected unmarked inputs. This exercised the real packaged
+UI, IPC, provider parsing, brief validation and save service, not model quality.
+Cloud key/config values were removed from the fixture environment. No real model,
+paid request or personal-Vault access was used.
+
+Three fresh tangled notes covered export comparison, release-contract uncertainty
+and household measurements/bracket compatibility. Each generated brief showed its
+entire original by default, retained source constraints/uncertainty, allowed an
+intentional goal edit, and saved only after explicit Save brief. Native receipts
+were checked against three JSON records: exact originals, edited goals and unsaved
+composer provenance were retained. All six original fixture files stayed
+byte-identical. Only those three brief records and deterministic Holocron caches
+were added; the journal and tasks were unchanged. Three mock generation requests
+were observed. App, mock and owned processes were closed after verification.
+
+Fresh post-delivery knowledge-note review used two synthetic export sources,
+explicit source loading, reviewed findings/uncertainty/application and a deliberate
+filename. The saved record retained both source links and SHA-256 references, and
+source bytes stayed unchanged. A fresh two-day Holocron sample distinguished
+unchecked-to-checked state from outcome, retained the unresolved timestamp question,
+and kept adjustment wording as a proposal. These were service-level fresh-sample
+reviews, not additional live UI journeys. Prior web/native knowledge-note and
+Holocron smoke remains applicable to S008's unchanged preview/filename/reference
+controls; since `10f1639`, changes in these components are provider disclosure and
+AI-source labels, not those controls. The current mounted journey regression passed.
+
+The affected backend suite passed 26 tests. Its first sandboxed run stalled without
+output and was interrupted; one elevated rerun passed in 9.08 seconds. The initial
+test invocation also used two incorrect test paths; the corrected actual filenames
+were used for the passing checks. These setup failures are not product failures.
+
+**Keep the narrow controls; S008 is done.** Compared with the old collapsed state,
+the final mounted journeys require no separate original/source/rule expansion and
+retain editable filename control without repeated automatic replacement. The real
+packaged brief checks confirm preview/edit/save behavior. There is no measured
+human interaction baseline, elapsed saving, human review-time result or live model
+quality result. The S007 human-rehearsal waiver remains a waiver. No broader UX
+redesign, automatic task creation, cloud enablement or new model workflow is accepted.
