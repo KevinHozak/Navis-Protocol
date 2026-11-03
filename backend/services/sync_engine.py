@@ -59,11 +59,15 @@ def _run_biometrics_sync(script_path):
 
     child_env = os.environ.copy()
     child_env["NAVIS_ROOT"] = NAVIS_ROOT
+    # Match both ends of the pipe regardless of the Windows ANSI code page.
+    child_env["PYTHONIOENCODING"] = "utf-8"
     return subprocess.run(
         [sys.executable, script_path],
         check=True,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         env=child_env,
     )
 
