@@ -31,6 +31,14 @@ was required. Cloud generation remains disabled. This is not a clean-machine
 installation test or a debug/dev-window verification.
 
 Source review found no actionable issue in version authority, IPC diagnostics,
-startup error propagation or the scoped diff. Independent external review remains
-pending publication; implementation and runtime verification do not close #246
-before delivery/merge.
+startup error propagation or the scoped diff. Independent external review was not
+provided; it is separate from the recorded implementation/runtime checks.
+
+## Delivered closeout — 2026-11-03
+
+[PR #44](https://github.com/KevinHozak/Navis-Protocol/pull/44) merged at
+`7edf1ffa15f23f06cc2cc8ba08cb5a297bae6a36` and
+[#246](https://github.com/KevinHozak/Navis-Protocol-Private/issues/246) is closed
+with all four acceptance criteria checked against the above evidence. The direct
+and launcher checks are passing build-host evidence; clean-machine installation
+and debug/dev-window behavior remain unclaimed. Cloud generation remains disabled.

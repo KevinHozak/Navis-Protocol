@@ -1,5 +1,14 @@
 # Combat task completion: P3 verification
 
+> Current disposition (2026-11-03): #84/#86/#87 are closed on delivered code and
+> automated recovery evidence. The release UI smoke at the end of this record is
+> still unperformed in the inspected evidence; no manual-check waiver was found
+> in those issue bodies/comments. This is a follow-up verification gap, not proof
+> of a combat defect or an instruction to reopen closed issues. Historical missing
+> lint dependencies below no longer describe the current toolchain: later frontend
+> lint and 81 native tests passed for 1.11.39. No new combat UI acceptance was run
+> by this documentation audit.
+
 Issue #87 verifies the completion implementation delivered by #86. All automated
 tests use synthetic temporary Vaults. No personal journals or release data are
 committed or edited by this suite.
