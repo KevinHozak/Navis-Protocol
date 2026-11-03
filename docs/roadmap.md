@@ -1,109 +1,63 @@
-ï»¿# Navis-Protocol roadmap
+# Navis-Protocol roadmap
 
-Reconciled against merged `origin/main` at `fd3efb4` on 2026-10-02. **Implemented** means source is merged. **Partial** means a bounded feature exists with remaining scope. **Planned** means the broader capability is not established by the inspected implementation. **Awaiting runtime verification** is independent of implementation: no status here certifies a personal Vault migration, live provider/device connection or clean-machine installation.
+Reconciled on **2026-11-03** against merged main `6f3f69f`, the local issue store,
+legacy GitHub issue dispositions and tracked acceptance records. See the
+[audit, evidence and next task](roadmap-acceptance-audit.md). Implemented, verified,
+waived and operator-only limits are separate states. Historical test counts do not
+certify the current application or a personal-Vault migration.
 
-S009 follow-up (2026-10-27, source `279a614`): MCP adoption, native checkbox
-bridge and trust-audit backlog below are updated. Other release/manual-verification
-entries retain their linked historical evidence and are not newly certified.
+## Current backlog
 
-## Delivered work and remaining verification
+All **32 local records** (four epics and 28 stories) are done. Both GitHub issue
+backlogs have no open issues after #245/#246 closeout. Closed legacy issues with
+unchecked original checklists are not automatically unfinished work: inspect their
+completion/disposition sections. No new issue is created by this roadmap.
 
-| Workstream | Implementation state | Evidence and remaining work |
+| Delivered scope | Evidence and retained boundary |
+| --- | --- |
+| E001: bounded AI workflows (S001–S008) | [Final S008 evidence](s008-workflow-simplifications.md). Briefs, reviewed notes, decision review and narrow controls are delivered. S007 human rehearsal was waived; human time savings and long-term reuse remain unmeasured. |
+| E002: trustworthy status (S009–S015) | [Trust journeys and accepted limits](trust-journey-verification.md). Selected web/packaged journeys passed; installer/clean-machine and physical Drive/production integration limits were explicitly accepted as untested. |
+| E003: Vault MCP (S016–S021, S025–S026) | [Controlled read-only adoption](vault-mcp-real-workflow.md), [guarded append contract](vault-mcp-journal-appends.md). Personal MCP writes remain disabled; fixture append delivery is not production-write adoption. |
+| E004: task state (S022–S024) | [Shared states](task-status-semantics.md), [timestamps](task-completion-times.md), [Completed today](completed-today.md). Isolated web/native acceptance passed with documented runtime limits. |
+| S027: shared Vault retrieval | [Architecture](architecture.md) and [issue](../issues/NAVIS-S027.md). Shared domain reads preserve transport-specific access rules; no MCP network hop is required inside the app. |
+| S028: configured text routing | [Provider inventory/configuration](openrouter-text-generation.md). OpenRouter is the shared default but **cloud and background generation remain disabled until explicitly configured**. No live quality or personal-data transmission acceptance is implied. |
+| #246: version in native title | PR #44 merged at `7edf1ff`; [direct/launcher packaged evidence](desktop-window-version.md), issue closed. |
+| #245: Projects overview | PR #45 merged at `6f3f69f`; [web/native acceptance](projects-overview.md), issue closed. Bounded GitHub CLI account reads, not per-browser account linking. |
+
+## Existing foundations: implemented versus remaining scope
+
+| Capability | Current source/evidence | Remaining boundary |
 | --- | --- | --- |
-| Native Windows runtime | Implemented, partial route coverage | Tauri static export, IPC modules and installed resources; [desktop guide](../frontend/README-DESKTOP.md), [endpoint registry](api_endpoints.md). Unsupported HTTP routes remain explicit. |
-| Desktop sync hardening (#79, #80â€“82) | Implemented; awaiting packaged verification | Shared Python resolver, bounded subprocess lifecycle and disposable-fixture sync/rollover. Build evidence exists; installed resource resolution, clean-machine launch and close/cancel smoke remain open in [release guide](desktop-release.md). |
-| Weekly Holocron & telemetry synthesis (#179â€“182) | Implemented; native bridge delivered | 7-day ISO cycle aggregation, live Week-to-Date (WTD) telemetry, local Ollama tactical debrief with rule-based fallback, standalone HTML export, desktop Tauri IPC adapter (`backend/native_holocron.py`, `vault::holocron_request`). Packaged runtime smoke remains open. |
-| XP authority (#67, #68â€“69) | Implemented | Entity-scoped append-only ledger, idempotent writers and projections; [architecture](architecture.md). Legacy totals are retained separately. |
-| Historical XP reconciliation (#70) | Implemented tooling; awaiting operator/runtime verification | Conservative inventory, reviewed mappings, backups, apply/recovery and rollback; [reconciliation](xp-reconciliation.md). Tool delivery does not establish production migration. |
-| Canonical progression dashboard (#71) | Implemented; awaiting packaged verification | Ledger totals/history and API-derived thresholds; [acceptance record](progression-p4-verification.md). Broad health/task analytics remain planned. |
-| Interactive map (#75, #76â€“78) | Implemented rendering/navigation; partial telemetry | Validated node selection and realm hop; measured-coordinate overlays and stale/mismatch omission. Coordinate production is not supplied by navigation. See [telemetry contract and pending web/native smoke](map-telemetry.md). |
-| Combat hand and linked tasks (#85â€“88) | Implemented; awaiting packaged verification | Battle state UI, exact task binding, durable recovery, duplicate-link rejection and native/web parity fixtures; [verification](combat-task-verification.md), [link constraint](combat-link-constraint.md). Full tactical buffs and turn rules remain partial. |
-| Local-first AI (#91â€“95) | Implemented provider boundary and bounded workflows; partial native coverage | Guarded opt-in online generation, local banter, Forge proposal approval and synthetic benchmark; [AI guide](local-first-ai.md), [Forge](forge-local-generation.md), [benchmarks](benchmarks/README.md). Native general chat/War Room and hosted accounting remain unavailable. Bounded live synthetic comparison results are recorded; they do not establish companion/creative quality or general reliability. |
-| Journal entry composer | Implemented | Checked-item append and local optional polishing; no missing-journal creation. See [API contracts](api_endpoints.md). Native checkbox requests now use the shared Python task/completion bridge and pending-XP contract; packaged UX verification remains open. |
-| Regression/test infrastructure (#131, #136) | Implemented | Isolated state/recovery tests and pre-aborted transport guard; [test audit](testing-audit.md). Source tests do not replace release smoke. |
+| Sync/rollover and recovery | [S014 resource-directory smoke](desktop-release.md#targeted-s014-release-fixture-evidence---2026-10-27) and S015 selected journeys cover success/partial failure, reconnect/review, cancel/close/restart and unavailable roots. | Installed-package/clean-machine and physical integration limits remain accepted untested boundaries; do not label all packaged smoke unperformed. |
+| Canonical XP ledger/dashboard | Python/native ledger and refresh contracts delivered; #67/#71 closed. [P4 disposition](progression-p4-verification.md) records the user's explicit manual-check waiver. | Waived checks were not passed and are not closure blockers. Personal historical reconciliation is separately authorized operator work, not a pending automatic migration. |
+| Interactive map/telemetry | Validated nodes, realm navigation and optional measured telemetry consumers exist; [contract](map-telemetry.md). | Real web/native lifecycle/expiry/keyboard smoke remains unrecorded. No in-repository measured-coordinate producer was found; omitted positions must stay unavailable. |
+| Combat/task completion | Shared completion authority and durable retry/XP behavior; [automated evidence and unperformed UI smoke](combat-task-verification.md). | Packaged visual Execute/Retry/Cancel/relaunch evidence is still absent from the inspected record. |
+| Tactical combat and Bestiary | [Round/AP/shield rules](combat-tactical-rules.md), [elements](combat-elements.md), [squad synergies](combat-synergies.md), [Bestiary analytics/trophies](combat-bestiary.md) exist. Legacy epic #183 is closed. | Operator-facing encounter creation/selection remains later-phase integration, not part of the existing task resolver. No full tactical-game completion is claimed. |
+| Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md) exist; #193 and children are closed. | These records primarily map implementation and automated coverage, not a clean-machine or human usability result. Do not re-list the entire tree as planned. |
+| Reactive updates | Python watcher/event bus, `/api/events/stream`, native watcher/events and client invalidation are implemented; #188 and children are closed. | This is not a universal Drive consistency or uninterrupted push-delivery guarantee. |
+| Squad management | Native deploy/bench/vanguard routes and tests exist alongside web routes. | The earlier claim that these native mutations were absent is superseded. No new squad redesign is selected. |
+| Forge/Reid/War Room | Python runtime bridges exist in native P5; [current text provider boundary](openrouter-text-generation.md) supersedes historical local-only defaults. | Configured live quality/spend and the separate Portal accounting contract remain outside this audit; cloud generation stays disabled. |
+| Journal composer/Holocron | [Save verification](journal-save-verification.md), [freshness](refresh-freshness.md), S006/S008 and S028 supply scoped packaged/browser evidence. | Do not describe these selected journeys as globally awaiting first packaged smoke; physical races and installer limits remain separate. |
 
-## Broader product backlog
+## Next bounded task
 
-Navis-Vault MCP ([NAVIS-E003](../issues/NAVIS-E003.md)) is **done within
-explicitly accepted controlled read-only limits** following merged PR #15.
-The installed local Codex connection is verified on real Vault data; source-linked
-search/note/journal/mission retrieval and scoped freshness are delivered.
-[S021 guarded appends](vault-mcp-journal-appends.md) are implemented and
-fixture-verified, but personal writes remain disabled. The user accepted the
-[real-workflow adoption record](vault-mcp-real-workflow.md), including unmeasured
-human correction time, slower exhaustive searches, explicit index rebuild costs,
-reviewed mission omissions and unsupported runtime cases. This is not general
-cross-client or production-write adoption.
+**Run the existing map telemetry lifecycle smoke in fresh isolated web and packaged
+fixtures.** Use synthetic coordinates, never invented live positions. Verify
+current/stale/future/malformed/missing/out-of-bounds data, threat/squad/realm changes,
+old-marker removal, idle expiry, keyboard navigation and small-view readability.
+Preserve original fixture bytes and clean up processes. Record pass/fail and repair
+only a reproduced scoped defect. Keep cloud generation disabled.
 
-Trust at a glance ([NAVIS-E002](../issues/NAVIS-E002.md)) is **done within the accepted runtime limits**.
-[S009 audit](trust-signals-audit.md) completed source/fixture mapping and identified
-seven confirmed gaps while preserving existing persistence/error safeguards.
-S014 truthful partial-sync outcomes and recovery is accepted after merged PR #17
-and its packaged 1.11.20 fixture gate. S013 factual metric labels/evidence is
-accepted after merged PR #18; see the [evidence contract](holocron-evidence.md).
-S011 availability is accepted after merged PR #19 and its packaged 1.11.22 fixture;
-see the [availability contract](journal-availability.md). S012 late-save isolation is accepted after PR #20 merged at `3751f2c` and its scoped packaged 1.11.23 fixture passed; see the [save contract](journal-save-verification.md). S010 refresh/selection state is accepted after PR #21 merged at `17c23ca` and its scoped packaged 1.11.24 fixture passed; see the [read freshness contract](refresh-freshness.md). S015 integrated journeys were accepted after PR #22; clean-machine and Drive/integration limits remain explicitly untested. Task-status epic E004 and its enhancements (S022-S024) are done. Evidence-gated
-AI workflow epic E001 is done within its documented trial and waiver limits. S001 passed with a keep decision limited to complex/tangled notes. S002 merged in PR #31 and is done. S003 is done: three notes rated useful without corrections, 3/3 same-day follow-up reuse checks passed, keep decision recorded. S004 is done: PR #33 merged, with release 1.11.31 and isolated acceptance evidence retained. S005 is done: candidates preferred in all three retrospective cycles, zero corrections, explicit keep decision. S006 is done: PR #34 merged with release 1.11.32 and isolated acceptance evidence retained. S007 is done under the explicit 2026-10-30 human-rehearsal waiver: six agent comparisons support narrow preview/filename controls, not human usability or time savings. S008 is done after the 2026-11-03 packaged mock-backed brief/save checks and fresh-sample review; long-term reuse and human review timing remain unmeasured.
+This closes a specific read-only validation gap without reopening the waived
+progression work. Next candidates are packaged combat recovery UI acceptance and,
+as a separate implementation story, reviewed encounter setup/selection. No production
+XP migration, installer exercise, live integration or AI configuration is implied.
 
-These retain the original product direction without treating an existing component as completion of its entire initiative.
+## Unselected broader directions
 
-| Initiative | State | Current boundary / next work |
-| --- | --- | --- |
-| Batch card-art generation | Planned | Existing card assets and battle UI do not establish a verified batch pipeline. |
-| Analytics manifold / intelligence dashboard | Partial | Canonical XP dashboard and Weekly Holocron telemetry HUD exist; annual/quarterly rollups, health trends and long-term task-history charts remain broader work. |
-| Beast bestiary | Partial | Entity reads/profiles exist; weakness matrices and historical combat analytics planned in Epic [#183](https://github.com/KevinHozak/Navis-Protocol-Private/issues/183) ([#185](https://github.com/KevinHozak/Navis-Protocol-Private/issues/185), [#187](https://github.com/KevinHozak/Navis-Protocol-Private/issues/187)). |
-| Gallery integrations | Planned | General Vault asset access does not establish a gallery ingestion/scraping workflow. |
-| Synthesis Lab HUD | Partial | Synthesis interface exists; full creative-project/multiverse matrices remain planned. |
-| Companion Forge | Implemented bounded generation | Local proposal and explicit approval exist; full blueprint coverage and live quality validation remain follow-up work. |
-| Multiverse decision tracking | Planned | A dedicated decision-tree analysis workflow remains broader scope. |
-| AI spend audit and banter | Partial | S028 shared OpenRouter text routing, budgets and explicit background gating are merged and verified with cloud disabled. Live model configuration/quality and separate Portal accounting remain follow-up scope. |
-| Squad management and dossier cards | Partial | Reserve/profile UI and status reads exist; native deploy/bench/vanguard HTTP equivalents are absent. |
-| Stats dashboard | Partial | Attributes and entity UI exist; complete analytical visualization remains broader work. |
-| Talent tree | Planned | Graphical progression and perk ledger tracked in Epic [#193](https://github.com/KevinHozak/Navis-Protocol-Private/issues/193) ([#194](https://github.com/KevinHozak/Navis-Protocol-Private/issues/194)â€“[#196](https://github.com/KevinHozak/Navis-Protocol-Private/issues/196)). |
-| Achievement Hall | Partial | Achievement reads exist; full trophy/gallery workflow remains planned. |
-| Combat engagement protocol | Partial | Hand, link, resolve and rest exist; full turn-based tactical mechanics tracked in Epic [#183](https://github.com/KevinHozak/Navis-Protocol-Private/issues/183) ([#184](https://github.com/KevinHozak/Navis-Protocol-Private/issues/184)â€“[#186](https://github.com/KevinHozak/Navis-Protocol-Private/issues/186)). |
-| Live objective HUD | Partial | Active-mission selection exists; full objective pinning remains broader scope. |
-| Ambient soundscapes | Planned | Realm-specific audio workflow remains planned. |
-| System alerts | Partial | Diagnostics/errors and operation progress exist; real-time file watcher & SSE push tracked in Epic [#188](https://github.com/KevinHozak/Navis-Protocol-Private/issues/188) ([#189](https://github.com/KevinHozak/Navis-Protocol-Private/issues/189)â€“[#192](https://github.com/KevinHozak/Navis-Protocol-Private/issues/192)). |
-| Dynamic backgrounds | Planned | Realm assets do not establish full animated atmosphere support. |
-| Exercise tracker / biometric uplink | Partial | Vitals/history/exercise reads exist; live Fitbit/device linkage and training visualizer require separate validation. Edge cases in [#197](https://github.com/KevinHozak/Navis-Protocol-Private/issues/197). |
-| HP / MP / AP gauges | Partial | Readiness/status telemetry exists; complete metric-to-gauge rules and live validation remain broader work. |
-| Automated backups | Partial | Sync/backup jobs exist; universal automatic uplink scheduling is not established. |
-| Bidirectional synchronization | Partial | Journal edits and combat completion write back; real-time push synchronization tracked in Epic [#188](https://github.com/KevinHozak/Navis-Protocol-Private/issues/188). |
-
-Use issue acceptance criteria and the linked evidence records to select follow-up work. Recheck issue state before starting: merged implementation and unfinished manual verification can coexist.
-
-[S028](../issues/NAVIS-S028.md) is done after PR #40 merged at `71adbf2`:
-the shared OpenRouter text migration passed mocked provider, isolated web and
-packaged desktop checks in release 1.11.36. Cloud and background generation remain
-disabled until explicitly configured. No key/model/budget was selected and no live
-paid request or personal-Vault transmission occurred. Live configured-model quality,
-clean-machine installation and independent external review are not claimed; see the
-[configuration and verification contract](openrouter-text-generation.md).
-
-S015 is done after PR #22 merged at `32cd24b`: selected web and packaged trust journeys passed and confirmed gaps were repaired. Clean-machine and Drive/integration limits were explicitly accepted as untested. See the [current matrix](trust-journey-verification.md). E002 is done with 7/7 accepted children and no retained implementation remaining.
-
-Task-status epic [E004](../issues/NAVIS-E004.md) is done with three done children
-and all six acceptance criteria reconciled.
-S022 is done after PR #24 merged at `2f85317`, delivering the
-shared Pending / In progress / Deferred / Cancelled / Done contract and accessible
-picker with verified isolated web and packaged Tauri journeys; see [semantics and persistence](task-status-semantics.md). S023 completion
-timestamps are done after PR #26; S024 Completed today is done after PR #27.
-
-S023 is done after PR #26 merged at `3049232`: UTC instants, retained
-reopen/recomplete history, configured-zone display and explicit legacy unknown
-times. Automated, real web and fresh packaged Tauri verification passed, including
-journal recompletion, Chicago fallback and DST boundaries. See the [timestamp contract](task-completion-times.md).
-
-S024 Completed today is done after PR #27 merged at `d9bdb58`, with calendar-day
-completion evidence kept separate from unknown-time journal checks and activity logs.
-It has passing automated checks and fresh web/packaged grouping, source navigation,
-filtering, reopening/refresh and byte-preservation acceptance. The earlier helper
-blocker did not recur; no application repair was needed. See
-[contract and verification](completed-today.md). No retained implementation or selected
-acceptance gap remains for E004. Clean-machine installation, personal-Vault/live-provider trials and
-independent external review remain explicit limits.
-
-## E001 final reconciliation - 2026-11-03
-
-All eight children of [E001](../issues/NAVIS-E001.md) are done. [S008](../issues/NAVIS-S008.md) passed its remaining packaged generation/edit/save gate with three synthetic notes and a local mock, plus fresh knowledge-note and Holocron service reviews. The mounted journey regression and 26 backend checks passed. See [final verification and limits](s008-workflow-simplifications.md). The S007 human-rehearsal waiver remains explicit; no measured human time savings or live model quality is claimed. Cloud generation stays disabled. Only the accepted expanded previews, editable filename and inline rule/reference controls are closed out.
+Batch card-art pipelines, gallery ingestion, annual/quarterly analytics, multiverse
+decision tracking, broader creative-project matrices, live objective pinning,
+ambient soundscapes/dynamic backgrounds and richer health/training visualizers remain
+product directions, not confirmed active defects or newly authorized implementation.
+Existing assets, entity reads, telemetry, trophy derivation and sector UIs do not
+establish those entire workflows. Scope and evidence must precede a new story.

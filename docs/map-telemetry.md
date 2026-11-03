@@ -1,5 +1,13 @@
 # Overworld telemetry contract
 
+> Audit disposition (2026-11-03): #75–#78 are closed for the implemented consumer
+> and automated contracts. The manual procedure below remains unexecuted in the
+> inspected tracked records; no corresponding waiver was found in #75/#78 or their
+> comments. A source search found `map_telemetry` consumption but no measured-coordinate
+> producer in the application. This is an intentional integration boundary, not
+> permission to invent positions. Fresh isolated lifecycle smoke is the next bounded
+> recommendation; this audit did not perform it.
+
 The existing shared desktop adapter supplies `/api/status` from `Bridge/status.json` on web and native. SectorView passes this status into the map. The map does not fetch a second status source or infer coordinates from nodes. No existing producer is assumed to know physical positions; absent coordinates remain unavailable.
 
 An optional `map_telemetry` object uses `version: 1` and `coordinate_space: "canvas-1024x576"`. Optional `player`, `antagonist`, `beast`, and `squad` objects each require `realm`, numeric `x` and `y`, and `observed_at` as an ISO timestamp with timezone. Coordinates refer to the displayed 1024 by 576 canvas, including its cropped background, with origin at top left. Bounds are inclusive. Threat entries also require `target` matching `current_antagonist` or `current_beast`. Squad entries require `members` matching the current `squad` names in order. See `frontend/scripts/fixtures/map-telemetry.json` for a complete example.
