@@ -4,7 +4,7 @@ id: "NAVIS-E001"
 parent: []
 priority: "medium"
 schema_version: 1
-status: "in_progress"
+status: "done"
 title: "Evaluate and deliver evidence-backed Navis AI workflows"
 type: "epic"
 ---
@@ -23,9 +23,9 @@ For every trial record keep/revise/drop with evidence. A failed brief trial perm
 
 ## Acceptance criteria
 
-- [ ] Complete and record the four trial decisions in order, beginning with five actionable briefs.
-- [ ] Deliver only implementations with passing evidence and an explicit keep decision; explicitly disposition failed or dropped branches and reconcile this epic's scope without claiming undelivered features.
-- [ ] For each delivered feature retain acceptance evidence, relevant checks, web and desktop workflow verification, and a fresh-sample post-delivery review.
+- [x] Complete and record the four trial decisions in order, beginning with five actionable briefs.
+- [x] Deliver only implementations with passing evidence and an explicit keep decision; explicitly disposition failed or dropped branches and reconcile this epic's scope without claiming undelivered features.
+- [x] For each delivered feature retain acceptance evidence, relevant checks, web and desktop workflow verification, and a fresh-sample post-delivery review.
 
 ## Stories
 
@@ -37,3 +37,17 @@ For every trial record keep/revise/drop with evidence. A failed brief trial perm
 - [NAVIS-S006](NAVIS-S006.md): Implement a decision-focused Holocron section after a passing trial
 - [NAVIS-S007](NAVIS-S007.md): Measure and simplify three capture-to-decision journeys
 - [NAVIS-S008](NAVIS-S008.md): Implement only demonstrated workflow simplifications
+
+
+## Closeout - 2026-11-03
+
+All eight children are done. The trial decisions are retained in S001, S003, S005
+and S007; the latter uses the explicit human-rehearsal waiver, not a human pass.
+S002/S004/S006 and S008 deliver only the accepted bounded controls. S008's final
+packaged mock-backed brief save and fresh-sample evidence resolves the last child
+gate; see [verification and limits](../docs/s008-workflow-simplifications.md).
+
+No human time savings, long-term reuse, clean-machine installation or live model
+quality is claimed. Cloud generation remains disabled; enabling it is separate
+explicitly configured work. This closeout does not authorize additional generation,
+personal-data writes or a broader product redesign.

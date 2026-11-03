@@ -4,7 +4,7 @@ id: "NAVIS-S008"
 parent: ["NAVIS-E001"]
 priority: "medium"
 schema_version: 1
-status: "in_progress"
+status: "done"
 title: "Implement only demonstrated workflow simplifications"
 type: "enhancement"
 ---
@@ -23,7 +23,7 @@ Only labels, repeated selections or preview controls identified by passing journ
 - [x] Before starting, link passing journey results and explicit keep decision; identify which existing or delivered workflows each change actually targets.
 - [x] Scope implementation to demonstrated improvements and list preserved requirements; dependencies on any conditional feature must be verified before modifying it.
 - [x] Preserve original retention, source access, editing, explicit save and factual verification; follow existing component styling and transition conventions.
-- [ ] Repeat the affected journey comparisons on the final implementation, complete relevant regression checks and web/desktop workflow smoke, and review fresh samples after delivery.
+- [x] Repeat the affected journey comparisons on the final implementation, complete relevant regression checks and web/desktop workflow smoke, and review fresh samples after delivery.
 
 ## Evaluation, privacy and scope
 
@@ -49,3 +49,18 @@ and web/native smoke remain S008 verification, not inherited prototype evidence.
 ## Implementation checkpoint - 2026-10-30
 
 Narrow source changes and release 1.11.35 are prepared; see [verification and limits](../docs/s008-workflow-simplifications.md). Frontend regression, 26 backend checks, isolated web/native knowledge-note and Holocron smoke passed. Brief browser smoke passed with a synthetic generation response and real isolated persistence. Full packaged brief generation/save and post-publication fresh-sample review remain pending. Human rehearsal is waived, not passed; S008 remains in_progress.
+
+
+## Closeout - 2026-11-03
+
+The narrow changes merged in PR #38. Remaining packaged brief generation/edit/save
+passed with three fresh synthetic notes and a loopback mock; fresh knowledge-note
+and Holocron service samples were reviewed. The current mounted journey regression
+and 26 affected backend tests passed. See the [final evidence and keep decision](../docs/s008-workflow-simplifications.md#final-verification-and-keep-decision---2026-11-03).
+
+Keep only the accepted preview/filename/reference controls. S007 human rehearsal
+remains waived; human timing/usability and live model quality are unmeasured.
+Cloud generation remains disabled. No paid calls or personal Vault changes occurred.
+Fixture app/mock processes were cleaned up. The unrelated local biometrics commit
+was preserved without publication. All four acceptance criteria are satisfied
+within these documented limits; earlier pending checkpoints above are historical.
