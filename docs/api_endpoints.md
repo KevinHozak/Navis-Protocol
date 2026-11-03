@@ -1,5 +1,12 @@
 # 🔌 API Endpoint Registry
 
+> Registry scope correction (2026-11-03): the decorator inventory below is frozen
+> at its stated September source; it is not a complete current route list. Later
+> routes/bridges include talents and Projects, and `/api/projects` is registered via
+> `add_api_route` rather than an explicit decorator. Consult current source and the
+> feature contracts for exact coverage; implementation does not establish runtime
+> acceptance. [Projects contract](projects-overview.md) covers its shared GET route.
+
 Source-derived HTTP/native route registry at `85b3db6` (2026-09-30). The table inventories every explicit FastAPI HTTP route decorator without importing or starting the backend. Contract notes below cover selected workflows; it is not a complete OpenAPI schema. Native coverage is implementation evidence, not a claim of packaged or live-Vault verification.
 
 ---

@@ -32,11 +32,17 @@ not migrated or edited. Fixtures contain synthetic records only.
   and refresh behavior using synthetic responses.
 - Existing desktop API boundary and native capability checks: passed.
 
-## Remaining manual acceptance
+## Historical manual checks — explicitly waived
 
 Packaged desktop launch with FastAPI stopped, interactive journal completion to
 rendered dashboard update, layout/error/retry inspection, and close/relaunch of
-the packaged UI remain unverified. Backend persistence and native IPC are tested,
+the packaged UI were not performed. Backend persistence and native IPC are tested,
 but automated fixtures do not establish these visual/application lifecycle checks.
-Do not close #71 or mark epic #67 complete until they are recorded. No production
-P3 reconciliation is asserted by this evidence.
+### Accepted disposition — reconciled 2026-11-03
+
+The [#71 acceptance disposition](https://github.com/KevinHozak/Navis-Protocol-Private/issues/71)
+dated 2026-09-30 explicitly waives those remaining manual checks and supersedes the
+old instruction to keep #71/#67 open. Implementation merged in historical PR #128;
+#71 and parent #67 are closed. The waiver is not a passing runtime result and does
+not authorize a production Vault migration. These checks are not current closure
+blockers or the next required task. No production P3 reconciliation is asserted.

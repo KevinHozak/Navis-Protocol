@@ -1,4 +1,10 @@
-﻿# Testing audit and local test guide
+# Testing audit and local test guide
+
+> Current reading (2026-11-03): this is a dated 2026-09-30 baseline, not a current
+> complete inventory or release signoff. Later mounted frontend checks, lint, 81
+> native tests and feature-scoped backend suites are recorded in [Projects evidence](projects-overview.md)
+> and the relevant acceptance documents. Historical missing dependencies/test counts
+> do not override those records. No full current backend suite is claimed here.
 
 Issue: [#131](https://github.com/KevinHozak/Navis-Protocol-Private/issues/131). Audited on
 2026-09-30 against `51fdd01` (`origin/main` when this worktree was created).
@@ -94,10 +100,10 @@ Pop-Location
 cargo test --manifest-path frontend/src-tauri/Cargo.toml --locked --no-default-features -- --test-threads=1
 ```
 
-Frontend tests use built-in Node modules, so `npm ci` is not needed for these
-commands; it is still needed for application build/lint. `npm test` executes
-the behavior suite and an explicit list of all 11 regression scripts,
-including the previously unwired progression check. Each VM behavior test
+Current frontend checks require the project's lockfile-installed dependencies
+(`npm ci`), including React, react-test-renderer and Next/SWC. `npm test` executes
+the behavior suite plus the explicit current list in `scripts/test-regressions.mjs`;
+the historical count of 11 regression scripts is no longer current. Each VM behavior test
 creates its own mocked runtime and invokes the entire unmodified production
 module; fake Tauri imports and fake fetch prevent transport to live services.
 
@@ -187,6 +193,6 @@ cancel a running job. Request native job cancellation explicitly with the
 applicable `cancelSyncOperation`, `cancelLoungeOperation`, or `cancelP5Operation`
 helper and its job ID.
 
-Run from `frontend`: `npm run test:unit` (30 mocked behavior tests).
+Run from `frontend`: `npm run test:unit`; consult its current output rather than the historical count of 30.
 The earlier P0 characterization above records the audit baseline; this fix
 replaces it with prevention assertions using synthetic fixtures only.
