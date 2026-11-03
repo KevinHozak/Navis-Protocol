@@ -41,6 +41,10 @@ pub fn brief_request(backend: &std::path::Path, path: &str, body: Option<Value>)
     python_mutation(backend, path, body, "native_actionable_brief.py")
 }
 
+pub fn projects_request(backend: &std::path::Path) -> Result<ApiResponse, String> {
+    python_mutation(backend, "/api/projects", None, "native_projects.py")
+}
+
 pub fn journal_entry_request(backend: &std::path::Path, body: Option<Value>) -> Result<ApiResponse, String> {
     python_mutation(backend, "/api/journal/entry", body, "native_journal_entry.py")
 }
@@ -69,6 +73,13 @@ fn python_mutation(backend: &std::path::Path, path: &str, body: Option<Value>, s
     for key in ["PATH", "SystemRoot", "TEMP", "TMP", "NAVIS_AI_PROVIDER", "NAVIS_OPENROUTER_CONFIG", "OPENROUTER_API_KEY"] {
         if let Ok(value) = std::env::var(key) {
             command.env(key, value);
+        }
+    }
+    if script == "native_projects.py" {
+        for key in ["GH_TOKEN", "GITHUB_TOKEN", "GH_CONFIG_DIR", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA"] {
+            if let Ok(value) = std::env::var(key) {
+                command.env(key, value);
+            }
         }
     }
     command

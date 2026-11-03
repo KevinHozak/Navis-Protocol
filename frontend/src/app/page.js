@@ -10,6 +10,7 @@ import SecurityGuard from '@/components/SecurityGuard';
 import { motion, AnimatePresence } from 'framer-motion';
 import SectorView from '@/components/SectorView';
 import HorizonRoadmap from '@/components/HorizonRoadmap';
+import ProjectsView from '@/components/ProjectsView';
 import AsyncJobModal from '@/components/AsyncJobModal';
 import AudioEngine from '@/lib/AudioEngine';
 import DesktopDiagnostics from '@/components/DesktopDiagnostics';
@@ -23,14 +24,14 @@ const API_TIMEOUT_MS = 10000;
 const STARTUP_TIMEOUT_MS = 12000;
 
 const FALLBACK_PILLARS = [
-  { id: 'COMMAND', label: 'Command Hub', icon: '🛰️', sectors: [{ id: 'STATUS', label: 'Status', icon: '📡' }, { id: 'DIRECTIVES', label: 'Directives', icon: '📋' }] },
+  { id: 'COMMAND', label: 'Command Hub', icon: '🛰️', sectors: [{ id: 'STATUS', label: 'Status', icon: '📡' }, { id: 'DIRECTIVES', label: 'Directives', icon: '📋' }, { id: 'PROJECTS', label: 'Projects', icon: '🗂️' }] },
   { id: 'SANCTUM', label: 'The Sanctum', icon: '🏰', sectors: [{ id: 'JOURNAL', label: 'Journal', icon: '📓' }] },
   { id: 'CODEX', label: 'Knowledge Base', icon: '📖', sectors: [{ id: 'COMPANIONS', label: 'Companions', icon: '🧙' }] },
 ];
 
 const HIDDEN_ENTITY_RAIL_SECTORS = [
   'HORIZON_ROADMAP', 'MISSIONS', 'MISSION_MAIN', 'MISSION_SIDE', 'REALM_HOP',
-  'RECURRING', 'TASKS', 'WORLD_MAP', 'HOLOCRON', 'DIRECTIVES'
+  'RECURRING', 'TASKS', 'WORLD_MAP', 'HOLOCRON', 'DIRECTIVES', 'PROJECTS'
 ];
 
 async function fetchWithTimeout(url, options = {}) {
@@ -178,6 +179,10 @@ export default function Home() {
           codexPillar.sectors = codexPillar.sectors.filter(s => s.id !== 'ARCHIVE');
         }
         
+        const projectsCommand = pillarsData.find(p => p.id === 'COMMAND');
+        if (projectsCommand && !projectsCommand.sectors?.some(s => s.id === 'PROJECTS')) {
+          projectsCommand.sectors = [...(projectsCommand.sectors || []), { id: 'PROJECTS', label: 'Projects', icon: '🗂️' }];
+        }
         setPillars(pillarsData);
         
         // Default setup for COMMAND pillar
@@ -355,7 +360,7 @@ export default function Home() {
     setEntityContent('');
     setContentLoadError(null);
     setLoadedContentEntityId(null);
-    if (activeSector === 'HORIZON_ROADMAP' || activeSector === 'HOLOCRON') {
+    if (activeSector === 'HORIZON_ROADMAP' || activeSector === 'HOLOCRON' || activeSector === 'PROJECTS') {
       setLoadingEntities(false);
       return;
     }
@@ -803,7 +808,7 @@ export default function Home() {
 
           {/* Level 4: Central Tactical Viewport */}
           <div className={`min-h-0 min-w-0 flex-1 overflow-hidden relative ${activeSector === 'HORIZON_ROADMAP' ? '' : 'p-3 md:p-8'} bg-zinc-950/95 border-r border-white/5 shadow-2xl flex flex-col`}>
-            {activeSector === 'HORIZON_ROADMAP' ? <HorizonRoadmap /> : (
+            {activeSector === 'PROJECTS' ? <ProjectsView /> : activeSector === 'HORIZON_ROADMAP' ? <HorizonRoadmap /> : (
             <AnimatePresence mode="wait">
               <SectorView 
                 key={`${activeSector}-${activeEntity?.id}`}

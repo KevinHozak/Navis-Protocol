@@ -58,7 +58,7 @@ const ribbon = await readFile(new URL('../src/components/SovereignRibbon.js', im
 assert.match(page, /currentSectors = activePillar === 'COMMAND'/);
 assert.match(page, /id: 'HORIZON_ROADMAP', label: 'Horizon Roadmap'/);
 assert.match(page, /activeSector === 'HORIZON_ROADMAP'\s*\? <HorizonRoadmap/);
-assert.match(page, /if \(activeSector === 'HORIZON_ROADMAP'( \|\| activeSector === 'HOLOCRON')?\) \{\s*setLoadingEntities\(false\);\s*return;/);
+assert.match(page, /if \(activeSector === 'HORIZON_ROADMAP' \|\| activeSector === 'HOLOCRON' \|\| activeSector === 'PROJECTS'\) \{\s*setLoadingEntities\(false\);\s*return;/);
 assert.match(page, /navItems=\{pillars\}/);
 assert.ok(!ribbon.includes('HORIZON'));
 console.log('Roadmap is a local Command sector with no top-level navigation entry.');

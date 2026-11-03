@@ -38,6 +38,14 @@ from services.recurrence import calculate_next_due, journal_day, validate_date
 NAVIS_ROOT = os.getenv("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
 
 
+async def projects_overview():
+    from services.projects import overview, ProjectsUnavailable
+    try:
+        return await asyncio.to_thread(overview)
+    except ProjectsUnavailable as error:
+        raise HTTPException(status_code=503, detail=str(error)) from None
+
+
 class SquadActionRequest(BaseModel):
     name: str
     target_recall: Optional[str] = None
@@ -197,6 +205,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Navis Bridge API", lifespan=lifespan)
+app.add_api_route('/api/projects', projects_overview, methods=['GET'])
 
 # Global job tracker for background tasks
 active_jobs = {}
