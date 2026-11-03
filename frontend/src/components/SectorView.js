@@ -403,7 +403,7 @@ export default function SectorView({
     }
   };
 
-  const fetchDraft = async (realmName) => {
+  const fetchDraft = useCallback(async (realmName) => {
     setDraftRealm(realmName);
     setDraftData(null);
     setSelectedDraft([]);
@@ -419,15 +419,21 @@ export default function SectorView({
       setMapSelectionMessage(`Unable to load the squad draft for ${realmName}: ${e.message}`);
       return false;
     }
-  };
+  }, []);
+
+  const mapDestination = activeEntity?.id === 'REALM_HOP_MODAL' ? activeEntity.realmDestination : null;
+  useEffect(() => {
+    if (!mapDestination) return;
+    setMapDraftOrigin(true);
+    fetchDraft(mapDestination);
+  }, [mapDestination, fetchDraft]);
 
   const handleMapNodeSelect = async (realmName) => {
     setMapSelectionMessage(`Loading squad draft for ${realmName}.`);
     setHopLogs(null);
-    setMapDraftOrigin(true);
-    onSelectEntity?.({ id: 'REALM_HOP_MODAL', type: 'System', name: 'Moongate Protocol' });
-    const loaded = await fetchDraft(realmName);
-    if (loaded) setMapSelectionMessage(`Squad draft ready for ${realmName}.`);
+    // SectorView remounts when its entity changes; carry the destination to the
+    // new instance rather than storing its draft in the outgoing map instance.
+    onSelectEntity?.({ id: 'REALM_HOP_MODAL', type: 'System', name: 'Moongate Protocol', realmDestination: realmName });
   };
 
   const toggleDraft = (name) => {
@@ -1312,7 +1318,7 @@ export default function SectorView({
         if (sectorId === 'BEASTS') return <CodexBestiaryView selectedBeast={selectedBeast}><CodexBoard entities={entities} onSelectEntity={onSelectEntity} sectorId={sectorId} /></CodexBestiaryView>;
         return <CodexBoard entities={entities} onSelectEntity={onSelectEntity} sectorId={sectorId} />;
       case 'WORLD_MAP':
-        return <div className="flex-1 min-h-[500px] w-full"><PhaserMapWrapper status={status} currentRealm={status?.current_realm || 'Outer Rim'} onSelectRealm={handleMapNodeSelect} />{mapSelectionMessage && <p className="sr-only" role="status">{mapSelectionMessage}</p>}</div>;
+        return <div className="w-full"><PhaserMapWrapper status={status} currentRealm={status?.current_realm || 'Outer Rim'} onSelectRealm={handleMapNodeSelect} />{mapSelectionMessage && <p className="sr-only" role="status">{mapSelectionMessage}</p>}</div>;
       case 'REALM_HOP_MODAL':
         return renderRealmHopModal();
       case 'NEURAL_CHAT':
@@ -1357,7 +1363,7 @@ export default function SectorView({
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -10 }}
-      className={`h-full flex flex-col ${activeEntity?.id === 'WORLD_MAP' || sectorId === 'DIRECTIVES' || activeEntity?.id === 'TASKS_COCKPIT' ? 'overflow-hidden' : 'overflow-y-auto pr-2'}`}
+      className={`h-full flex flex-col ${sectorId === 'DIRECTIVES' || activeEntity?.id === 'TASKS_COCKPIT' ? 'overflow-hidden' : 'overflow-y-auto pr-2'}`}
     >
       {/* Sector Header */}
       {sectorId !== 'HOLOCRON' && activeEntity?.type !== 'holocron' && sectorId !== 'DIRECTIVES' && activeEntity?.id !== 'TASKS_COCKPIT' && (

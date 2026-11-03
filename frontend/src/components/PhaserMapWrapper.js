@@ -22,10 +22,12 @@ export default function PhaserMapWrapper({ currentRealm, onSelectRealm, status }
   const [nodes, setNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState('');
   const [mapStatus, setMapStatus] = useState({ kind: 'loading', message: 'Loading Overworld data and image…' });
+  const onSelectRealmRef = useRef(onSelectRealm);
+  onSelectRealmRef.current = onSelectRealm;
   const handleSceneNodeSelected = useCallback((name) => {
     setSelectedNode(name);
-    onSelectRealm?.(name);
-  }, [onSelectRealm]);
+    onSelectRealmRef.current?.(name);
+  }, []);
 
   useEffect(() => {
     setNodes([]);
@@ -90,11 +92,9 @@ export default function PhaserMapWrapper({ currentRealm, onSelectRealm, status }
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
-      <div
-        ref={containerRef}
-        className="flex-1 min-h-0 overflow-hidden rounded-lg border border-white/10 shadow-2xl relative"
-      >
+    <div className="w-full flex flex-col">
+      <div className="w-full aspect-video shrink-0 overflow-hidden rounded-lg border border-white/10 shadow-2xl relative">
+      <div ref={containerRef} className="absolute inset-0" />
       {mapStatus.kind !== 'ready' && (
         <motion.div
           key={`${currentRealm}:${mapStatus.kind}:${mapStatus.message}`}
