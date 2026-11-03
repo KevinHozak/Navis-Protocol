@@ -30,8 +30,8 @@ completion/disposition sections. No new issue is created by this roadmap.
 | --- | --- | --- |
 | Sync/rollover and recovery | [S014 resource-directory smoke](desktop-release.md#targeted-s014-release-fixture-evidence---2026-10-27) and S015 selected journeys cover success/partial failure, reconnect/review, cancel/close/restart and unavailable roots. | Installed-package/clean-machine and physical integration limits remain accepted untested boundaries; do not label all packaged smoke unperformed. |
 | Canonical XP ledger/dashboard | Python/native ledger and refresh contracts delivered; #67/#71 closed. [P4 disposition](progression-p4-verification.md) records the user's explicit manual-check waiver. | Waived checks were not passed and are not closure blockers. Personal historical reconciliation is separately authorized operator work, not a pending automatic migration. |
-| Interactive map/telemetry | Validated nodes, realm navigation and optional measured telemetry consumers exist; [contract](map-telemetry.md). | Real web/native lifecycle/expiry/keyboard smoke remains unrecorded. No in-repository measured-coordinate producer was found; omitted positions must stay unavailable. |
-| Combat/task completion | Shared completion authority and durable retry/XP behavior; [automated evidence and unperformed UI smoke](combat-task-verification.md). | Packaged visual Execute/Retry/Cancel/relaunch evidence is still absent from the inspected record. |
+| Interactive map/telemetry | Validated nodes, realm navigation and optional measured telemetry consumers; [web/native lifecycle evidence and repairs](map-telemetry-lifecycle-smoke.md) passed in 1.11.40 fixtures after PR #47. | No in-repository measured-coordinate producer was found; omitted positions must stay unavailable. Installer and production coordinate integration are not certified by synthetic UI smoke. |
+| Combat/task completion | Shared completion authority and durable retry/XP behavior; [packaged Execute/Retry/Cancel/relaunch smoke](combat-packaged-recovery-smoke.md) passed in fresh 1.11.40 fixtures. | Canonical XP exactly once, journal/card persistence and cleanup verified. Installer, clean-machine discovery and physical Drive interruption remain untested. |
 | Tactical combat and Bestiary | [Round/AP/shield rules](combat-tactical-rules.md), [elements](combat-elements.md), [squad synergies](combat-synergies.md), [Bestiary analytics/trophies](combat-bestiary.md) exist. Legacy epic #183 is closed. | Operator-facing encounter creation/selection remains later-phase integration, not part of the existing task resolver. No full tactical-game completion is claimed. |
 | Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md) exist; #193 and children are closed. | These records primarily map implementation and automated coverage, not a clean-machine or human usability result. Do not re-list the entire tree as planned. |
 | Reactive updates | Python watcher/event bus, `/api/events/stream`, native watcher/events and client invalidation are implemented; #188 and children are closed. | This is not a universal Drive consistency or uninterrupted push-delivery guarantee. |
@@ -39,19 +39,17 @@ completion/disposition sections. No new issue is created by this roadmap.
 | Forge/Reid/War Room | Python runtime bridges exist in native P5; [current text provider boundary](openrouter-text-generation.md) supersedes historical local-only defaults. | Configured live quality/spend and the separate Portal accounting contract remain outside this audit; cloud generation stays disabled. |
 | Journal composer/Holocron | [Save verification](journal-save-verification.md), [freshness](refresh-freshness.md), S006/S008 and S028 supply scoped packaged/browser evidence. | Do not describe these selected journeys as globally awaiting first packaged smoke; physical races and installer limits remain separate. |
 
-## Next bounded task
+## Completed bounded follow-ups
 
-**Run the existing map telemetry lifecycle smoke in fresh isolated web and packaged
-fixtures.** Use synthetic coordinates, never invented live positions. Verify
-current/stale/future/malformed/missing/out-of-bounds data, threat/squad/realm changes,
-old-marker removal, idle expiry, keyboard navigation and small-view readability.
-Preserve original fixture bytes and clean up processes. Record pass/fail and repair
-only a reproduced scoped defect. Keep cloud generation disabled.
+The [map lifecycle smoke and repairs](map-telemetry-lifecycle-smoke.md) passed after
+merged PR #47. The subsequent [packaged combat recovery smoke](combat-packaged-recovery-smoke.md)
+passed Execute, retry after actual app relaunch and Cancel, with journal/card/XP
+integrity and process cleanup. These records supersede the original audit's absence
+of evidence for those selected journeys. Cloud generation remains disabled.
 
-This closes a specific read-only validation gap without reopening the waived
-progression work. Next candidates are packaged combat recovery UI acceptance and,
-as a separate implementation story, reviewed encounter setup/selection. No production
-XP migration, installer exercise, live integration or AI configuration is implied.
+No new implementation task is selected here. Reviewed encounter setup/selection is
+a separate candidate; waived progression work, production XP migration, installer
+exercises, live integrations and AI configuration are not implied follow-ups.
 
 ## Unselected broader directions
 
