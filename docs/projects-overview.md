@@ -55,12 +55,33 @@ can still be displayed. No background polling is introduced.
 - The live isolated HTTP endpoint returned two synthetic partial repository rows;
   web startup added only a sector cache and preserved its original fixture files.
 
-**Retained gate:** real browser UI smoke is unverified. The in-app browser helper
-repeatedly timed out/reset; the alternate browser connector was unavailable.
-Native window discovery also initially timed out, then recovered after tests and
-fixture cleanup. Its completed packaged checks do not substitute for browser UI
-acceptance. Publish a draft until that gate is resolved or explicitly deferred.
-No clean-machine installation or independent external review is claimed.
+## Browser gate passed - 2026-11-03
+
+The previous combined tab-creation/navigation attempt timed out while the local
+development page was starting. A new blank tab in the existing in-app browser
+connection opened successfully. The fresh web page was separately warmed to HTTP
+200 before navigation; browser interactions then completed without application
+source changes. No browser/security settings were changed.
+
+A fresh synthetic Vault, query transport and backend/frontend ports verified real
+Command → Projects navigation, visible loading, usable partial rows, separate issue
+and PR counts, repository/list/commit URLs, commit dates and refreshed time. A denied
+synthetic repository and raw provider error detail were absent. Refresh directly
+from the private-card view to a sign-in failure removed the old cards. Empty discovery
+showed its own message, and successful recovery displayed a valid zero count without
+the partial-data warning. Link attributes retained `noopener noreferrer`. Screenshot
+inspection confirmed the readable single-column layout at the browser's viewport.
+
+The fixture recorded five synthetic query invocations (two initial development
+mount requests, then failure, empty and successful refresh). All six original files
+remained byte-identical; only a deterministic sector cache was added. The agent-created
+tab and owned backend/frontend process trees were closed. Cloud keys/config and GitHub
+token environment values were removed from the fixture backend, and the query transport
+was synthetic-only. No private account data or inference request was used.
+
+The browser gate is resolved. No clean-machine installation or independent external
+review is claimed. Initial native/browser helper timeouts remain historical evidence;
+the completed packaged and browser checks are recorded separately above.
 
 Cloud generation remains disabled. Fixture launches selected disabled OpenRouter
 and removed its key/config values. No inference or personal-Vault access was used.
