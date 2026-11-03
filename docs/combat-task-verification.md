@@ -1,13 +1,13 @@
 # Combat task completion: P3 verification
 
 > Current disposition (2026-11-03): #84/#86/#87 are closed on delivered code and
-> automated recovery evidence. The release UI smoke at the end of this record is
-> still unperformed in the inspected evidence; no manual-check waiver was found
-> in those issue bodies/comments. This is a follow-up verification gap, not proof
-> of a combat defect or an instruction to reopen closed issues. Historical missing
-> lint dependencies below no longer describe the current toolchain: later frontend
-> lint and 81 native tests passed for 1.11.39. No new combat UI acceptance was run
-> by this documentation audit.
+> automated recovery evidence. The subsequent
+> [packaged 1.11.40 Execute/Retry/Cancel/relaunch smoke](combat-packaged-recovery-smoke.md)
+> passed in isolated fixtures, closing that selected UI evidence gap. Installer,
+> clean-machine and physical Drive limits remain separate. Historical missing lint
+> dependencies below no longer describe the current toolchain: later frontend
+> lint and 81 serial native tests passed for 1.11.40. The original documentation
+> audit did not itself perform runtime acceptance; the linked smoke is new evidence.
 
 Issue #87 verifies the completion implementation delivered by #86. All automated
 tests use synthetic temporary Vaults. No personal journals or release data are
@@ -100,10 +100,15 @@ One intermediate suite run returned `pending_recovery` during a synthetic
 cancellation storage write (98 passed, 1 failed). The complete rerun passed all
 99 checks. No production logic was changed to hide that storage outcome.
 
-## Release-runtime smoke tests not performed
+## Release-runtime follow-up
 
-Packaged Tauri installer launch with FastAPI explicitly stopped, visual clicking
-of Execute/Retry/Cancel, packaged Python dependency/resource discovery, actual
-application restart, and real Google Drive interruption remain manual release
-checks. Automated Rust command/process restarts are separate evidence and do not
-claim those release checks passed.
+The [2026-11-03 packaged recovery smoke](combat-packaged-recovery-smoke.md) passed
+visual Execute, retry after actual application relaunch and Cancel using fresh
+synthetic Vaults and copied 1.11.40 resources. Journal/card/ledger read-back and
+cleanup passed. This supersedes the absence of evidence for those selected UI
+journeys; it does not claim an installer or production integration test.
+
+Packaged Tauri installer launch, clean-machine Python dependency discovery and
+real Google Drive interruption remain unperformed release checks. The copied
+release used an explicitly selected verified Python virtualenv. Automated Rust
+command/process restarts remain separate from the now-recorded desktop UI relaunch.
