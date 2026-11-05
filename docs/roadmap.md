@@ -32,7 +32,7 @@ completion/disposition sections. No new issue is created by this roadmap.
 | Canonical XP ledger/dashboard | Python/native ledger and refresh contracts delivered; #67/#71 closed. [P4 disposition](progression-p4-verification.md) records the user's explicit manual-check waiver. | Waived checks were not passed and are not closure blockers. Personal historical reconciliation is separately authorized operator work, not a pending automatic migration. |
 | Interactive map/telemetry | Validated nodes, realm navigation and optional measured telemetry consumers; [web/native lifecycle evidence and repairs](map-telemetry-lifecycle-smoke.md) passed in 1.11.40 fixtures after PR #47. | No in-repository measured-coordinate producer was found; omitted positions must stay unavailable. Installer and production coordinate integration are not certified by synthetic UI smoke. |
 | Combat/task completion | Shared completion authority and durable retry/XP behavior; [packaged Execute/Retry/Cancel/relaunch smoke](combat-packaged-recovery-smoke.md) passed in fresh 1.11.40 fixtures. | Canonical XP exactly once, journal/card persistence and cleanup verified. Installer, clean-machine discovery and physical Drive interruption remain untested. |
-| Tactical combat and Bestiary | [Round/AP/shield rules](combat-tactical-rules.md), [elements](combat-elements.md), [squad synergies](combat-synergies.md), [Bestiary analytics/trophies](combat-bestiary.md) exist. Legacy epic #183 is closed. | Operator-facing encounter creation/selection remains later-phase integration, not part of the existing task resolver. No full tactical-game completion is claimed. |
+| Tactical combat and Bestiary | [Round/AP/shield rules](combat-tactical-rules.md), [elements](combat-elements.md), [squad synergies](combat-synergies.md), [Bestiary analytics/trophies](combat-bestiary.md), and [reviewed single-enemy setup](combat-encounter-setup.md) exist. Legacy epic #183 is closed. | Setup uses existing validated Beast profiles, explicit preview/confirmation and recovery guards. Multi-enemy selection, enemy editing, abandonment/restart and deck rebuilding are outside this bounded change. No full tactical-game completion is claimed. |
 | Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md) exist; #193 and children are closed. | These records primarily map implementation and automated coverage, not a clean-machine or human usability result. Do not re-list the entire tree as planned. |
 | Reactive updates | Python watcher/event bus, `/api/events/stream`, native watcher/events and client invalidation are implemented; #188 and children are closed. | This is not a universal Drive consistency or uninterrupted push-delivery guarantee. |
 | Squad management | Native deploy/bench/vanguard routes and tests exist alongside web routes. | The earlier claim that these native mutations were absent is superseded. No new squad redesign is selected. |
@@ -47,9 +47,10 @@ passed Execute, retry after actual app relaunch and Cancel, with journal/card/XP
 integrity and process cleanup. These records supersede the original audit's absence
 of evidence for those selected journeys. Cloud generation remains disabled.
 
-No new implementation task is selected here. Reviewed encounter setup/selection is
-a separate candidate; waived progression work, production XP migration, installer
-exercises, live integrations and AI configuration are not implied follow-ups.
+The user selected reviewed encounter setup/selection as the next bounded change;
+its scope and verification are recorded in [encounter setup](combat-encounter-setup.md).
+Waived progression work, production XP migration, installer exercises, live
+integrations and AI configuration are not implied follow-ups.
 
 ## Unselected broader directions
 
