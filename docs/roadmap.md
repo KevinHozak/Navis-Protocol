@@ -47,8 +47,16 @@ passed Execute, retry after actual app relaunch and Cancel, with journal/card/XP
 integrity and process cleanup. These records supersede the original audit's absence
 of evidence for those selected journeys. Cloud generation remains disabled.
 
-The user selected reviewed encounter setup/selection as the next bounded change;
-its scope and verification are recorded in [encounter setup](combat-encounter-setup.md).
+Reviewed encounter setup/selection merged in PR #49; its scope and verification
+are recorded in [encounter setup](combat-encounter-setup.md).
+The subsequent [encounter-to-Bestiary lifecycle smoke](combat-bestiary-lifecycle-smoke.md)
+verified two UI-driven victories, exact-once history/XP and reload/relaunch
+integrity in fresh web and packaged fixtures. The initial run exposed a missing
+native Beasts Codex dashboard entry and overlapping metrics in narrow web cards.
+Both were repaired in 1.11.43, and fresh UI-driven lifecycle reruns passed in both
+runtimes, including native dossier navigation, reload/relaunch persistence and
+exact-once history/XP. Rendered web metric containment passed at 1024, 1280 and
+1600 pixel widths. No confirmed gap remains in this selected lifecycle scope.
 Waived progression work, production XP migration, installer exercises, live
 integrations and AI configuration are not implied follow-ups.
 
