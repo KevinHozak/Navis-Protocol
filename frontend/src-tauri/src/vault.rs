@@ -676,6 +676,27 @@ fn holocron_manifest() -> Result<Value, String> {
     Ok(Value::Array(out))
 }
 
+fn navigation_entities(sector: &str) -> Result<Value, String> {
+    if sector != "BEASTS" {
+        return list_entities(sector);
+    }
+    let board = json!({"id":"CODEX_BOARD","name":"Beasts Codex","type":"virtual"});
+    // The dashboard also works for catalog-only Vaults without Obstacles yet.
+    // Resolve the parent separately so an unavailable/escaping Vault still fails.
+    let parent = resolve_relative_path("Obstacles")?;
+    match fs::metadata(parent) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(json!([board]));
+        }
+        Err(error) => return Err(error.to_string()),
+        Ok(metadata) if !metadata.is_dir() => return Err("Beast source parent is not a directory".into()),
+        Ok(_) => {}
+    }
+    let mut entities = list_entities(sector)?.as_array().cloned().ok_or("Invalid Beast entity list")?;
+    entities.insert(0, board);
+    Ok(Value::Array(entities))
+}
+
 fn list_entities(sector: &str) -> Result<Value, String> {
     if sector == "KEEPER" {
         let dir = resolve_relative_path("Keeper")?;
@@ -2083,7 +2104,7 @@ pub fn request(path: &str, method: &str, body: Option<Value>) -> Result<ApiRespo
         ("GET", "/api/journal/month") => return Ok(journal_month(path)),
         ("POST", "/api/journal/entry") => return Err("Journal appends require the canonical journal bridge".into()),
         ("GET", "/api/ops") => ops()?,
-        ("GET", "/api/entities") => list_entities(&query(path, "sectorId").unwrap_or_default())?,
+        ("GET", "/api/entities") => navigation_entities(&query(path, "sectorId").unwrap_or_default())?,
         ("GET", "/api/holocron/weekly/manifest") => holocron_manifest()?,
         ("GET", r) if r.starts_with("/api/holocron/weekly/") && r.ends_with("/html") => {
             let wid = r.trim_start_matches("/api/holocron/weekly/").trim_end_matches("/html");
@@ -2277,6 +2298,37 @@ fn python_holocron(
 #[cfg(test)]
 mod tests {
     use std::fs;
+
+    #[test]
+    fn beast_navigation_keeps_dashboard_first_without_polluting_beast_choices() {
+        let _lock = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let root = std::env::temp_dir().join(format!("navis-beast-navigation-{}", uuid::Uuid::new_v4()));
+        fs::create_dir(&root).unwrap();
+        let old_root = std::env::var_os("NAVIS_ROOT");
+        std::env::set_var("NAVIS_ROOT", &root);
+        let board = serde_json::json!({"id":"CODEX_BOARD","name":"Beasts Codex","type":"virtual"});
+        for directory in [None, Some("Obstacles"), Some("Obstacles/Beasts")] {
+            if let Some(directory) = directory { fs::create_dir_all(root.join(directory)).unwrap(); }
+            let response = super::request("/api/entities?sectorId=BEASTS", "GET", None).unwrap();
+            assert_eq!(response.body, serde_json::json!([board.clone()]));
+        }
+        for name in ["Zulu", "Alpha"] {
+            fs::create_dir_all(root.join(format!("Obstacles/Beasts/{name}"))).unwrap();
+            fs::write(root.join(format!("Obstacles/Beasts/{name}/Profile.md")), format!("# {name}\n")).unwrap();
+        }
+        let response = super::request("/api/entities?sectorId=BEASTS", "GET", None).unwrap();
+        assert_eq!(response.body[0], board);
+        assert_eq!(response.body[1]["id"], "Obstacles/Beasts/Alpha");
+        assert_eq!(response.body[1]["type"], "directory");
+        assert_eq!(response.body[2]["name"], "Zulu");
+        assert_eq!(fs::read_to_string(root.join("Obstacles/Beasts/Alpha/Profile.md")).unwrap(), "# Alpha\n");
+        let choices = super::request("/api/beasts", "GET", None).unwrap();
+        assert_eq!(choices.body.as_array().unwrap().len(), 2);
+        assert!(choices.body.as_array().unwrap().iter().all(|item| item["id"] != "CODEX_BOARD"));
+        fs::remove_dir_all(&root).unwrap();
+        assert!(super::request("/api/entities?sectorId=BEASTS", "GET", None).is_err());
+        match old_root { Some(value) => std::env::set_var("NAVIS_ROOT", value), None => std::env::remove_var("NAVIS_ROOT") }
+    }
 
     #[test]
     fn status_unavailability_does_not_become_an_earth_default() {
