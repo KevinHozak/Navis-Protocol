@@ -106,11 +106,11 @@ async fn p3_request(
     method: Option<String>,
     body: Option<Value>,
 ) -> Result<p3::ApiResponse, String> {
-    if (method.as_deref().unwrap_or("GET") == "GET" && matches!(path.as_str(), "/api/battle/state" | "/api/battle/bestiary"))
+    if (method.as_deref().unwrap_or("GET") == "GET" && matches!(path.as_str(), "/api/battle/state" | "/api/battle/bestiary" | "/api/battle/encounters"))
         || (method.as_deref() == Some("POST")
         && matches!(
             path.as_str(),
-            "/api/battle/link" | "/api/battle/resolve" | "/api/battle/rest"
+            "/api/battle/link" | "/api/battle/resolve" | "/api/battle/rest" | "/api/battle/encounter/preview" | "/api/battle/encounter"
         ))
     {
         let backend = operations::backend_root(&app)?;

@@ -20,7 +20,8 @@ Debuff subtracts one attack next round. Shields absorb Strike damage across all
 enemies and expire after the round. HP cannot fall below zero. AP refreshes each
 round. There is no randomness in round evaluation. Default intent is Strike.
 Won or defeated encounters reject further rounds until replaced by encounter
-setup. Encounter creation and selection are later-phase integration work.
+setup. Reviewed encounter selection is described in
+[encounter setup](combat-encounter-setup.md).
 
 The shared HTTP/native completion service saves the calculated round inside the
 existing prepared resolution before writing the task checkbox. It applies the

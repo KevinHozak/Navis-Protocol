@@ -366,6 +366,33 @@ async def verify_auth(req: Optional[AuthVerifyRequest] = None, request: Request 
 # -----------------------------------------------------------------------------
 
 
+@app.get("/api/battle/encounters")
+async def list_encounter_candidates():
+    from services.combat_completion import dispatch
+    try:
+        return dispatch("/api/battle/encounters", {})
+    except (ValueError, FileNotFoundError) as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
+@app.post("/api/battle/encounter/preview")
+async def preview_encounter(body: dict):
+    from services.combat_completion import dispatch
+    try:
+        return dispatch("/api/battle/encounter/preview", body)
+    except (ValueError, FileNotFoundError) as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
+@app.post("/api/battle/encounter")
+async def create_encounter(body: dict):
+    from services.combat_completion import dispatch
+    try:
+        return dispatch("/api/battle/encounter", body)
+    except (ValueError, FileNotFoundError) as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
 class BattleLinkRequest(BaseModel):
     task_id: str
     top_card_id: str

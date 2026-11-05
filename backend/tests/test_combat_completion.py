@@ -255,6 +255,23 @@ def test_fastapi_handlers_use_the_shared_completion_contract(vault):
     assert asyncio.run(main.resolve_battle_task(command))["idempotent_replay"]
 
 
+@pytest.mark.parametrize("completed", [True, False])
+def test_reviewed_setup_integrates_with_resolution(vault, call, completed):
+    folder = vault / "Codex/Beasts/Sentinel"
+    folder.mkdir(parents=True)
+    (folder / "Combat.json").write_text(json.dumps({"hp": 20, "attack": 4}))
+    review = call("/api/battle/encounter/preview", {"enemy_id": "Sentinel"})
+    created = call("/api/battle/encounter", {"enemy_id": "Sentinel", "preview_token": review["preview_token"]})
+    command = link(call)
+    command["is_completed"] = completed
+    result = call("/api/battle/resolve", command)
+    assert result["status"] == ("completed" if completed else "cancelled")
+    encounter = state(vault)["encounter"]
+    assert encounter["history_id"] == created["encounter"]["history_id"]
+    assert encounter["turn"] == (2 if completed else 1)
+    assert encounter["player_hp"] == (96 if completed else 100)
+
+
 @pytest.mark.parametrize("proposed", [("c", "d"), ("a", "b")])
 def test_duplicate_link_preserves_all_cards_and_saved_bytes(vault, call, proposed):
     path = vault / "Battle/battle_state.json"

@@ -31,6 +31,7 @@ await mod.link(async name => {
   else if (name === 'react/jsx-runtime') values = require('react/jsx-runtime');
   else if (name === 'framer-motion') values = { motion: { div: 'div' } };
   else if (name === './VaultAssetImage') values = { default: props => React.createElement('img', { alt: props.alt }) };
+  else if (name === './EncounterSetup') values = { default: () => null };
   else if (name === '../lib/desktopApi') values = {
     apiFetch: async path => ({ ok: true, json: async () => path === '/api/battle/state' ? battle : { logs: [] } }),
     apiUrl: path => path, vaultAssetUrl: path => path,
