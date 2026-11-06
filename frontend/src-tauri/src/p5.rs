@@ -1273,7 +1273,12 @@ time.sleep(30)
             "billing_state":billing,"provider_dispatch_count":dispatches})).expect("write bounded phase metadata");
         file.sync_all().expect("flush phase metadata");
     }
-    fn record_s028_fixture_acquire_error(root:&Path,error:&portal_client::ClientError){
+    #[derive(Clone,Copy)]
+    enum S028FixtureErrorPhase{Acquire,RuntimePin}
+    impl S028FixtureErrorPhase{
+        fn name(self)->&'static str{match self{Self::Acquire=>"acquire",Self::RuntimePin=>"runtime-pin"}}
+    }
+    fn record_s028_fixture_error(root:&Path,error:&portal_client::ClientError,phase:S028FixtureErrorPhase)->std::io::Result<()>{
         let code=match error.code{
             "GUARDIAN_REQUEST_INVALID"|"GUARDIAN_CALLER_REFUSED"|"GUARDIAN_BUSY"|"GUARDIAN_PROFILE_CHANGED"|
             "GUARDIAN_COLD_START_BLOCKED"|"GUARDIAN_BROKER_UNAVAILABLE"|"LIFECYCLE_UNRESOLVED"|
@@ -1285,35 +1290,118 @@ time.sleep(30)
         };
         let code_classified=code==error.code;
         let kind=if error.kind=="not_sent"{"not_sent"}else{"unclassified"};
-        let path=root.join("native-test-acquire-error.json");
-        let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(path)
-            .expect("create-only bounded native acquire error marker");
-        serde_json::to_writer(&mut file,&json!({"schema":1,"phase":"acquire","kind":kind,
-            "code":code,"code_classified":code_classified,"billing_state":"not_sent"}))
-            .expect("write bounded native acquire error marker");
-        file.sync_all().expect("flush native acquire error marker");
+        let path=root.join(format!("native-test-{}-error.json",phase.name()));
+        let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(path)?;
+        serde_json::to_writer(&mut file,&json!({"schema":1,"phase":phase.name(),"kind":kind,
+            "code":code,"code_classified":code_classified,"billing_state":"not_sent"}))?;
+        file.sync_all()?;
+        Ok(())
+    }
+    #[derive(Clone,Copy)]
+    enum S028FirstSubmitStage{BeforeCommand,AfterCommand,BeforeSubmit,Returned}
+    impl S028FirstSubmitStage{
+        fn name(self)->&'static str{match self{
+            Self::BeforeCommand=>"before-command",Self::AfterCommand=>"after-command",
+            Self::BeforeSubmit=>"before-submit",Self::Returned=>"returned"}}
+    }
+    fn record_s028_fixture_first_submit_stage(root:&Path,stage:S028FirstSubmitStage,result:Option<(&ApiResponse,bool)>)->std::io::Result<()>{
+        let(status,detail_code,detail_code_classified,billing_state,billing_state_classified,worker_present)=match result{
+            Some((response,worker_present))=>{
+                let detail_code=response.body.get("detail").and_then(|detail|detail.get("code")).and_then(Value::as_str);
+                let (detail_code,detail_code_classified)=match detail_code{
+                    Some(code @ ("PORTAL_INPUT_LIMIT"|"PORTAL_CANCELLED"|"PORTAL_CHILD_SUPERVISION_FAILED"|
+                        "PORTAL_NATIVE_DEADLINE_EXCEEDED"|"PORTAL_NATIVE_INPUT_FAILED"|"PORTAL_NATIVE_RESPONSE_INVALID"|
+                        "PORTAL_NATIVE_RESPONSE_TOO_LARGE"|"PORTAL_PREVIEW_WORKER_EXITED"|"PORTAL_PREVIEW_ID_MISSING"|
+                        "PORTAL_PREVIEW_WORKER_MISSING"|"PORTAL_NATIVE_BINDING_INVALID"|"PORTAL_PRIVACY_OPT_IN_REQUIRED"|
+                        "PORTAL_APP_DISABLED"|"PORTAL_OPERATION_REQUIRED"|"PORTAL_PROFILE_UNAVAILABLE"|
+                        "PORTAL_APP_POLICY_UNAVAILABLE"|"PORTAL_APP_POLICY_OPT_IN_REQUIRED"|"PORTAL_FEATURE_BUSY"|
+                        "PORTAL_HOST_MANUAL_START_REQUIRED"|"PORTAL_UNAVAILABLE_OR_INVALID_PROFILE"|
+                        "PORTAL_BLUEPRINT_INVALID"|"PORTAL_FORGE_INPUT_INVALID"|"PORTAL_PREVIEW_STORE_FAILED"|
+                        "PORTAL_HOST_GENERATION_CHANGED"|"HOST_GENERATION_UNAVAILABLE"|"HOST_UNAVAILABLE"|
+                        "HOST_INCOMPATIBLE"|"HOST_START_TIMEOUT"|"HOST_LAUNCH_REFUSED"|"HOST_PROFILE_INVALID"|
+                        "HOST_IDENTITY_MISMATCH"|"HOST_LISTENER_UNTRUSTED"|"HOST_STOP_PENDING"|"HOST_TIMEOUT_INVALID"|
+                        "HOST_REGISTRATION_EXISTS"|"HOST_SELECTED_RELEASE_REQUIRED"|"HOST_INPUT_PIN_FAILED"|
+                        "HOST_PLATFORM_UNSUPPORTED"|"HOST_LAUNCH_CLEANUP_PENDING"|"NOT_READY"|
+                        "PORTAL_HOST_UNAVAILABLE"|"PORTAL_NOT_READY"|"PORTAL_HOST_PROFILE_MISMATCH"|
+                        "PORTAL_HOST_IDENTITY_UNAVAILABLE"|"PORTAL_PROFILE_INVALID"|"PORTAL_LEDGER_PATH_INVALID"|
+                        "PORTAL_RELEASE_CHANGED"|"PORTAL_APP_KEY_UNAVAILABLE"|"PORTAL_HOST_GENERATION_INVALID"|
+                        "PORTAL_OPERATION_INVALID"|"PORTAL_ADMISSION_BLOCKED"|"PORTAL_DUPLICATE_OPERATION"|
+                        "PORTAL_FEATURE_BUDGET_DENIED"|
+                        "native_dependency_unavailable"))=>(Some(code),Some(true)),
+                    Some(_)=>(Some("UNCLASSIFIED"),Some(false)),None=>(None,None),
+                };
+                let billing=response.body.get("detail").and_then(|detail|detail.get("billing_state")).and_then(Value::as_str)
+                    .or_else(||response.body.get("portal_receipt").and_then(|receipt|receipt.get("billing_state")).and_then(Value::as_str));
+                let (billing_state,billing_state_classified)=match billing{
+                    Some(state @ ("not_sent"|"settled"|"unresolved"|"duplicate_unknown"|"unknown"))=>(Some(state),Some(true)),
+                    Some(_)=>(Some("unclassified"),Some(false)),None=>(None,None),
+                };
+                (Some(response.status),detail_code,detail_code_classified,billing_state,billing_state_classified,Some(worker_present))
+            }
+            None=>(None,None,None,None,None,None),
+        };
+        let path=root.join(format!("native-test-first-submit-{}.json",stage.name()));
+        let mut file=std::fs::OpenOptions::new().write(true).create_new(true).open(path)?;
+        serde_json::to_writer(&mut file,&json!({"schema":1,"phase":"first-submit","stage":stage.name(),
+            "status":status,"detail_code":detail_code,"detail_code_classified":detail_code_classified,
+            "billing_state":billing_state,"billing_state_classified":billing_state_classified,"worker_present":worker_present}))?;
+        file.sync_all()?;
+        Ok(())
     }
     #[test]
     fn s028_fixture_acquire_error_marker_is_bounded_and_create_only(){
-        let base=PathBuf::from(std::env::var("NAVIS_S028_ACQUIRE_ERROR_TEST_ROOT")
-            .expect("private generated diagnostic test root"));
+        let nonce=SystemTime::now().duration_since(UNIX_EPOCH).expect("system time").as_nanos();
+        let base=std::env::temp_dir().join(format!("navis-s028-acquire-error-{}-{nonce}",std::process::id()));
+        std::fs::create_dir(&base).expect("create unique generated diagnostic test root");
         let known=base.join("known");std::fs::create_dir(&known).expect("create known generated subroot");
         let known_error=portal_client::ClientError{kind:"not_sent",code:"HOST_START_TIMEOUT",
             correlation:Some("synthetic-correlation-not-recorded".to_string())};
-        record_s028_fixture_acquire_error(&known,&known_error);
+        record_s028_fixture_error(&known,&known_error,S028FixtureErrorPhase::Acquire).expect("write known bounded marker");
         let known_frame:Value=serde_json::from_slice(&std::fs::read(known.join("native-test-acquire-error.json")).unwrap()).unwrap();
         assert_eq!(known_frame,json!({"schema":1,"phase":"acquire","kind":"not_sent","code":"HOST_START_TIMEOUT",
             "code_classified":true,"billing_state":"not_sent"}));
         let unknown=base.join("unknown");std::fs::create_dir(&unknown).expect("create unknown generated subroot");
         let unknown_error=portal_client::ClientError{kind:"private-kind",code:"PRIVATE_DETAIL",
             correlation:Some("synthetic-correlation-not-recorded".to_string())};
-        record_s028_fixture_acquire_error(&unknown,&unknown_error);
+        record_s028_fixture_error(&unknown,&unknown_error,S028FixtureErrorPhase::Acquire).expect("write unknown bounded marker");
         let unknown_frame:Value=serde_json::from_slice(&std::fs::read(unknown.join("native-test-acquire-error.json")).unwrap()).unwrap();
         assert_eq!(unknown_frame["code"],"LIFECYCLE_UNRESOLVED");
         assert_eq!(unknown_frame["kind"],"unclassified");
         assert_eq!(unknown_frame["code_classified"],false);
-        let collision=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||record_s028_fixture_acquire_error(&known,&known_error)));
-        assert!(collision.is_err(),"diagnostic marker must refuse overwrite");
+        let collision=record_s028_fixture_error(&known,&known_error,S028FixtureErrorPhase::Acquire)
+            .expect_err("diagnostic marker must refuse overwrite");
+        assert_eq!(collision.kind(),std::io::ErrorKind::AlreadyExists);
+    }
+    #[test]
+    fn s028_first_submit_marker_is_bounded_create_only_and_self_contained(){
+        let nonce=SystemTime::now().duration_since(UNIX_EPOCH).expect("system time").as_nanos();
+        let base=std::env::temp_dir().join(format!("navis-s028-first-submit-{}-{nonce}",std::process::id()));
+        std::fs::create_dir(&base).expect("create unique generated first-submit test root");
+        record_s028_fixture_first_submit_stage(&base,S028FirstSubmitStage::BeforeCommand,None)
+            .expect("write pre-command marker");
+        let known=response(503,json!({"detail":{"code":"PORTAL_NATIVE_INPUT_FAILED"},
+            "portal_receipt":{"billing_state":"settled"},
+            "private_body":"synthetic secret","correlation":"synthetic-correlation"}));
+        record_s028_fixture_first_submit_stage(&base,S028FirstSubmitStage::Returned,Some((&known,false)))
+            .expect("write allowlisted result marker");
+        let known_text=std::fs::read_to_string(base.join("native-test-first-submit-returned.json")).unwrap();
+        let known_frame:Value=serde_json::from_str(&known_text).unwrap();
+        assert_eq!(known_frame,json!({"schema":1,"phase":"first-submit","stage":"returned","status":503,
+            "detail_code":"PORTAL_NATIVE_INPUT_FAILED","detail_code_classified":true,"billing_state":"settled",
+            "billing_state_classified":true,"worker_present":false}));
+        assert!(!known_text.contains("private_body")&&!known_text.contains("synthetic")&&!known_text.contains("correlation"));
+        let unknown=response(503,json!({"detail":{"code":"PRIVATE_DETAIL","billing_state":"private-state"}}));
+        record_s028_fixture_first_submit_stage(&base,S028FirstSubmitStage::BeforeSubmit,Some((&unknown,true)))
+            .expect("write sanitized unknown result marker");
+        let unknown_frame:Value=serde_json::from_slice(&std::fs::read(base.join("native-test-first-submit-before-submit.json")).unwrap()).unwrap();
+        assert_eq!(unknown_frame["detail_code"],"UNCLASSIFIED");
+        assert_eq!(unknown_frame["detail_code_classified"],false);
+        assert_eq!(unknown_frame["billing_state"],"unclassified");
+        assert_eq!(unknown_frame["billing_state_classified"],false);
+        assert_eq!(unknown_frame["worker_present"],true);
+        let collision=record_s028_fixture_first_submit_stage(&base,S028FirstSubmitStage::Returned,Some((&known,false)))
+            .expect_err("first-submit stage markers must refuse overwrite");
+        assert_eq!(collision.kind(),std::io::ErrorKind::AlreadyExists);
     }
 
     #[cfg(windows)]
@@ -1368,7 +1456,9 @@ time.sleep(30)
         let connection=match acquired{
             Ok(connection)=>connection,
             Err(error)=>{
-                record_s028_fixture_acquire_error(&root,&error);
+                if record_s028_fixture_error(&root,&error,S028FixtureErrorPhase::Acquire).is_err(){
+                    panic!("bounded native acquire error marker persistence failed");
+                }
                 panic!("native SDK acquire failed; see bounded fixture error marker");
             }
         };
@@ -1383,7 +1473,15 @@ time.sleep(30)
         record_s028_fixture_phase(&root,S028FixturePhase::RunningStatus,None,None,0);
 
         let command=||{
-            let (selected,pin)=pin_registered_portal_runtime().expect("select and pin registered Portal runtime");
+            let (selected,pin)=match pin_registered_portal_runtime(){
+                Ok(value)=>value,
+                Err(error)=>{
+                    if record_s028_fixture_error(&root,&error,S028FixtureErrorPhase::RuntimePin).is_err(){
+                        panic!("bounded fixture runtime-pin marker persistence failed");
+                    }
+                    panic!("registered Portal runtime pin failed; see bounded fixture marker");
+                }
+            };
             assert_eq!(selected,python,"native Forge must use the registered host runtime");
             let mut command=std::process::Command::new(&selected);command.args(["-I","-B"]).arg(&shim);
             command.current_dir(&backend).env_clear();
@@ -1395,8 +1493,17 @@ time.sleep(30)
         let payload=|operation:&str,name:&str|json!({"request":{"entity_type":"companion","name":name,"prompt":"Generated synthetic character","provider":"portal","portal_opt_in":true,"allow_external_text":true,"operation_id":operation},"native_binding":{"expected_host_generation":generation}}).to_string().into_bytes();
         let state=PortalForgeState::default();
         let submit_cancel=register_portal_operation(&state,"s028-native-operation-1").expect("register operation before actual native dispatch");
+        record_s028_fixture_first_submit_stage(&root,S028FirstSubmitStage::BeforeCommand,None)
+            .expect("write first-submit pre-command marker");
         let (submit_command,submit_runtime_pin)=command();
-        let (preview,preview_worker)=run_portal_preview_submit(submit_command,payload("s028-native-operation-1","Aster"),Some(submit_cancel));drop(submit_runtime_pin);
+        record_s028_fixture_first_submit_stage(&root,S028FirstSubmitStage::AfterCommand,None)
+            .expect("write first-submit post-command marker");
+        record_s028_fixture_first_submit_stage(&root,S028FirstSubmitStage::BeforeSubmit,None)
+            .expect("write first-submit pre-submit marker");
+        let (preview,preview_worker)=run_portal_preview_submit(submit_command,payload("s028-native-operation-1","Aster"),Some(submit_cancel));
+        record_s028_fixture_first_submit_stage(&root,S028FirstSubmitStage::Returned,Some((&preview,preview_worker.is_some())))
+            .expect("write first-submit returned marker");
+        drop(submit_runtime_pin);
         assert_eq!(preview.status,200,"{}",preview.body);assert_eq!(preview.body["portal_receipt"]["billing_state"],"settled");
         record_s028_fixture_phase(&root,S028FixturePhase::SubmitSettled,Some(preview.status),Some("settled"),1);
         let proposal=preview.body["proposal_id"].as_str().expect("volatile proposal id").to_string();
