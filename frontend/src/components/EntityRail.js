@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import JournalCalendar from './JournalCalendar';
 
 export default function EntityRail({ entities = [], activeEntityId, onSelect, activeSector, loading = false, entityLoadError, onRetry, selectedJournalDate, onJournalDateSelect, onRolloverComplete }) {
@@ -47,13 +47,12 @@ export default function EntityRail({ entities = [], activeEntityId, onSelect, ac
 
       {!isJournal && (
         <div className={`flex-1 p-2 custom-scrollbar ${isCodexRoster ? 'min-h-0 overflow-x-auto overflow-y-hidden md:overflow-x-hidden md:overflow-y-auto' : 'overflow-y-auto space-y-1'}`}>
-          <AnimatePresence mode="wait">
+          {/* Readiness must follow request state, never an exit-animation callback. */}
           {loading ? (
             <motion.div
               key="skeleton"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
               className="space-y-1.5 pt-1"
             >
@@ -81,7 +80,6 @@ export default function EntityRail({ entities = [], activeEntityId, onSelect, ac
               key="entities"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               className={isCodexRoster ? 'flex min-w-max gap-1 md:min-w-0 md:flex-col' : 'space-y-1'}
             >
@@ -122,7 +120,6 @@ export default function EntityRail({ entities = [], activeEntityId, onSelect, ac
               )}
             </motion.div>
           )}
-          </AnimatePresence>
         </div>
       )}
     </aside>

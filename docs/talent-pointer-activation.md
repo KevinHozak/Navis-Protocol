@@ -52,6 +52,9 @@ needed a reload, and one packaged combat roster remained synchronizing until
 leaving/reopening its sector. No mutation was repeated to recover navigation.
 Neither prevented the fresh allocation, persistence or perk checks, and this
 repair does not claim to resolve all navigation-loading behavior.
+The later [roster investigation and 1.11.45 repair](roster-loading-recovery.md)
+reproduced a stale loader after completed entity requests and passed fresh
+web/packaged switching and retry checks.
 
 ## Checks, build and cleanup
 

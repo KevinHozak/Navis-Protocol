@@ -68,7 +68,16 @@ native tooltip button worked. The subsequent [pointer investigation and repair](
 confirmed detail-panel interception and off-center decorative SVG transforms.
 Fresh web/packaged 1.11.44 checks passed pointer allocation, keyboard guards,
 persistence and the same combat perk. This resolves the selected pointer gap;
-separate observed navigation-loading limits remain recorded without reopening an epic.
+the separate navigation-loading observation was investigated next.
+
+The [roster-loading repair](roster-loading-recovery.md) reproduced an enabled
+filter and loaded content beside a stale synchronizing skeleton after a successful
+entity response. Removing the exit-animation gate resolved the presentation race.
+Fresh web/packaged 1.11.45 switching, filtering and missing-source/retry checks
+passed, alongside a real-Framer-Motion regression that failed on baseline.
+The initial fixture's WebView process buildup and bounded recovery remain an
+environment evidence limit; the replacement profile passed and all fixtures were
+cleaned up. No broader transport or clean-machine guarantee is implied.
 
 ## Unselected broader directions
 
