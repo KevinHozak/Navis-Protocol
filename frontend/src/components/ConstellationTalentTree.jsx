@@ -418,6 +418,8 @@ export default function ConstellationTalentTree({
                     strokeOpacity={isPulsing ? 0.9 : 0.4}
                     filter={`url(#glow-${filterId})`}
                     className={pulseEffect || isPulsing ? "animate-ping" : ""}
+                    pointerEvents="none"
+                    style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
                   />
                 )}
 
@@ -498,14 +500,17 @@ export default function ConstellationTalentTree({
                     strokeWidth="2"
                     strokeDasharray="16 8"
                     className="animate-spin"
+                    pointerEvents="none"
+                    style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
                   />
                 )}
               </g>
             );
           })}
         </svg>
+      </div>
 
-        {/* Hover / Selected Interactive Perk Tooltip HUD */}
+        {/* Keep interactive details outside the graph so hover cannot cover a node. */}
         <AnimatePresence>
           {activeNode && (
             <motion.div
@@ -513,7 +518,7 @@ export default function ConstellationTalentTree({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-4 left-4 right-4 md:right-auto md:max-w-md bg-zinc-950/95 border border-white/20 p-4 rounded-xl shadow-2xl backdrop-blur-xl z-30"
+              className="mt-4 w-full bg-zinc-950/95 border border-white/20 p-4 rounded-xl shadow-2xl backdrop-blur-xl"
               data-testid="talent-node-tooltip"
             >
               {(() => {
@@ -626,7 +631,6 @@ export default function ConstellationTalentTree({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
 
       {/* Legend & Accessibility Instruction Footnote */}
       <div className="mt-4 flex flex-wrap items-center justify-between text-[11px] font-mono text-white/40 gap-2">
