@@ -14,6 +14,7 @@ pub fn combat_request(
     if !matches!(
         path,
         "/api/battle/bestiary" | "/api/battle/state" | "/api/battle/link" | "/api/battle/resolve" | "/api/battle/rest"
+        | "/api/battle/encounters" | "/api/battle/encounter/preview" | "/api/battle/encounter"
     ) {
         return Err("unsupported combat command".into());
     }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { apiFetch, apiUrl, vaultAssetUrl } from "../lib/desktopApi";
 import VaultAssetImage from "./VaultAssetImage";
+import EncounterSetup from "./EncounterSetup";
 
 export default function CombatTheater({
   status,
@@ -48,6 +49,12 @@ export default function CombatTheater({
   const [combatLog, setCombatLog] = useState([]);
   const [loadingLog, setLoadingLog] = useState(false);
   const [battle, setBattle] = useState(null);
+  const encounterEnemies = battle?.encounter?.enemies?.map(enemy => ({
+    name: enemy.id, type: 'ENCOUNTER',
+    image: `Codex/Beasts/${enemy.beast || enemy.id}/Card.png`,
+    fallback: `Obstacles/Beasts/${enemy.beast || enemy.id}/Card.png`,
+    health: Math.min(100, 100 * enemy.hp / (enemy.max_hp || enemy.hp || 1)),
+  }));
   useEffect(() => {
     let ignore = false;
     const refresh = async () => {
@@ -216,6 +223,7 @@ export default function CombatTheater({
         </h2>
       </div>
 
+      <EncounterSetup battle={battle} />
       <div 
         className="relative border border-zinc-800 rounded-3xl p-10 overflow-hidden shadow-2xl"
         style={{
@@ -227,7 +235,7 @@ export default function CombatTheater({
       >
         {/* Enemies Row */}
         <div className="flex justify-center flex-wrap gap-8 mb-16 relative z-10">
-          {enemies.map(e => renderCard(e, true))}
+          {(encounterEnemies || enemies).map(e => renderCard(e, true))}
         </div>
 
         {/* VS Divider */}
@@ -246,9 +254,9 @@ export default function CombatTheater({
       {/* Combat Log */}
       {battle?.encounter && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-6 p-5 bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-xl text-sm">
-          <p className="text-red-400">Turn {battle.encounter.turn || 1} · HP {battle.encounter.player_hp ?? 100} · AP {battle.encounter.ap_available ?? battle.encounter.ap_per_turn ?? 2}</p>
+          <p className="text-red-400">{battle.encounter.outcome || 'active'} · Turn {battle.encounter.turn || 1} · HP {battle.encounter.player_hp ?? 100} · AP {battle.encounter.ap_available ?? battle.encounter.ap_per_turn ?? 2}</p>
           {battle.encounter.enemies?.filter(enemy => enemy.hp > 0).map((enemy, index) => <div key={enemy.id || index} className="mt-2 text-zinc-300">
-            <p>{enemy.id || 'Enemy'}: {enemy.intent} · {enemy.affinity || 'Physical'}</p>
+            <p>{enemy.id || 'Enemy'}: HP {enemy.hp} · {enemy.intent} · {enemy.affinity || 'Physical'}</p>
             {Object.entries(enemy.vulnerabilities || {}).map(([element, multiplier]) => <span key={element} className="inline-block mr-2 text-amber-400">Weakness: {element} · XP ×{multiplier}</span>)}
           </div>)}
           {battle.hand?.map(card => {

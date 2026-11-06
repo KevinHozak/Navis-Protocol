@@ -50,6 +50,7 @@
       "../../backend/services/task_toggle.py": "backend/services/task_toggle.py",
       "../../backend/services/combat_completion.py": "backend/services/combat_completion.py",
       "../../backend/services/combat_service.py": "backend/services/combat_service.py",
+      "../../backend/services/encounter_setup.py": "backend/services/encounter_setup.py",
       "../../backend/services/bestiary.py": "backend/services/bestiary.py",
       "../../backend/data/companion_combat.json": "backend/data/companion_combat.json",
       "../../backend/services/battle_engine.py": "backend/services/battle_engine.py",

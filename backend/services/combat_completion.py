@@ -254,6 +254,9 @@ def resolve(engine, task_id, resolution_id, is_completed=True, source=None):
 
 def dispatch(path, body):
     from services.battle_engine import BattleEngine, NAVIS_ROOT
+    if path in ("/api/battle/encounters", "/api/battle/encounter/preview", "/api/battle/encounter"):
+        from services.encounter_setup import dispatch as setup_dispatch
+        return setup_dispatch(NAVIS_ROOT, path, body)
     if path == "/api/battle/bestiary":
         from services.bestiary import build_bestiary
         return build_bestiary(NAVIS_ROOT)
