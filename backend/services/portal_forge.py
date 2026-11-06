@@ -18,7 +18,9 @@ class PortalFeatureError(RuntimeError):
         super().__init__(code)
 
 
-async def submit(root,request):
+async def submit(root,request,*,expected_host_generation=None):
+    if expected_host_generation is not None and (not isinstance(expected_host_generation,str) or not re.fullmatch(r"[0-9a-f]{32}",expected_host_generation)):
+        raise PortalFeatureError("PORTAL_NATIVE_BINDING_INVALID",409)
     if request.get("portal_opt_in") is not True or request.get("allow_external_text") is not True:
         raise PortalFeatureError("PORTAL_PRIVACY_OPT_IN_REQUIRED",403)
     if os.environ.get("NAVIS_PORTAL_ENABLED")!="1":
@@ -45,7 +47,13 @@ async def submit(root,request):
             def call():
                 try:
                     from services.portal_bootstrap import invoke
-                    return invoke(profile_path,prompt,system or "",operation,cancel,str(root))
+                    generation=expected_host_generation
+                    if generation is None:
+                        from services.portal_bootstrap import status_generation
+                        try:generation=status_generation(profile_path)
+                        except Exception:
+                            return {"complete":False,"receipt":{"provider":"portal","feature":"forge","code":"PORTAL_HOST_MANUAL_START_REQUIRED","billing_state":"not_sent","cost_usd":None}}
+                    return invoke(profile_path,prompt,system or "",operation,cancel,str(root),generation)
                 except Exception:
                     return {"complete":False,"receipt":{"provider":"portal","feature":"forge","code":"PORTAL_UNAVAILABLE_OR_INVALID_PROFILE","billing_state":"unknown","cost_usd":None}}
                 finally:_SLOTS.release()

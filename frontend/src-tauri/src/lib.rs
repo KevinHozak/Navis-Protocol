@@ -16,7 +16,7 @@ use crate::operations::{
 use crate::p5::{cancel_p5_operation, start_p5_operation};
 use serde::Serialize;
 use serde_json::Value;
-use tauri::http::Response;
+use tauri::{http::Response, Manager, State};
 
 #[derive(Debug, Serialize)]
 struct Healthcheck {
@@ -30,6 +30,28 @@ fn healthcheck() -> Healthcheck {
         runtime: "tauri-v2",
         version: env!("CARGO_PKG_VERSION"),
     }
+}
+
+#[tauri::command]
+async fn portal_host_status(window: tauri::WebviewWindow) -> Result<serde_json::Value, String> {
+    if !owns_portal_lifecycle(&window) { return Err("Portal host status is available only from the main Navis desktop window.".into()); }
+    use std::time::Duration;
+    let cancel = portal_client::Cancellation::default();
+    let connection = portal_client::lifecycle::SharedPortal::registered()
+        .status(Duration::from_secs(5), &cancel).await.map_err(|error| error.code.to_string())?;
+    Ok(connection.receipt())
+}
+
+fn owns_portal_lifecycle(window: &tauri::WebviewWindow) -> bool {
+    let Ok(url) = window.url() else { return false; };
+    let origin=url.origin().ascii_serialization();
+    portal_owner_allowed(window.label(),&origin,cfg!(debug_assertions))
+}
+
+fn portal_owner_allowed(label:&str,origin:&str,debug_build:bool)->bool{
+    if label!="main"{return false;}
+    matches!(origin,"http://tauri.localhost"|"https://tauri.localhost"|"tauri://localhost")
+        ||(debug_build&&matches!(origin,"http://127.0.0.1:3000"|"http://localhost:3000"))
 }
 
 fn allowed_vault_asset_origin(origin: &str) -> bool {
@@ -62,14 +84,27 @@ async fn lounge_request(
 #[tauri::command]
 async fn p5_request(
     app: tauri::AppHandle,
+    window: tauri::WebviewWindow,
+    portal_state: State<'_, p5::PortalForgeState>,
     path: String,
     method: Option<String>,
     body: Option<Value>,
 ) -> Result<p5::ApiResponse, String> {
-    tauri::async_runtime::spawn_blocking(move || {
+    if path.starts_with("/api/forge/") {
+        let portal_submit=path=="/api/forge/submit" && body.as_ref().and_then(|value| value.get("provider")).and_then(serde_json::Value::as_str)==Some("portal");
+        let portal_preview_action=matches!((method.as_deref().unwrap_or("GET"),path.as_str()),("POST","/api/forge/approve")|("POST","/api/forge/discard"))
+            && body.as_ref().and_then(|value|value.get("proposal_id")).and_then(serde_json::Value::as_str).is_some_and(|id|id.starts_with("portal-"));
+        let portal_operation=if portal_submit {
+            if !owns_portal_lifecycle(&window) {return Ok(p5::unavailable("Portal Forge lifecycle is available only from the main Navis desktop window."));}
+            let operation=body.as_ref().and_then(|value|value.get("operation_id")).and_then(serde_json::Value::as_str).unwrap_or("").to_string();
+            match p5::register_portal_operation(&portal_state,&operation){Ok(cancel)=>Some((operation,cancel)),Err(response)=>return Ok(response)}
+        } else {None};
+        if portal_preview_action&&!owns_portal_lifecycle(&window){return Ok(p5::unavailable("Portal preview actions are available only from the main Navis desktop window."));}
         if path.starts_with("/api/forge/") {
-            return p5::forge_request(&app, &path, method.as_deref().unwrap_or("GET"), body);
+            return p5::forge_request(app,path,method.unwrap_or_else(|| "GET".into()),body,portal_operation,(*portal_state).clone()).await;
         }
+    }
+    tauri::async_runtime::spawn_blocking(move || {
         if path == "/api/reid/chat"
             || path == "/api/neural/chat"
             || path == "/api/neural/warroom/chat"
@@ -88,6 +123,12 @@ async fn p5_request(
     })
     .await
     .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+fn cancel_portal_forge(window:tauri::WebviewWindow,state:State<'_,p5::PortalForgeState>,operation_id:String)->Result<serde_json::Value,String>{
+    if !owns_portal_lifecycle(&window){return Err("Portal Forge cancellation is available only from the main Navis desktop window.".into());}
+    p5::cancel_portal_operation(&state,&operation_id)
 }
 
 #[tauri::command]
@@ -368,6 +409,7 @@ pub fn run() {
         })
         .manage(lounge::LoungeOperationState::default())
         .manage(p5::P5OperationState::default())
+        .manage(p5::PortalForgeState::default())
         .manage(SyncOperationState::default())
         .manage(vault::VaultWatcherState::default())
         .setup(|app| {
@@ -386,11 +428,13 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             healthcheck,
+            portal_host_status,
             startup_diagnostics,
             lounge_request,
             start_lounge_operation,
             cancel_lounge_operation,
             p5_request,
+            cancel_portal_forge,
             start_p5_operation,
             cancel_p5_operation,
             progression_request,
@@ -410,6 +454,23 @@ pub fn run() {
             if let tauri::RunEvent::Exit = event {
                 operations::cancel_all_sync_operations(app);
                 vault::stop_all_vault_watchers(app);
+                if let Some(state)=app.try_state::<p5::PortalForgeState>(){p5::cancel_all_portal_operations(&state);}
+            }
+            if let tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::CloseRequested { .. }, .. } = event {
+                if label=="main" {if let Some(state)=app.try_state::<p5::PortalForgeState>(){p5::cancel_all_portal_operations(&state);}}
             }
         })
+}
+
+#[cfg(test)]
+mod portal_owner_tests{
+    use super::portal_owner_allowed;
+    #[test]
+    fn only_the_main_trusted_window_may_use_portal_lifecycle(){
+        assert!(portal_owner_allowed("main","https://tauri.localhost",false));
+        assert!(!portal_owner_allowed("iframe","https://tauri.localhost",false));
+        assert!(!portal_owner_allowed("main","https://untrusted.example",false));
+        assert!(!portal_owner_allowed("main","http://127.0.0.1:3000",false));
+        assert!(portal_owner_allowed("main","http://127.0.0.1:3000",true));
+    }
 }

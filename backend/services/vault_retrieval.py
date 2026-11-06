@@ -135,7 +135,8 @@ def get_journal_range(policy, arguments, *, deadline=None):
     except (ValueError, TypeError, KeyError):
         raise VaultAccessError("invalid_argument") from None
     limit, section = arguments.get("max_chars_per_day", 4000), arguments.get("section")
-    if (end < start or (end - start).days >= 31 or type(limit) is not int or not 1 <= limit <= 8000
+    if (end < start or (end - start).days >= 31 or type(limit) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 1 <= limit <= 8000
             or (section is not None and (not isinstance(section, str) or not 1 <= len(section) <= 1024))):
         raise VaultAccessError("invalid_argument")
     dates = [start + timedelta(days=i) for i in range((end - start).days + 1)]
@@ -321,7 +322,8 @@ def get_mission(policy, arguments, *, deadline=None):
         raise VaultAccessError("invalid_argument")
     by_name, by_path = "name" in arguments, "path" in arguments
     limit = arguments.get("related_limit", 3)
-    if by_name == by_path or type(limit) is not int or not 0 <= limit <= 5:
+    if (by_name == by_path or type(limit) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 0 <= limit <= 5):
         raise VaultAccessError("invalid_argument")
     if by_path:
         if "region" in arguments or "mission_type" in arguments:
