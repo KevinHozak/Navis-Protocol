@@ -5,6 +5,10 @@ Planning record for [NAVIS-S029](../issues/NAVIS-S029.md), drafted 2026-11-07.
 contract and future synthetic verification; none of the cases below has been
 executed for this feature. Existing weekly results do not certify this command.
 
+The [helper reuse and WAL/zero-write review](quarterly-holocron-reuse-review.md)
+maps this proposal to inspected source and records unresolved proof obligations.
+It is source-review evidence, not execution or implementation qualification.
+
 ## Invocation and boundaries
 
 Proposed interface (command/file name remains a proposal):
