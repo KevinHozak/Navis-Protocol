@@ -172,3 +172,14 @@ Process snapshots, identity guards and integrity results remain ignored in
 the fixture directory; screenshots and UI observations are in this chat's
 computer-use tool results. No reproducible application defect was established,
 so no application code, release version or packaged binary was changed.
+
+## Reusable harness
+
+The tracked [packaged recovery harness](packaged-recovery-harness.md) replaces
+the historical fixture dependencies for future runs. It creates a literal
+synthetic Vault, records stopwatch-based shutdown samples and explicit UI
+outcomes/history, and keeps provider credentials/configuration out of its child
+environment. One normal-close and one forced-close/relaunch validation passed
+on 2026-11-07, including System HUD, Party and settled Combat navigation. Both
+ended with zero owned processes and no changed original synthetic Vault files.
+No application binary, app source or version was changed for this harness work.
