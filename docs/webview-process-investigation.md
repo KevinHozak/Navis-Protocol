@@ -71,3 +71,56 @@ desktop/runtime state, simultaneous app instances, forced termination,
 long-running navigation, or a stalled helper. If buildup recurs, capture
 process ownership and creation times before cleanup and preserve the triggering
 launch/close sequence. A code fix requires a repeatable failing case.
+
+## Forced-close follow-up
+
+On 2026-11-06 (America/Chicago), tested three additional independent synthetic
+Vaults and fresh profiles. In each cycle, launched the same release, forcibly
+terminated only the host process, and relaunched with that cycle's same profile
+and Vault. Before termination, verified the exact copied EXE path, PID and
+creation timestamp. Used `Process.Kill()` without killing the process tree so
+WebView child lifetimes remained observable. All launches used the same
+cloud-disabled environment described above.
+
+| Cycle | Initial WebViews | After host termination: successive samples | After relaunch | After normal close |
+| --- | ---: | --- | ---: | --- |
+| 1 | 6 | 3, 2, 1 | 6 | 0 at five-second check |
+| 2 | 6 | 6, 5, 0 | 6 | 5 at five-second check; 0 at later inspection |
+| 3 | 6 | 6, 6, 2 | 6 | 0 at five-second check |
+
+Post-termination samples followed successive waits of one, two and five
+seconds, plus CIM query overhead; these are not exact elapsed-time samples.
+The last survivor in cycle 1 was a crashpad handler. No manual WebView process
+termination was needed. Cycle 2's late inspection found no remaining processes
+before cycle 3 started; its exact exit time was not captured. A final CIM check
+found zero owned app, WebView or Python processes across all three fixtures.
+
+All three relaunched windows exposed `Dashboard: Read complete` through the
+computer-use accessibility API. Cycles 2 and 3 also exposed System HUD content.
+Cycle 1 still exposed `UPLINK SYNCHRONIZING` and mounting text on a repeated
+read despite dashboard read completion. Because these were hidden-window
+checks, no complete visual-recovery pass is claimed for cycle 1. The observation
+did not recur in cycles 2 and 3 and was not established as an application defect.
+
+The PID guard initially rejected a timestamp comparison because JSON parsing
+converted the saved ISO timestamp into a date object. It refused termination;
+the harness was corrected to compare UTC ticks before proceeding. This was a
+test-harness correction, not a product change.
+
+Each Vault retained 14 of its 17 original files byte-for-byte. The changed
+originals were the weekly Holocron manifest, JSON and HTML startup/read synthesis
+outputs. No personal Vault, sync, rollover or generation action was used.
+
+Evidence remains ignored locally under `.tools/webview-forced-close-20261106/`:
+per-cycle process snapshots, process identity records, initial hashes and
+`final-integrity.json`, plus the final empty `final-processes.json`. The harness
+is `.tools/webview-forced-close.ps1`. Early empty snapshots were emitted through
+an empty PowerShell pipeline and did not create JSON files; their zero counts
+are retained in execution output. The harness now serializes empty arrays
+explicitly. Accessibility observations are retained in the chat tool results.
+
+No persistent accumulation or reproducible Navis defect was established, so no
+application fix or version bump was made. Forced termination can leave transient
+WebView processes, and five seconds is not a reliable universal shutdown bound.
+These three cycles do not establish behavior during sustained overlapping
+instances, long sessions, or a stalled helper.
