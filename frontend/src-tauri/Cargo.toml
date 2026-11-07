@@ -1,6 +1,6 @@
 [package]
 name = "navis-protocol"
-version = "1.11.45"
+version = "1.11.47"
 description = "Navis Protocol native desktop cockpit"
 authors = ["Navis Protocol"]
 edition = "2021"
@@ -21,6 +21,10 @@ base64 = "0.22"
 percent-encoding = "2"
 tauri = { version = "2.8", features = [] }
 rusqlite = { version = "0.31", features = ["bundled"] }
+portal-client = { path = "vendor/portal-client", default-features = false }
+
+[dev-dependencies]
+portal-client = { path = "vendor/portal-client", default-features = false, features = ["host-fixtures"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_Security", "Win32_Security_Cryptography", "Win32_System_JobObjects", "Win32_System_Threading"] }

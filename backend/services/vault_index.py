@@ -361,7 +361,8 @@ def search_vault(policy, state_directory, arguments, *, deadline=None):
         raise VaultAccessError("invalid_argument")
     query = _query(arguments.get("query"))
     limit, subtree = arguments.get("limit", 10), arguments.get("root")
-    if type(limit) is not int or not 1 <= limit <= 20:
+    if (type(limit) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 1 <= limit <= 20):
         raise VaultAccessError("invalid_argument")
     if subtree is not None:
         try:

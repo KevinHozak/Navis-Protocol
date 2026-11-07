@@ -1,12 +1,15 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import AsyncJobModal from './AsyncJobModal';
-import { apiFetch } from '@/lib/desktopApi';
+import { apiFetch, invokeNative, isTauriRuntime } from '@/lib/desktopApi';
 
 export default function ForgePanel({ initialType = 'Companion' }) {
   const [entityType, setEntityType] = useState(initialType);
   const [name, setName] = useState('');
+  const [provider, setProvider] = useState('default');
+  const [portalOptIn, setPortalOptIn] = useState(false);
+  const [externalTextConsent, setExternalTextConsent] = useState(false);
 
   useEffect(() => {
     setEntityType(initialType);
@@ -19,30 +22,64 @@ export default function ForgePanel({ initialType = 'Companion' }) {
   const [manifesting, setManifesting] = useState(false);
   const [result, setResult] = useState(null);
   const [activeJob, setActiveJob] = useState(null);
+  const [hostStatus, setHostStatus] = useState(null);
+  const activePortalOperation = useRef(null);
+  const isTopLevel = () => typeof window !== 'undefined' && window.top === window.self;
+
+  useEffect(() => {
+    const cancelOnNavigation = () => {
+      const operationId=activePortalOperation.current;
+      if (operationId && isTauriRuntime() && isTopLevel()) invokeNative('cancel_portal_forge',{operationId}).catch(()=>{});
+    };
+    window.addEventListener('pagehide',cancelOnNavigation);
+    return () => window.removeEventListener('pagehide',cancelOnNavigation);
+  }, []);
+
+  const checkPortalHost = async () => {
+    if (!isTopLevel()) { setHostStatus('Portal status is unavailable inside an embedded frame.'); return; }
+    try {
+      const status = await invokeNative('portal_host_status');
+      setHostStatus(`${status.state}: ${status.readiness?.code || 'not ready'}`);
+    } catch { setHostStatus('Shared Portal host status is unavailable.'); }
+  };
 
   const submitForge = async () => {
-    if (!name || !prompt) return;
+    if (!name || !prompt || (provider === 'portal' && (!portalOptIn || !externalTextConsent))) return;
+    if (provider === 'portal' && isTauriRuntime() && !isTopLevel()) { setResult('Portal Forge is unavailable inside an embedded frame.'); return; }
     setLoading(true);
     setResult(null);
     setBlueprint(null);
+    const operationId=provider==='portal' ? crypto.randomUUID() : null;
+    activePortalOperation.current=operationId;
     try {
       const res = await apiFetch('/api/forge/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entity_type: entityType, name, prompt })
+        body: JSON.stringify(provider === 'portal'
+          ? { entity_type: entityType, name, prompt, provider, portal_opt_in: portalOptIn,
+              allow_external_text: externalTextConsent, operation_id: operationId }
+          : { entity_type: entityType, name, prompt })
       });
       const data = await res.json();
       if (data.status === 'success') {
         setBlueprint(data.blueprint);
         setProposal({ id: data.proposal_id, target: data.target });
       } else {
-        setResult(typeof data.detail === 'string' ? data.detail : 'Error generating blueprint.');
+        setResult(typeof data.detail === 'string' ? data.detail : data.detail?.message || data.detail?.code || 'Error generating blueprint.');
       }
     } catch (err) {
       console.error(err);
       setResult('Connection failed.');
     }
+    activePortalOperation.current=null;
     setLoading(false);
+  };
+
+  const cancelPortalForge = async () => {
+    const operationId=activePortalOperation.current;
+    if (!operationId || !isTauriRuntime() || !isTopLevel()) return;
+    try { await invokeNative('cancel_portal_forge',{operationId}); }
+    catch { setResult('Cancellation could not reach the native Forge operation.'); }
   };
 
   const approveForge = async () => {
@@ -110,8 +147,24 @@ export default function ForgePanel({ initialType = 'Companion' }) {
               placeholder="Describe the entity in detail..."
             />
           </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-400 mb-1">Generation route</label>
+            <select value={provider} disabled={loading} onChange={(event) => setProvider(event.target.value)}
+              className="w-full bg-slate-800 border border-slate-600 rounded p-2 text-white">
+              <option value="default">Default provider</option>
+              <option value="portal">Portal</option>
+            </select>
+          </div>
+          {provider === 'portal' && <div className="space-y-2 rounded border border-amber-500/30 bg-amber-950/20 p-3 text-sm">
+            {isTauriRuntime() ? <button type="button" onClick={checkPortalHost} className="rounded border border-amber-400/40 px-2 py-1">Check host status</button> : <p className="text-amber-200">Browser requests attach read-only to a running registered host. If it is stopped, start it manually or use Navis desktop.</p>}
+            {hostStatus && <p role="status">{hostStatus}</p>}
+            <label className="flex gap-2"><input type="checkbox" checked={portalOptIn} disabled={loading} onChange={(event) => setPortalOptIn(event.target.checked)} /> Use Portal for this request.</label>
+            <label className="flex gap-2"><input type="checkbox" checked={externalTextConsent} disabled={loading} onChange={(event) => setExternalTextConsent(event.target.checked)} /> Send this concept to the configured external text service.</label>
+            <p className="text-amber-200">Desktop connects and pins the host. Configured manual profiles remain supported. Preview output stays temporary until you approve it.</p>
+            {loading && isTauriRuntime() && <button type="button" onClick={cancelPortalForge} className="rounded border border-red-400/40 px-2 py-1">Cancel Portal request</button>}
+          </div>}
           <button 
-            onClick={submitForge} disabled={loading || !name || !prompt}
+            onClick={submitForge} disabled={loading || !name || !prompt || (provider === 'portal' && (!portalOptIn || !externalTextConsent))}
             className="w-full py-2 bg-orange-600 hover:bg-orange-500 disabled:bg-slate-700 text-white font-bold rounded flex justify-center items-center"
           >
             {loading ? 'Blueprinting...' : 'Generate Blueprint'}
