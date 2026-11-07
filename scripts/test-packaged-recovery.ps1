@@ -12,6 +12,7 @@ param(
   [ValidateRange(5,120)][int]$ShutdownTimeoutSeconds=45
 )
 $ErrorActionPreference='Stop'
+Import-Module (Join-Path $PSScriptRoot 'packaged-recovery-policy.psm1') -Force
 $repo=Split-Path $PSScriptRoot -Parent
 $run=[IO.Path]::GetFullPath($RunDirectory)
 $statePath=Join-Path $run 'recovery.json'
@@ -69,12 +70,7 @@ if ($Action -ne 'report') { $state.result='incomplete' }
 if ($state.run -ne $run -or $state.vault -ne (Join-Path $run 'vault') -or [IO.Path]::GetFullPath($state.exe) -ne [IO.Path]::GetFullPath((Join-Path $run 'release/navis-protocol.exe')) -or $state.profile -ne (Join-Path $run 'profile')) { throw 'Run paths do not match the isolated layout.' }
 function Snapshot {
   $all=@(Get-CimInstance Win32_Process)
-  $owned=@($all | Where-Object { $_.ExecutablePath -eq $state.exe -or ($_.Name -in @('msedgewebview2.exe','python.exe') -and $_.CommandLine -like "*$run*") })
-  do {
-    $count=$owned.Count
-    $children=@($all | Where-Object { $child=$_; @($owned | Where-Object { $child.ParentProcessId -eq $_.ProcessId -and $child.CreationDate -ge $_.CreationDate }).Count -gt 0 })
-    $owned=@($owned+$children | Sort-Object ProcessId -Unique)
-  } while ($owned.Count -gt $count)
+  $owned=Get-RecoveryOwnedProcesses $all $state
   return ,@($owned | Select-Object ProcessId,ParentProcessId,Name,CreationDate,ExecutablePath,CommandLine)
 }
 if ($Action -eq 'launch') {
@@ -97,7 +93,7 @@ if ($Action -eq 'launch') {
 if ($Action -in @('terminate','close')) {
   if ($Action -eq 'terminate' -and $state.mode -ne 'forced') { throw 'Terminate requires a forced-mode run.' }
   $identity=Get-CimInstance Win32_Process -Filter "ProcessId=$($state.host.pid)"
-  if (!$identity -or $identity.ExecutablePath -ne $state.exe -or $identity.CreationDate.ToUniversalTime().Ticks -ne $state.host.ticks) { throw 'Host PID/path/creation-time ownership mismatch.' }
+  if (!(Test-RecoveryHostIdentity $identity $state.host $state.exe)) { throw 'Host PID/path/creation-time ownership mismatch.' }
   $process=Get-Process -Id $state.host.pid
   $timer=[Diagnostics.Stopwatch]::StartNew(); $samples=@(); $hostExit=$null
   if ($Action -eq 'terminate') { $process.Kill() } elseif (!$process.CloseMainWindow()) { throw 'No closeable fixture window.' }
@@ -123,6 +119,6 @@ if ($Action -eq 'report') {
   $after=Hashes $state.vault
   $state.integrity=@{changed=@($state.before.Keys | Where-Object { $after[$_] -ne $state.before[$_] });added=@($after.Keys | Where-Object { !$state.before.ContainsKey($_) })}
   $state.finalProcesses=Snapshot
-  $state.result=if ($state.finalProcesses.Count) {'incomplete'} elseif (@($state.events | Where-Object { $_.outcome -eq 'timed-out' }).Count) {'failed'} elseif (!$state.events.Count -or $state.events[-1].action -ne 'close' -or ($state.mode -eq 'forced' -and (!@($state.events | Where-Object action -eq 'terminate').Count -or $state.launches -lt 2))) {'incomplete'} elseif (@($state.ui.Values | Where-Object outcome -eq 'failed').Count) {'failed'} elseif (@($state.ui.Values | Where-Object outcome -ne 'passed').Count) {'incomplete'} else {'passed'}
+  $state.result=Get-RecoveryResult $state $state.finalProcesses
   Save; Write-Output "Result: $($state.result). See $statePath"
 }

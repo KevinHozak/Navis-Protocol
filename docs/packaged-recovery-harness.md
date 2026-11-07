@@ -64,7 +64,10 @@ Prepare a separate new directory with `-Mode forced`, then run:
 
 Terminate and close validate PID, EXE path and creation-time ticks before acting.
 They never kill a process tree or use broad stop scripts. Process samples include
-matching isolated EXE/profile commands and creation-time-compatible descendants.
+the exact isolated EXE, WebViews with a `--user-data-dir` inside the exact profile,
+the configured Python running a script inside the copied backend, and
+creation-time-compatible descendants. Sibling paths and incidental mentions of
+the run path do not establish ownership.
 If residual processes remain, launch refuses to proceed. Shutdown timeouts retain
 evidence and processes for inspection; they do not trigger forceful cleanup.
 
@@ -77,10 +80,14 @@ These timings include process-query overhead and are observation upper bounds,
 not exact OS exit timestamps. The default polling deadline is 45 seconds
 (`-ShutdownTimeoutSeconds` accepts 5–120); a slow CIM query can exceed it.
 
-`report` requires a completed normal close, zero current owned processes and
-all current-launch UI checks passed. Forced mode also requires termination and
-at least two launches. Pending/interrupted checks yield `incomplete`, failed UI
-or timed-out shutdown yields `failed`. Read the JSON result; report output does
+`report` requires correctly ordered launch/close events, zero current owned
+processes and all three named UI checks passed with nonempty evidence for the
+latest launch. Forced mode requires a running host to be terminated and the
+recovered launch then normally closed. Two launches before a termination do not
+constitute recovery; normal mode cannot include termination. Missing, stale,
+pending or interrupted checks yield `incomplete`. A current failed UI check
+overrides another pending check, and a timed-out shutdown remains `failed` even
+with residual processes. Read the JSON result; report output does
 not use a nonzero exit code merely for an incomplete result. Process/command
 failures throw normally. Integrity differences are reported separately because
 startup/read paths can generate local caches and lock files.
@@ -111,3 +118,25 @@ local evidence is in `.tools/recovery-harness-20261107/{normal,forced}/recovery.
 UI screenshots are retained in the chat tool results. The console timing output
 was adjusted to print the recorded sample time rather than including subsequent
 JSON-save overhead. The table uses the recorded sample times.
+
+## Offline regressions
+
+```powershell
+pwsh -NoProfile -File scripts/test-packaged-recovery-policy.ps1
+```
+
+The 43-case suite imports the same pure policy module as the harness. It tests
+stale/reused PIDs, exact host identity, unrelated processes, sibling paths,
+quoted paths with spaces, creation-time ancestry, incomplete/interrupted UI,
+failure precedence and forced-run ordering. Five cases call the actual harness
+entry point using mocked CIM snapshots and synthetic temporary JSON. Process
+handle access, process-launch commands and network commands are blocked by
+throwing stubs. The suite never runs the launch branch or loads a packaged EXE,
+accesses the personal Vault, invokes UI automation or calls a provider. It needs
+PowerShell 7 on Windows, without app dependencies, Pester or elevated CIM access.
+
+These regressions reproduced and repaired overly broad substring ownership,
+missing/stale UI checks passing, invalid recovery ordering passing, and failures
+being hidden by pending work. No live-run verification is claimed for these
+policy changes; the earlier packaged validations above describe their original
+run conditions.
