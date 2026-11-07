@@ -26,15 +26,15 @@ export default function CodexBestiaryView({ selectedBeast, children }) {
       <p className="text-sm text-zinc-400">{data.history_note}</p>
       {selectedBeast && !data.beasts.some(b => b.name === selectedBeast) && <p role="status" className="text-amber-400">No catalog or recorded history for {selectedBeast}.</p>}
       {!data.beasts.length && <p>No beasts cataloged yet.</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))' }}>
         {data.beasts.map(beast => <motion.article key={beast.name} ref={beast.name === selectedBeast ? selected : null}
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-          className={`p-5 rounded-xl bg-zinc-950/90 backdrop-blur-md border ${beast.name === selectedBeast ? 'border-amber-400' : 'border-white/10'} space-y-3`}>
+          className={`min-w-0 break-words p-5 rounded-xl bg-zinc-950/90 backdrop-blur-md border ${beast.name === selectedBeast ? 'border-amber-400' : 'border-white/10'} space-y-3`}>
           <h3 className="text-lg font-bold text-amber-400">{beast.name}</h3>
           <p className="text-sm text-zinc-300">Affinity / strength: {beast.affinity || 'Unknown'}</p>
           <p className="text-sm text-zinc-300">Weaknesses: {Object.entries(beast.vulnerabilities).map(([element, multiplier]) => `${element} ×${multiplier}`).join(', ') || 'None documented'}</p>
           {beast.profile_error && <p className="text-amber-300 text-xs">Elemental profile unavailable</p>}
-          <dl className="grid grid-cols-2 gap-2 text-sm text-zinc-300">
+          <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm text-zinc-300 [&>dt]:min-w-0 [&>dd]:min-w-0 [&>dd]:text-right [&>dd]:tabular-nums">
             <dt>Encounters</dt><dd>{beast.encounters}</dd>
             <dt>Wins / defeats</dt><dd>{beast.wins} / {beast.defeats}</dd>
             <dt>Win / defeat rate</dt><dd>{beast.win_rate == null ? '—' : `${beast.win_rate}% / ${beast.defeat_rate}%`}</dd>

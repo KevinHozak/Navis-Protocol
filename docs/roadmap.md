@@ -33,7 +33,7 @@ completion/disposition sections. No new issue is created by this roadmap.
 | Interactive map/telemetry | Validated nodes, realm navigation and optional measured telemetry consumers; [web/native lifecycle evidence and repairs](map-telemetry-lifecycle-smoke.md) passed in 1.11.40 fixtures after PR #47. | No in-repository measured-coordinate producer was found; omitted positions must stay unavailable. Installer and production coordinate integration are not certified by synthetic UI smoke. |
 | Combat/task completion | Shared completion authority and durable retry/XP behavior; [packaged Execute/Retry/Cancel/relaunch smoke](combat-packaged-recovery-smoke.md) passed in fresh 1.11.40 fixtures. | Canonical XP exactly once, journal/card persistence and cleanup verified. Installer, clean-machine discovery and physical Drive interruption remain untested. |
 | Tactical combat and Bestiary | [Round/AP/shield rules](combat-tactical-rules.md), [elements](combat-elements.md), [squad synergies](combat-synergies.md), [Bestiary analytics/trophies](combat-bestiary.md), and [reviewed single-enemy setup](combat-encounter-setup.md) exist. Legacy epic #183 is closed. | Setup uses existing validated Beast profiles, explicit preview/confirmation and recovery guards. Multi-enemy selection, enemy editing, abandonment/restart and deck rebuilding are outside this bounded change. No full tactical-game completion is claimed. |
-| Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md) exist; #193 and children are closed. | These records primarily map implementation and automated coverage, not a clean-machine or human usability result. Do not re-list the entire tree as planned. |
+| Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md), [allocation lifecycle](talent-allocation-lifecycle-smoke.md), and [pointer repair/rerun](talent-pointer-activation.md) exist; #193 and children are closed. | Pointer and keyboard allocation, prerequisite unlocking, persistence and the selected shield perk passed in fresh web/packaged 1.11.44 fixtures. Clean-machine and broad human usability remain unqualified. |
 | Reactive updates | Python watcher/event bus, `/api/events/stream`, native watcher/events and client invalidation are implemented; #188 and children are closed. | This is not a universal Drive consistency or uninterrupted push-delivery guarantee. |
 | Squad management | Native deploy/bench/vanguard routes and tests exist alongside web routes. | The earlier claim that these native mutations were absent is superseded. No new squad redesign is selected. |
 | Forge/Reid/War Room | Python runtime bridges exist in native P5; [current text provider boundary](openrouter-text-generation.md) supersedes historical local-only defaults. | Configured live quality/spend and the separate Portal accounting contract remain outside this audit; cloud generation stays disabled. |
@@ -47,10 +47,37 @@ passed Execute, retry after actual app relaunch and Cancel, with journal/card/XP
 integrity and process cleanup. These records supersede the original audit's absence
 of evidence for those selected journeys. Cloud generation remains disabled.
 
-The user selected reviewed encounter setup/selection as the next bounded change;
-its scope and verification are recorded in [encounter setup](combat-encounter-setup.md).
+Reviewed encounter setup/selection merged in PR #49; its scope and verification
+are recorded in [encounter setup](combat-encounter-setup.md).
+The subsequent [encounter-to-Bestiary lifecycle smoke](combat-bestiary-lifecycle-smoke.md)
+verified two UI-driven victories, exact-once history/XP and reload/relaunch
+integrity in fresh web and packaged fixtures. The initial run exposed a missing
+native Beasts Codex dashboard entry and overlapping metrics in narrow web cards.
+Both were repaired in 1.11.43, and fresh UI-driven lifecycle reruns passed in both
+runtimes, including native dossier navigation, reload/relaunch persistence and
+exact-once history/XP. Rendered web metric containment passed at 1024, 1280 and
+1600 pixel widths. No confirmed gap remains in this selected lifecycle scope.
 Waived progression work, production XP migration, installer exercises, live
 integrations and AI configuration are not implied follow-ups.
+
+The [talent lifecycle smoke](talent-allocation-lifecycle-smoke.md) subsequently
+passed allocation, prerequisite unlocking, browser refresh/native relaunch and
+Mindful Clarity's shield effect in fresh 1.11.43 fixtures. Direct SVG-node pointer
+attempts initially did not reliably activate under automation; keyboard and the
+native tooltip button worked. The subsequent [pointer investigation and repair](talent-pointer-activation.md)
+confirmed detail-panel interception and off-center decorative SVG transforms.
+Fresh web/packaged 1.11.44 checks passed pointer allocation, keyboard guards,
+persistence and the same combat perk. This resolves the selected pointer gap;
+the separate navigation-loading observation was investigated next.
+
+The [roster-loading repair](roster-loading-recovery.md) reproduced an enabled
+filter and loaded content beside a stale synchronizing skeleton after a successful
+entity response. Removing the exit-animation gate resolved the presentation race.
+Fresh web/packaged 1.11.45 switching, filtering and missing-source/retry checks
+passed, alongside a real-Framer-Motion regression that failed on baseline.
+The initial fixture's WebView process buildup and bounded recovery remain an
+environment evidence limit; the replacement profile passed and all fixtures were
+cleaned up. No broader transport or clean-machine guarantee is implied.
 
 ## Unselected broader directions
 
