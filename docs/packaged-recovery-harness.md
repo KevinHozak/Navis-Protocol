@@ -147,12 +147,56 @@ run conditions.
 `windows-latest` for pushes and pull requests touching the harness, shared
 policy, suite, recovery documentation or workflow. It also supports manual
 dispatch. The job has a five-minute timeout and read-only repository permission.
-Checkout does not persist credentials and includes only the three PowerShell
-files needed by the suite. No app build, package installation, Navis launch,
-UI automation, personal Vault mount or provider request is part of the job.
+Checkout does not persist credentials and includes only the offline test and
+workflow-validation scripts plus the recovery workflow. No app build, app
+dependency installation, Navis launch, UI automation, personal Vault mount or
+provider request is part of the job.
 Provider keys/config are explicitly empty and `NAVIS_ROOT` points to an unused
 runner-temporary location. Tests use synthetic process records and their own
 temporary JSON. A thrown assertion fails the CI step.
 
-CI execution will be verified after the workflow is published; local execution
-of the same command is not a hosted Actions result.
+The initial offline suite passed in hosted Windows CI in PR #54. The semantic
+validation extension below has been checked locally; its hosted execution
+remains pending until publication.
+
+### Semantic validation before publication
+
+Actionlint 1.7.7 performs workflow-schema and expression-context checks, including
+rejecting `runner.temp` at job-level `env`. Plain YAML parsing is insufficient.
+The pre-push hook checks changed recovery paths and runs the semantic checker
+before the existing secret scan. It lints each affected pushed commit's workflow
+from Git, not a potentially different working-tree copy. Invalid ref records or unavailable Git range
+inspection fail closed. New branches or unavailable remote commit objects use
+a conservative tree listing; ref deletions and unrelated updates skip this check.
+This gate does not publish, launch applications, execute workflow commands, or
+download tools. A missing actionlint executable blocks an affected push.
+
+Explicit Windows x64 installation (tool provisioning uses the public release
+endpoint; validation itself is offline):
+
+```powershell
+pwsh -NoProfile -File scripts/install-actionlint.ps1
+# Or install from an already downloaded archive without any network access:
+pwsh -NoProfile -File scripts/install-actionlint.ps1 -ArchivePath C:\Downloads\actionlint_1.7.7_windows_amd64.zip
+```
+
+The installer requires SHA-256
+`7f12f1801bca3d480d67aaf7774f4c2a6359a3ca8eebe382c95c10c9704aa731`
+before extracting the official archive into ignored `.tools/actionlint`.
+The CI job provisions this same checksum-pinned tool before running semantic
+validation and the 43 offline policy cases; it does not install app dependencies.
+
+```powershell
+pwsh -NoProfile -NonInteractive -File scripts/check-recovery-workflow.ps1
+pwsh -NoProfile -NonInteractive -File scripts/test-recovery-workflow-lint.ps1
+node scripts/test-recovery-workflow-push.mjs
+```
+
+For another local installation, supply `-ActionlintPath` or `ACTIONLINT_BIN` to
+the checker; the semantic regression script accepts `-ActionlintPath` too.
+ShellCheck and Pyflakes integrations are disabled, keeping validation within
+actionlint. The regression script checks the real workflow, rejects a temporary
+invalid job-level runner-context fixture, verifies nonzero-error propagation,
+and rejects a missing tool. Nine offline Node assertions cover pre-push path
+selection, new/deleted refs, multiple refs and fail-closed input/inspection errors.
+All passed locally on 2026-11-07 using the verified actionlint 1.7.7 binary.

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { requiresWorkflowLint } from './check-recovery-workflow-push.mjs';
+const sha = 'a'.repeat(40), old = 'b'.repeat(40), zero = '0'.repeat(40);
+const record = (local = sha, remote = old) => `refs/heads/main ${local} refs/heads/main ${remote}\n`;
+assert.equal(requiresWorkflowLint(record(), () => ['.github/workflows/recovery-offline.yml']), true);
+assert.equal(requiresWorkflowLint(record(), () => ['scripts/check-recovery-workflow.ps1']), true);
+assert.equal(requiresWorkflowLint(record(), () => ['frontend/src/app/page.js']), false);
+assert.equal(requiresWorkflowLint(record(zero), () => { throw Error('Deletion must not inspect paths'); }), false);
+assert.equal(requiresWorkflowLint(record(sha, zero), (local, remote) => { assert.equal(local, sha); assert.equal(remote, zero); return ['scripts/install-actionlint.ps1']; }), true);
+let calls = 0;
+assert.equal(requiresWorkflowLint(record() + record(), () => ++calls === 2 ? ['.husky/pre-push'] : []), true);
+assert.throws(() => requiresWorkflowLint('malformed', () => []), /Invalid pre-push/);
+assert.throws(() => requiresWorkflowLint(record(), () => { throw Error('Inspection unavailable'); }), /Inspection unavailable/);
+assert.throws(() => requiresWorkflowLint(record() + 'malformed', () => ['.github/workflows/recovery-offline.yml']), /Invalid pre-push/);
+console.log('9 offline pre-push selection checks passed.');
