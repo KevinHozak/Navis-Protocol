@@ -155,9 +155,25 @@ Provider keys/config are explicitly empty and `NAVIS_ROOT` points to an unused
 runner-temporary location. Tests use synthetic process records and their own
 temporary JSON. A thrown assertion fails the CI step.
 
-The initial offline suite passed in hosted Windows CI in PR #54. The semantic
-validation extension below has been checked locally; its hosted execution
-remains pending until publication.
+The initial offline suite passed in hosted Windows CI in
+[PR #54](https://github.com/KevinHozak/Navis-Protocol/pull/54), merged at `8299c4c`.
+The first workflow attempt failed validation before a Windows job started; moving
+the runner-temporary path to step-level `env` resolved it. All 43 cases passed on
+corrected published head `1de8ee7` in the
+[Windows push run](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42385402257)
+and the [PR test-merge run](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42385405738).
+
+The semantic validation extension merged in
+[PR #55](https://github.com/KevinHozak/Navis-Protocol/pull/55) at `acd603a`.
+Its [Windows push run](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42386550110)
+checked out exact published head `6828cc7051a8411bca34bd4ef3e0181109715f38` and
+passed actionlint semantic/rejection checks, all 9 pre-push checks and all 43
+recovery policy cases. The [PR test-merge run](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42386576491)
+also passed those three groups. Secret scans passed on the same head. These
+results qualify the stated workflow/policy scope, not a new packaged UI run or
+the current application generally. No Navis launches, personal Vault access or
+provider calls were made during CI; tool provisioning downloads are separate
+from offline validation. No tests were rerun for the November 7 status update.
 
 ### Semantic validation before publication
 

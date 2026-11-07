@@ -1,15 +1,17 @@
 # Navis-Protocol roadmap
 
-Reconciled on **2026-11-03** against merged main `6f3f69f`, the local issue store,
-legacy GitHub issue dispositions and tracked acceptance records. See the
-[audit, evidence and next task](roadmap-acceptance-audit.md). Implemented, verified,
+Reconciled on **2026-11-07** through merged main `acd603a` (PRs #53–#55), the
+local issue store and tracked acceptance records. The November 3 legacy GitHub
+issue snapshot is retained, not a renewed live backlog query. See the
+[dated audit and status reconciliation](roadmap-acceptance-audit.md). Implemented, verified,
 waived and operator-only limits are separate states. Historical test counts do not
 certify the current application or a personal-Vault migration.
 
 ## Current backlog
 
-All **32 local records** (four epics and 28 stories) are done. Both GitHub issue
-backlogs have no open issues after #245/#246 closeout. Closed legacy issues with
+All **32 local records** (four epics and 28 stories) remain done at this review.
+Both GitHub issue backlogs had no open issues in the November 3 snapshot after
+#245/#246 closeout; their live state was not rechecked here. Closed legacy issues with
 unchecked original checklists are not automatically unfinished work: inspect their
 completion/disposition sections. No new issue is created by this roadmap.
 
@@ -21,6 +23,9 @@ completion/disposition sections. No new issue is created by this roadmap.
 | E004: task state (S022–S024) | [Shared states](task-status-semantics.md), [timestamps](task-completion-times.md), [Completed today](completed-today.md). Isolated web/native acceptance passed with documented runtime limits. |
 | S027: shared Vault retrieval | [Architecture](architecture.md) and [issue](../issues/NAVIS-S027.md). Shared domain reads preserve transport-specific access rules; no MCP network hop is required inside the app. |
 | S028: configured text routing | [Provider inventory/configuration](openrouter-text-generation.md). OpenRouter is the shared default but **cloud and background generation remain disabled until explicitly configured**. No live quality or personal-data transmission acceptance is implied. |
+| Portal S028 native Forge integration | [PR #53](https://github.com/KevinHozak/Navis-Protocol/pull/53) merged at `96b9c14`; [Protocol 1.11.47 / Portal 0.2.22 qualification](portal-s028-qualification.md#current-protocol-11147--portal-0222-qualification) records isolated composed lifecycle, cancellation, privacy and billing checks. Explicit Portal selection/consent remains required; no live provider, installed upgrade or production GUI startup acceptance is implied. |
+| Recovery harness and offline policy | [PR #54](https://github.com/KevinHozak/Navis-Protocol/pull/54) merged at `8299c4c`; [investigation](webview-process-investigation.md) and [reusable harness](packaged-recovery-harness.md) separate process shutdown, per-launch UI outcomes and 43 offline policy cases. The original buildup remains unexplained; no reproduced app fix or universal recovery guarantee is claimed. |
+| Workflow semantic validation | [PR #55](https://github.com/KevinHozak/Navis-Protocol/pull/55) merged at `acd603a`; [actionlint and pre-push checks](packaged-recovery-harness.md#semantic-validation-before-publication) and linked Windows CI verify workflow semantics, 9 pre-push checks and 43 offline cases on the published PR head. These are static/policy checks, not renewed packaged UI qualification. |
 | #246: version in native title | PR #44 merged at `7edf1ff`; [direct/launcher packaged evidence](desktop-window-version.md), issue closed. |
 | #245: Projects overview | PR #45 merged at `6f3f69f`; [web/native acceptance](projects-overview.md), issue closed. Bounded GitHub CLI account reads, not per-browser account linking. |
 
@@ -36,7 +41,7 @@ completion/disposition sections. No new issue is created by this roadmap.
 | Talents | [Schema/parity](talent-p1-verification.md), [node graph](talent-p2-verification.md), [modifiers](talent-p3-verification.md), [allocation lifecycle](talent-allocation-lifecycle-smoke.md), and [pointer repair/rerun](talent-pointer-activation.md) exist; #193 and children are closed. | Pointer and keyboard allocation, prerequisite unlocking, persistence and the selected shield perk passed in fresh web/packaged 1.11.44 fixtures. Clean-machine and broad human usability remain unqualified. |
 | Reactive updates | Python watcher/event bus, `/api/events/stream`, native watcher/events and client invalidation are implemented; #188 and children are closed. | This is not a universal Drive consistency or uninterrupted push-delivery guarantee. |
 | Squad management | Native deploy/bench/vanguard routes and tests exist alongside web routes. | The earlier claim that these native mutations were absent is superseded. No new squad redesign is selected. |
-| Forge/Reid/War Room | Python runtime bridges exist in native P5; [current text provider boundary](openrouter-text-generation.md) supersedes historical local-only defaults. | Configured live quality/spend and the separate Portal accounting contract remain outside this audit; cloud generation stays disabled. |
+| Forge/Reid/War Room | Python runtime bridges exist in native P5; [current text provider boundary](openrouter-text-generation.md) supersedes historical local-only defaults. [PR #53 qualification](portal-s028-qualification.md) adds isolated native Portal Forge lifecycle and accounting evidence. | Live provider quality/spend, rich personal-Vault context, production GUI startup and installed upgrade are not certified by the composed fixtures; cloud generation stays disabled. |
 | Journal composer/Holocron | [Save verification](journal-save-verification.md), [freshness](refresh-freshness.md), S006/S008 and S028 supply scoped packaged/browser evidence. | Do not describe these selected journeys as globally awaiting first packaged smoke; physical races and installer limits remain separate. |
 
 ## Completed bounded follow-ups
@@ -75,9 +80,40 @@ filter and loaded content beside a stale synchronizing skeleton after a successf
 entity response. Removing the exit-animation gate resolved the presentation race.
 Fresh web/packaged 1.11.45 switching, filtering and missing-source/retry checks
 passed, alongside a real-Framer-Motion regression that failed on baseline.
-The initial fixture's WebView process buildup and bounded recovery remain an
-environment evidence limit; the replacement profile passed and all fixtures were
-cleaned up. No broader transport or clean-machine guarantee is implied.
+The initial fixture's WebView process buildup was investigated separately in the
+[process and recovery record](webview-process-investigation.md). Eight sequential
+normal-close cycles and three forced-close cycles did not establish persistent
+accumulation. The visible follow-up loaded System HUD and Party in all three
+cycles; cycle 2's initial Combat observation was interrupted and its later normal
+launch recheck does not retroactively certify post-crash completion. The original
+cause remains unknown; no broader transport or clean-machine guarantee is implied.
+
+[PR #54](https://github.com/KevinHozak/Navis-Protocol/pull/54) delivered a
+self-contained synthetic-Vault harness with elapsed shutdown samples and explicit
+UI outcomes/history. One normal-close and one forced-close/relaunch validation
+passed; all original generated-Vault files were preserved and no owned processes
+remained. Its 43 offline regressions subsequently repaired harness policy guards,
+not a reproduced Navis process defect. The initial workflow was rejected before
+tests started; step-scoped runner-path evaluation fixed that configuration error.
+
+[PR #55](https://github.com/KevinHozak/Navis-Protocol/pull/55) added checksum-pinned
+actionlint provisioning and offline semantic/rejection checks, plus a scoped
+pre-push gate that validates each affected pushed commit. On published head
+`6828cc7`, [Windows push CI](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42386550110)
+verified actionlint, all 9 pre-push selection checks and all 43 recovery policy
+cases; [PR CI](https://github.com/KevinHozak/Navis-Protocol/actions/runs/42386576491)
+also passed on the test merge. No Navis launch, personal Vault access or provider
+call was part of these checks. Tool provisioning is a separate public download;
+validation itself is offline. No new runtime tests were run in this reconciliation.
+
+## Current task selection
+
+No unfinished local story or reproduced application defect is selected by this
+review. The original audit's map, combat, encounter and talent follow-ups have
+dated completion evidence above; they are not pending first-run checks. Broader
+product work needs an explicitly selected outcome and acceptance scope. Waived
+checks, accepted installer/physical-integration limits, personal-Vault adoption
+and provider configuration remain separate boundaries, not automatic new tasks.
 
 ## Unselected broader directions
 

@@ -5,6 +5,31 @@ User authorization covers #246 closeout and documentation reconciliation, not ne
 feature implementation, reopened issues, personal-Vault operations or cloud setup.
 Cloud generation remains disabled. No model/inference call was made.
 
+## Status addendum — 2026-11-07
+
+This is a historical November 3 audit. Its original findings and recommended
+sequence below describe that baseline, not the current backlog. The
+[roadmap](roadmap.md) now indexes delivery through merged main `acd603a` and
+PRs [#53](https://github.com/KevinHozak/Navis-Protocol/pull/53),
+[#54](https://github.com/KevinHozak/Navis-Protocol/pull/54) and
+[#55](https://github.com/KevinHozak/Navis-Protocol/pull/55). All 32 local issue
+records remain done; no live GitHub backlog query or new application test was
+performed for this addendum.
+
+| Original finding | Subsequent evidence and retained boundary |
+| --- | --- |
+| Map lifecycle was the next unexecuted procedure | [Map lifecycle smoke and repairs](map-telemetry-lifecycle-smoke.md) passed in isolated web/native fixtures. This does not supply a measured-coordinate producer or production integration acceptance. |
+| Combat Execute/Retry/Cancel/relaunch lacked UI evidence | [Packaged combat recovery](combat-packaged-recovery-smoke.md) subsequently passed selected journeys, persistence and cleanup. Installer/clean-machine and physical Drive interruption remain untested. |
+| Encounter creation/selection was unintegrated | [Reviewed encounter setup](combat-encounter-setup.md) and [Bestiary lifecycle](combat-bestiary-lifecycle-smoke.md) subsequently passed their bounded single-enemy scope. Multi-enemy editing/restart/deck workflows remain unselected. |
+| Packaged talent allocation UX was not established | [Allocation lifecycle](talent-allocation-lifecycle-smoke.md) and [pointer repair](talent-pointer-activation.md) provide later scoped evidence. Broad human usability and clean-machine behavior are not certified. |
+| Later Portal and recovery work was absent from this baseline | [Portal qualification](portal-s028-qualification.md), [WebView investigation](webview-process-investigation.md) and [recovery/actionlint harness](packaged-recovery-harness.md) now record PRs #53–#55. Composed/static/offline results do not certify live providers, rich personal context or universal recovery. |
+
+The original map recommendation below is superseded, not newly authorized work.
+No new issue or implementation task is selected by this reconciliation. Preserve
+explicit waivers, accepted untested boundaries and disabled cloud/personal-write
+gates. The initial process-buildup cause remains unknown, and interrupted UI
+observations remain incomplete even where a later normal launch succeeded.
+
 ## Method and status
 
 Read the local runner inventory, GitHub open/closed issue bodies, selected legacy
@@ -40,11 +65,12 @@ Previously dated results retain their source/version/environment limits.
 | September decorator registry is the complete current API | Registry is now explicitly historical; Projects uses `add_api_route` and later feature routes require current source/contracts. |
 
 Historical test logs/counts and earlier blocked checkpoints were not rewritten into
-new passing runs. The map/combat manual procedures remain visible and unperformed.
+new passing runs. At the original audit baseline, the map/combat manual procedures
+were unperformed; the dated addendum above links subsequent bounded completion.
 The [roadmap](roadmap.md) is the current status index; original records remain
 evidence for their stated scope and dates.
 
-## Confirmed remaining gaps and boundaries
+## Original findings and boundaries — November 3 baseline
 
 | Kind | Finding and evidence | Disposition |
 | --- | --- | --- |
@@ -60,7 +86,7 @@ XP reconciliation is separately authorized operator work; MCP personal appends s
 disabled; model selection, budgets and live quality require separate authorization.
 These boundaries are not silently converted into open implementation tasks.
 
-## Recommended next bounded task
+## Original recommended next bounded task — superseded
 
 **Verify the map telemetry lifecycle on fresh web and packaged fixtures, with no
 personal-Vault access and no generation.** Prepare synthetic current and invalid
