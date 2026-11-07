@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+echo "[Husky] Validating recovery workflow changes..."
+node scripts/check-recovery-workflow-push.mjs || exit 1
 echo "[Husky] Checking Git history for secrets and private exports..."
 node scripts/scan-secrets.mjs --history || exit 1

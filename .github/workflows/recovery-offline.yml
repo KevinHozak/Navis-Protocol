@@ -7,6 +7,12 @@ on:
       - 'scripts/test-packaged-recovery.ps1'
       - 'scripts/packaged-recovery-policy.psm1'
       - 'scripts/test-packaged-recovery-policy.ps1'
+      - 'scripts/install-actionlint.ps1'
+      - 'scripts/check-recovery-workflow.ps1'
+      - 'scripts/test-recovery-workflow-lint.ps1'
+      - 'scripts/check-recovery-workflow-push.mjs'
+      - 'scripts/test-recovery-workflow-push.mjs'
+      - '.husky/pre-push'
       - 'docs/packaged-recovery-harness.md'
       - 'docs/webview-process-investigation.md'
   pull_request:
@@ -15,6 +21,12 @@ on:
       - 'scripts/test-packaged-recovery.ps1'
       - 'scripts/packaged-recovery-policy.psm1'
       - 'scripts/test-packaged-recovery-policy.ps1'
+      - 'scripts/install-actionlint.ps1'
+      - 'scripts/check-recovery-workflow.ps1'
+      - 'scripts/test-recovery-workflow-lint.ps1'
+      - 'scripts/check-recovery-workflow-push.mjs'
+      - 'scripts/test-recovery-workflow-push.mjs'
+      - '.husky/pre-push'
       - 'docs/packaged-recovery-harness.md'
       - 'docs/webview-process-investigation.md'
   workflow_dispatch:
@@ -45,6 +57,18 @@ jobs:
             /scripts/test-packaged-recovery.ps1
             /scripts/packaged-recovery-policy.psm1
             /scripts/test-packaged-recovery-policy.ps1
+            /scripts/install-actionlint.ps1
+            /scripts/check-recovery-workflow.ps1
+            /scripts/test-recovery-workflow-lint.ps1
+            /scripts/check-recovery-workflow-push.mjs
+            /scripts/test-recovery-workflow-push.mjs
+            /.github/workflows/recovery-offline.yml
+      - name: Install checksum-pinned actionlint
+        run: pwsh -NoProfile -NonInteractive -File scripts/install-actionlint.ps1
+      - name: Validate workflow semantics and rejection behavior
+        run: pwsh -NoProfile -NonInteractive -File scripts/test-recovery-workflow-lint.ps1
+      - name: Test offline pre-push selection
+        run: node scripts/test-recovery-workflow-push.mjs
       - name: Run offline recovery regression suite
         env:
           NAVIS_ROOT: ${{ runner.temp }}/navis-offline-unused-vault
