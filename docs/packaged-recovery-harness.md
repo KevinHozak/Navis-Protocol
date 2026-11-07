@@ -140,3 +140,19 @@ missing/stale UI checks passing, invalid recovery ordering passing, and failures
 being hidden by pending work. No live-run verification is claimed for these
 policy changes; the earlier packaged validations above describe their original
 run conditions.
+
+### Windows CI
+
+`.github/workflows/recovery-offline.yml` runs this same offline command on
+`windows-latest` for pushes and pull requests touching the harness, shared
+policy, suite, recovery documentation or workflow. It also supports manual
+dispatch. The job has a five-minute timeout and read-only repository permission.
+Checkout does not persist credentials and includes only the three PowerShell
+files needed by the suite. No app build, package installation, Navis launch,
+UI automation, personal Vault mount or provider request is part of the job.
+Provider keys/config are explicitly empty and `NAVIS_ROOT` points to an unused
+runner-temporary location. Tests use synthetic process records and their own
+temporary JSON. A thrown assertion fails the CI step.
+
+CI execution will be verified after the workflow is published; local execution
+of the same command is not a hosted Actions result.
