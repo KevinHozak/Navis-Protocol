@@ -32,7 +32,6 @@ jobs:
         shell: pwsh
     env:
       NAVIS_AI_PROVIDER: openrouter
-      NAVIS_ROOT: ${{ runner.temp }}/navis-offline-unused-vault
       OPENROUTER_API_KEY: ''
       NAVIS_OPENROUTER_CONFIG: ''
       GOOGLE_API_KEY: ''
@@ -47,4 +46,6 @@ jobs:
             /scripts/packaged-recovery-policy.psm1
             /scripts/test-packaged-recovery-policy.ps1
       - name: Run offline recovery regression suite
+        env:
+          NAVIS_ROOT: ${{ runner.temp }}/navis-offline-unused-vault
         run: pwsh -NoProfile -NonInteractive -File scripts/test-packaged-recovery-policy.ps1
