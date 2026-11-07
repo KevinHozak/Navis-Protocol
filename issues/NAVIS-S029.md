@@ -44,3 +44,7 @@ The user authorized local issue creation on 2026-11-07 only. Implementation, app
 ## Verification boundary
 
 This issue is open planning scope, not evidence of a current product defect or implementation completion. Existing weekly evidence retains its own dates and runtime limits. A future implementation request must preserve read-only behavior and validate solely against explicitly supplied synthetic roots.
+
+## Proposed contract and verification plan
+
+The [JSON contract and synthetic verification matrix](../docs/quarterly-holocron-preview-contract.md) records the proposed schema, calendar-quarter boundaries, unavailable-data rules and zero-write proof obligations. It is a documentation-only draft, not implemented or tested feature behavior. All acceptance criteria remain unchecked.
