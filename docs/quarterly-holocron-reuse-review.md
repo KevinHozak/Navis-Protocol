@@ -5,6 +5,9 @@ Relates to the [proposed contract and matrix](quarterly-holocron-preview-contrac
 and [open issue](../issues/NAVIS-S029.md). **No feature implementation, helper
 execution, SQLite opens, application launches, personal-Vault access or provider
 calls were performed.** Existing tests were inspected as source, not rerun.
+
+The later [draft design decision](quarterly-holocron-design-decision.md) selects
+an approach for these gaps while keeping implementation/proof gates blocked.
 Findings below are compatibility gaps against S029, not newly reproduced defects
 in the existing weekly/MCP features.
 

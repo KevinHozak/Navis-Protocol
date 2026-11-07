@@ -9,6 +9,12 @@ The [helper reuse and WAL/zero-write review](quarterly-holocron-reuse-review.md)
 maps this proposal to inspected source and records unresolved proof obligations.
 It is source-review evidence, not execution or implementation qualification.
 
+The [draft design decision](quarterly-holocron-design-decision.md) selects a
+bounded source-image/in-memory SQLite approach, a narrow journal snapshot seam
+and a native verification plan. All implementation/proof gates remain blocked.
+Its proposed DB budgets and instrumentation are unverified; no active-WAL or
+zero-native-write guarantee is certified by the draft.
+
 ## Invocation and boundaries
 
 Proposed interface (command/file name remains a proposal):
@@ -198,7 +204,9 @@ Every case includes the zero-write checks in the next section.
    FastAPI app startup, sync, rollover, provider initialization or schema setup.
    Opening SQLite read-only is necessary but does not alone establish zero writes.
 3. Instrument the command and imported helpers to fail on attempted filesystem
-   mutation, write-capable database opens/SQL, process launches and network calls.
+   mutation, file-backed write-capable database opens/SQL, process launches and network calls.
+   The draft design permits only guarded private in-memory setup/deserialization;
+   it does not permit source mutations, arbitrary SQL writes or SQLite temp files.
    Only the requested root's safe dated inputs may be read. Test-owned canaries
    stand in for forbidden external roots; never probe the personal Vault itself.
    The runner must not write log/temp files; stdout is captured by the separate
