@@ -9,11 +9,17 @@ from dataclasses import dataclass
 from typing import Protocol
 from urllib.parse import urlsplit
 
-import aiohttp
-
 
 class ProviderError(RuntimeError):
     """A normalized provider failure safe to show in application diagnostics."""
+
+
+def _ollama_transport():
+    try:
+        import aiohttp
+    except ImportError as exc:
+        raise ProviderError("Local Ollama transport dependency is unavailable.") from exc
+    return aiohttp
 
 
 class TextProvider(Protocol):
@@ -52,6 +58,10 @@ class OllamaProvider:
         self.config = config or OllamaConfig.from_env()
 
     async def check(self) -> bool:
+        try:
+            aiohttp = _ollama_transport()
+        except ProviderError:
+            return False
         timeout = aiohttp.ClientTimeout(total=min(self.config.timeout_seconds, 5.0))
         try:
             async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -63,6 +73,7 @@ class OllamaProvider:
     async def generate(
         self, prompt: str, *, system: str | None = None, feature: str = "general", **kwargs: object
     ) -> str:
+        aiohttp = _ollama_transport()
         payload: dict[str, object] = {
             "model": self.config.model,
             "prompt": prompt,

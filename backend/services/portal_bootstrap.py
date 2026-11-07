@@ -21,7 +21,7 @@ def read_profile(path):
     return json.loads(raw,object_pairs_hook=unique,parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
 
 
-def invoke(profile_path,prompt,system,operation_id,cancel,vault_root):
+def _load_adapter(profile_path):
     verify_private_path(Path(profile_path).parent)
     verify_private_path(profile_path)
     profile=read_profile(profile_path)
@@ -51,4 +51,33 @@ def invoke(profile_path,prompt,system,operation_id,cancel,vault_root):
             if path is None or not Path(path).resolve().is_relative_to(root.resolve()):raise ValueError()
     sys.path.insert(0,str(root))
     adapter=importlib.import_module("portal_gateway.protocol_client")
-    return adapter.generate(profile,prompt,system,operation_id,cancel,profile_path=profile_path,vault_root=vault_root)
+    return profile,root,adapter
+
+
+def status_generation(profile_path):
+    """Status-only attach for configured shared-host profiles; never starts a host."""
+    profile,root,_=_load_adapter(profile_path)
+    if profile.get("schema_version")==1:return None
+    if profile.get("schema_version")!=2 or profile.get("host_mode")!="shared":raise ValueError()
+    if Path(profile["portal_release_root"]).resolve()!=root.resolve():raise ValueError()
+    host_profile=importlib.import_module("portal_gateway.host_profile")
+    background_host=importlib.import_module("portal_gateway.background_host")
+    with host_profile.reviewed() as host_doc:
+        if (Path(host_doc["state"]).resolve()!=Path(profile["portal_state"]).resolve()
+                or Path(host_doc["release"]).resolve()!=root.resolve()
+                or host_doc["release_id"]!=profile["portal_release_id"]):raise ValueError()
+    status=background_host.status(timeout_ms=3000)
+    generation=status.get("generation") if status.get("state")=="running" else None
+    if (status.get("release_id")!=profile["portal_release_id"] or not isinstance(generation,str)
+            or not re.fullmatch(r"[0-9a-f]{32}",generation)):
+        raise ValueError()
+    return generation
+
+
+def invoke(profile_path,prompt,system,operation_id,cancel,vault_root,expected_host_generation=None):
+    profile,_,adapter=_load_adapter(profile_path)
+    if profile.get("schema_version")==2 and expected_host_generation is None:
+        return {"complete":False,"receipt":{"provider":"portal","feature":"forge","code":"PORTAL_HOST_MANUAL_START_REQUIRED","billing_state":"not_sent","cost_usd":None}}
+    return adapter.generate(profile,prompt,system,operation_id,cancel,profile_path=profile_path,vault_root=vault_root,
+                            shared_host=expected_host_generation is not None,
+                            expected_host_generation=expected_host_generation)

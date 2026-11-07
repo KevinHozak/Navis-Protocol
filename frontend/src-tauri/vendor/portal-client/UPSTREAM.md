@@ -1,0 +1,19 @@
+﻿# Vendored source record
+
+- Upstream repository: `KevinHozak/Navis-Portal`
+- Base commit: `7b181dbd206159b845f4a706a290fcc45696f941`
+- Source path: `clients/rust/`
+- Package: `portal-client` 1.6.0
+- Source state: unshipped Portal canonical working-tree snapshot based on base commit 7b181dbd206159b845f4a706a290fcc45696f941; source not published
+- Vendor modifications: none
+- Exact raw SHA-256 by file:
+  - `Cargo.toml`: `8cdc2b2698dbb04cbcda6f526b7e7dc9769d92a35df51696e91e17916f9ad058`
+  - `Cargo.lock`: `fc67e2731fa00c12effa4396da6d0245d7ff4953241b2e9e0f102d4dc67fc6e0`
+  - `src/lib.rs`: `80560c4c3c170b16eddd9e5ef8a4c127d2c27e685577557d39eee91eebe44e7e`
+  - `src/image.rs`: `a07d2e225910e980ee8aa0314edb55e656a23414249d525c583c56858f15c3df`
+  - `src/operator.rs`: `883c2b7972ec03b4f75d0b8c7e78c9f1661ff93145db929ea64cabaf76a5091b`
+  - `src/lifecycle.rs`: `521b2c82ba247c863a75e39a0334cc9145f16ec679dcb3c176145ba219cd72b0`
+  - `src/host_windows.rs`: `f57f92ba773db1a2f5d190f5654255989bafdf0d4bb015533fb56f1bc896fa84`
+  - `examples/native_backend.rs`: `ad34ec9d9a15893410b4201abd2487e6e9e715b67feaede2b6e965529bea66f4`
+  - `examples/image_backend.rs`: `d59ebad6e98c9d208e44c1fbbb0322e1dd37eddbd78084f740b4810af4c6e33f`
+  - `examples/host_backend.rs`: `9109304ed3fdd49df358a903f67dea63aeba51c6411e053ded33839c7ca61342`

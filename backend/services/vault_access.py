@@ -333,9 +333,12 @@ def read_note(policy, arguments, *, deadline=None):
     path, section = arguments.get("path"), arguments.get("section")
     first, column, limit = (arguments.get("start_line", 1), arguments.get("start_column", 0), arguments.get("max_lines", 100))
     if (not isinstance(path, str) or not 1 <= len(path) <= 1024
-            or type(first) is not int or not 1 <= first <= MAX_FILE_BYTES + 1
-            or type(column) is not int or not 0 <= column <= MAX_FILE_BYTES
-            or type(limit) is not int or not 1 <= limit <= 200
+            or type(first) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 1 <= first <= MAX_FILE_BYTES + 1
+            or type(column) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 0 <= column <= MAX_FILE_BYTES
+            or type(limit) is not int  # noqa: E721 - exact JSON scalar type required
+            or not 1 <= limit <= 200
             or (section is not None and (not isinstance(section, str) or not 1 <= len(section) <= 1024))):
         raise VaultAccessError("invalid_argument")
     source = read_markdown_source(policy, path, deadline=deadline)

@@ -323,8 +323,15 @@ def discard(root, request):
     return {"status": "success", "message": "Proposal discarded."}
 
 
-def dispatch(root, action, request):
+def dispatch(root, action, request, *, native_binding=None):
     if action == "submit":
+        if request.get("provider") == "portal":
+            if not isinstance(native_binding,dict) or set(native_binding)!={"expected_host_generation"}:
+                raise ForgeError("Portal previews require the Navis desktop shared-host connection.")
+            from services.portal_forge import submit as portal_submit
+            return asyncio.run(portal_submit(root,request,expected_host_generation=native_binding["expected_host_generation"]))
+        if native_binding is not None:
+            raise ForgeError("Invalid native Portal binding.")
         return asyncio.run(submit(root, request))
     if action == "approve":
         return approve(root, request)
@@ -333,10 +340,84 @@ def dispatch(root, action, request):
     raise ForgeError("Unsupported Forge action.")
 
 
+def dispatch_cli(root, action, envelope, *, native_portal=False):
+    if native_portal:
+        valid=(isinstance(envelope,dict) and set(envelope)=={"request","native_binding"}
+            and isinstance(envelope["request"],dict) and isinstance(envelope["native_binding"],dict)
+            and set(envelope["native_binding"])=={"expected_host_generation"}
+            and isinstance(envelope["native_binding"]["expected_host_generation"],str)
+            and re.fullmatch(r"[0-9a-f]{32}",envelope["native_binding"]["expected_host_generation"])
+            and envelope["request"].get("provider")=="portal"
+            and not {"native_binding","native_portal_binding"}.intersection(envelope["request"]))
+        if not valid:raise ForgeError("Invalid native Portal request envelope.")
+        return dispatch(root,action,envelope["request"],native_binding=envelope["native_binding"])
+    if isinstance(envelope,dict) and ({"native_binding","native_portal_binding"}&set(envelope)):
+        raise ForgeError("Native Portal binding is reserved.")
+    return dispatch(root,action,envelope)
+
+
+def cli_error(exc):
+    from services.portal_forge import PortalFeatureError
+    if isinstance(exc,PortalFeatureError):
+        return {"http_status":exc.status,"body":{"detail":exc.receipt}}
+    return {"http_status":503,"body":{"detail":"Forge runtime unavailable. Verify backend dependencies and local model."}}
+
+
+def parse_cli_request(raw):
+    if len(raw.encode("utf-8"))>65536:raise ValueError("request too large")
+    def unique(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result:raise ValueError("duplicate request field")
+            result[key]=value
+        return result
+    return json.loads(raw,object_pairs_hook=unique,parse_constant=lambda _value:(_ for _ in ()).throw(ValueError("invalid number")))
+
+
+def _worker_error(exc):
+    if isinstance(exc,(ForgeError,ProviderError)):
+        return {"http_status":503 if isinstance(exc,ProviderError) else 400,"body":{"detail":str(exc)}}
+    return cli_error(exc)
+
+
+def run_portal_worker(root):
+    """Keep one native Portal preview in this process until approve/discard/EOF."""
+    first=True
+    for raw in iter(lambda:sys.stdin.readline(65537),""):
+        try:
+            message=parse_cli_request(raw)
+            if first:
+                result=dispatch_cli(root,"submit",message,native_portal=True)
+                keep=(isinstance(result,dict) and result.get("status")=="success"
+                      and isinstance(result.get("proposal_id"),str) and result["proposal_id"].startswith("portal-"))
+                print(json.dumps({"http_status":200,"body":result}),flush=True)
+                first=False
+                if not keep:return
+                continue
+            if (not isinstance(message,dict) or set(message)!={"action","request"}
+                    or message.get("action") not in {"approve","discard"} or not isinstance(message["request"],dict)
+                    or {"native_binding","native_portal_binding"}.intersection(message["request"])):
+                print(json.dumps({"http_status":400,"body":{"detail":"Invalid Portal preview action."}}),flush=True)
+                return
+            action=message["action"]
+            result=dispatch(root,action,message["request"])
+            print(json.dumps({"http_status":200,"body":result}),flush=True)
+            return
+        except Exception as exc:
+            print(json.dumps(_worker_error(exc)),flush=True)
+            if first:return
+            continue
+    return
+
+
 if __name__ == "__main__":
+    if len(sys.argv)>1 and sys.argv[1]=="portal-worker":
+        run_portal_worker(os.environ["NAVIS_ROOT"])
+        raise SystemExit(0)
     try:
-        request = json.loads(sys.stdin.read(65537))
-        result = dispatch(os.environ["NAVIS_ROOT"], sys.argv[1], request)
+        envelope = parse_cli_request(sys.stdin.read(65537))
+        result = dispatch_cli(os.environ["NAVIS_ROOT"], sys.argv[1], envelope,
+                              native_portal=os.environ.get("NAVIS_NATIVE_PORTAL") == "1")
         print(json.dumps({"http_status": 200, "body": result}))
     except (ForgeError, ProviderError) as exc:
         print(
@@ -347,14 +428,7 @@ if __name__ == "__main__":
                 }
             )
         )
-    except Exception:
-        print(
-            json.dumps(
-                {
-                    "http_status": 503,
-                    "body": {
-                        "detail": "Forge runtime unavailable. Verify Python dependencies and local model."
-                    },
-                }
-            )
-        )
+    except Exception as exc:
+        output=cli_error(exc)
+        print(json.dumps(output))
+        raise SystemExit(0)
