@@ -124,3 +124,51 @@ application fix or version bump was made. Forced termination can leave transient
 WebView processes, and five seconds is not a reliable universal shutdown bound.
 These three cycles do not establish behavior during sustained overlapping
 instances, long sessions, or a stalled helper.
+
+## Visible UI recovery follow-up
+
+On 2026-11-07 (America/Chicago), ran three new isolated forced-close/relaunch
+cycles against release 1.11.45 with the same EXE hash. Each had its own copied
+synthetic Vault and fresh profile under `.tools/webview-visible-20261107/`.
+The harness `.tools/webview-visible.ps1` used normal visible windows instead of
+hidden windows; the computer-use helper activated each recovered window and
+captured its rendered content. Cloud generation remained disabled and
+unconfigured using the environment isolation above.
+
+| Cycle | Recovered System HUD | Party navigation | Combat navigation |
+| --- | --- | --- | --- |
+| 1 | Loaded | Banter Feed loaded | Battle Field and encounter controls loaded; loader cleared |
+| 2 | Loaded | Banter Feed loaded | Battle Field loaded; encounter choices still loading when closed; later normal-launch recheck passed |
+| 3 | Loaded | Banter Feed loaded | Battle Field and encounter controls loaded; loader cleared |
+
+Cycle 2 was closed before its encounter-choice request was observed completing,
+so it is not a complete post-crash encounter-loading acceptance pass. Reopened
+its existing isolated profile normally (without another forced termination),
+navigated directly to Combat and observed the loader clear on a later capture
+after an additional fifteen-second wait. This confirms the profile could load
+Combat, but does not retroactively certify the interrupted observation.
+
+Transient fade transitions were observed and settled on repeated captures.
+No persistent `UPLINK SYNCHRONIZING` or mounting state reproduced in these
+visible checks. Party's empty Banter Feed correctly requested at least two
+squad members; no Resonate, encounter preview/start, combat resolution, sync,
+rollover or generation action was invoked. The synthetic Keeper portrait used
+the explicit `IMAGE UNAVAILABLE` fallback in Battle Field.
+
+The helper sometimes returned a 16-by-16 icon capture before the main window
+capture. An input attempt against that icon failed its bounds check; after
+refreshing, inputs used the observed full-window screenshot. This was tooling
+geometry, not evidence of a Navis navigation failure. Cycle 2 process queries
+also took longer to return; no startup-duration guarantee is inferred.
+
+Post-relaunch WebView counts were 5, 7 and 7 at the respective snapshots;
+cycle 2's additional normal launch had 6. All normal closes completed with
+zero owned processes at the final checks. A final cross-fixture CIM snapshot
+also found zero app, WebView or Python processes. The three Holocron synthesis
+outputs and `Battle/.completion.lock` changed in each synthetic Vault; the
+other 13 original files remained byte-identical. No personal Vault was used.
+
+Process snapshots, identity guards and integrity results remain ignored in
+the fixture directory; screenshots and UI observations are in this chat's
+computer-use tool results. No reproducible application defect was established,
+so no application code, release version or packaged binary was changed.
