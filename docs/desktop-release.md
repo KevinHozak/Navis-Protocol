@@ -32,6 +32,8 @@ The Tauri resource map includes `backend/native_operations.py`, `native_combat.p
 
 The legacy tray launcher also preserves `NAVIS_ROOT` for backend startup and restart. The Python Lounge database and sync input paths use that same environment variable. These Python entry points fall back to `G:\My Drive\Navis-Vault` when it is unset or empty, and capture the root when loaded; restart the consuming process after changing it. Root routing does not move or migrate Vault data. Synthetic regression coverage is in [test_lounge_tray_root.py](../backend/tests/test_lounge_tray_root.py), with tray launches and integrations mocked.
 
+The [NAVIS_ROOT synthetic CI workflow](../.github/workflows/navis-root-offline.yml) runs these 10 cases on Windows with Python 3.11 for pushes and pull requests changing the workflow, Lounge database/sync modules, tray launcher, test module, shared test guards, or pytest configuration; it also supports manual dispatch. It checks out only those six Python/configuration files and installs pinned pytest, without Navis runtime dependencies or secrets. Tests use temporary SQLite data and mocked tray/process/integration calls; shared test guards deny real socket connections, and default-root cases inspect path strings only. Dependency provisioning uses GitHub/PyPI network access; the tests make no provider calls. This does not verify a live Vault migration or actual app launch.
+
 ## Runtime boundary
 
 - Native production: the Tauri shell uses Rust IPC and selected Python services for implemented Vault, Lounge, combat, progression, and P5 workflows; route coverage is partial (see [endpoint registry](api_endpoints.md))
