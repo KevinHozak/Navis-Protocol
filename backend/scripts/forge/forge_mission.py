@@ -12,7 +12,7 @@ def forge_mission(name, region, mission_type, xp_reward):
     """Forges a new, high-fidelity mission folder and standardized files."""
 
     # 1. Path Resolution
-    project_root = r"G:\My Drive\Navis-Vault"
+    project_root = os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
     settings_path = os.path.join(project_root, "Bridge", "settings.json")
     status_path = os.path.join(project_root, "Bridge", "status.json")
 
@@ -134,7 +134,10 @@ if __name__ == "__main__":
 def invalidate_cache():
     import os
 
-    cache_path = r"G:\My Drive\Navis-Vault\Bridge\.navis_cache\sector_cache.json"
+    cache_path = os.path.join(
+        os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault",
+        "Bridge", ".navis_cache", "sector_cache.json",
+    )
     if os.path.exists(cache_path):
         try:
             os.remove(cache_path)

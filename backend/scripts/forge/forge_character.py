@@ -10,7 +10,7 @@ if sys.stdout.encoding != "utf-8":
 def get_engine_paths():
     """Resolves centralized engine and manifold paths."""
     # Resolve protocol root using environment variable or default
-    protocol_root = os.environ.get("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
+    protocol_root = os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
     settings_path = os.path.join(protocol_root, "Bridge", "settings.json")
 
     paths = {
@@ -86,7 +86,7 @@ LANDSCAPE_ASPECT = "16:9"
 
 def invalidate_sector_cache():
     """Invalidates the Navis Protocol frontend sector cache."""
-    protocol_root = os.environ.get("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
+    protocol_root = os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
     cache_path = os.path.join(
         protocol_root, "Bridge", ".navis_cache", "sector_cache.json"
     )
@@ -102,7 +102,10 @@ def invalidate_sector_cache():
 def invalidate_cache():
     import os
 
-    cache_path = r"G:\My Drive\Navis-Vault\Bridge\.navis_cache\sector_cache.json"
+    cache_path = os.path.join(
+        os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault",
+        "Bridge", ".navis_cache", "sector_cache.json",
+    )
     if os.path.exists(cache_path):
         try:
             os.remove(cache_path)

@@ -171,7 +171,10 @@ def invalidate_cache():
 
     if os.environ.get("NAVIS_FORGE_STAGING") == "1":
         return
-    cache_path = os.path.join(os.environ.get("NAVIS_ROOT", r"G:\My Drive\Navis-Vault"), "Bridge", ".navis_cache", "sector_cache.json")
+    cache_path = os.path.join(
+        os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault",
+        "Bridge", ".navis_cache", "sector_cache.json",
+    )
     if os.path.exists(cache_path):
         try:
             os.remove(cache_path)

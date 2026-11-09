@@ -7,6 +7,10 @@ on:
       - 'backend/database/lounge_db.py'
       - 'backend/scripts/sync_lounge.py'
       - 'backend/tray_manager.py'
+      - 'backend/services/reid_daemon.py'
+      - 'backend/scripts/sync_youtube.py'
+      - 'backend/tests/test_legacy_root_routing.py'
+      - 'backend/scripts/forge/**'
       - 'backend/tests/test_lounge_tray_root.py'
       - 'backend/tests/conftest.py'
       - 'backend/pytest.ini'
@@ -16,6 +20,10 @@ on:
       - 'backend/database/lounge_db.py'
       - 'backend/scripts/sync_lounge.py'
       - 'backend/tray_manager.py'
+      - 'backend/services/reid_daemon.py'
+      - 'backend/scripts/sync_youtube.py'
+      - 'backend/tests/test_legacy_root_routing.py'
+      - 'backend/scripts/forge/**'
       - 'backend/tests/test_lounge_tray_root.py'
       - 'backend/tests/conftest.py'
       - 'backend/pytest.ini'
@@ -48,6 +56,16 @@ jobs:
             /backend/database/lounge_db.py
             /backend/scripts/sync_lounge.py
             /backend/tray_manager.py
+            /backend/services/reid_daemon.py
+            /backend/scripts/sync_youtube.py
+            /backend/tests/test_legacy_root_routing.py
+            /backend/scripts/forge/forge_character.py
+            /backend/scripts/forge/forge_mission.py
+            /backend/scripts/forge/forge_antagonist.py
+            /backend/scripts/forge/forge_resident.py
+            /backend/scripts/forge/forge_beast.py
+            /backend/scripts/forge/forge_companion.py
+            /backend/scripts/forge/forge_realm.py
             /backend/tests/test_lounge_tray_root.py
             /backend/tests/conftest.py
             /backend/pytest.ini
@@ -57,7 +75,7 @@ jobs:
       # Only the test runner is installed; no Navis runtime/integration packages.
       - name: Install pinned test runner
         run: python -m pip install --disable-pip-version-check pytest==9.1.1
-      - name: Run 10 synthetic root-routing tests
+      - name: Run 43 synthetic root-routing tests
         env:
           NAVIS_ROOT: ${{ runner.temp }}/navis-root-unused-vault
-        run: python -m pytest backend/tests/test_lounge_tray_root.py -q -p no:cacheprovider --confcutdir=backend/tests
+        run: python -m pytest backend/tests/test_lounge_tray_root.py backend/tests/test_legacy_root_routing.py -q -p no:cacheprovider --confcutdir=backend/tests
