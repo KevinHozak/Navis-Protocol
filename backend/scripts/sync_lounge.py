@@ -15,7 +15,7 @@ if hasattr(sys.stdout, "reconfigure"):
 from database.lounge_db import get_db_connection
 from services.jellyfin_parser import parse_jellyfin_movies, parse_jellyfin_series
 
-NAVIS_ROOT = os.getenv("NAVIS_ROOT", r"G:\My Drive\Navis-Vault")
+NAVIS_ROOT = os.getenv("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
 LOUNGE_DIR = os.path.join(NAVIS_ROOT, "Lounge")
 GOODREADS_CSV = os.path.join(LOUNGE_DIR, "Goodreads_library_export.csv")
 YOUTUBE_JSON = os.path.join(LOUNGE_DIR, "youtube.json")
@@ -771,7 +771,6 @@ def sync_gog_galaxy(conn):
 
 
 if __name__ == "__main__":
-    db_path = r"G:\My Drive\Navis-Vault\Lounge\lounge.db"
     with get_db_connection() as conn:
         sync_jellyfin(conn)
         conn.commit()

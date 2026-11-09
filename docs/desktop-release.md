@@ -30,6 +30,8 @@ The Tauri resource map includes `backend/native_operations.py`, `native_combat.p
 
 `NAVIS_ROOT` may be set to the Vault directory containing `Bridge` and `Journal`. If it is unset, the native desktop shell uses the established default `G:\My Drive\Navis-Vault`; an unavailable or invalid root is rejected before a sync or rollover job starts. Native operations and approved P5 scripts receive the resolved `NAVIS_ROOT`; their child processes also receive `PYTHONPATH`, UTF-8 output configuration, and only the minimal platform process variables they need. Python backend subprocesses launched by FastAPI use `sys.executable` so they run under the same interpreter as the server.
 
+The legacy tray launcher also preserves `NAVIS_ROOT` for backend startup and restart. The Python Lounge database and sync input paths use that same environment variable. These Python entry points fall back to `G:\My Drive\Navis-Vault` when it is unset or empty, and capture the root when loaded; restart the consuming process after changing it. Root routing does not move or migrate Vault data. Synthetic regression coverage is in [test_lounge_tray_root.py](../backend/tests/test_lounge_tray_root.py), with tray launches and integrations mocked.
+
 ## Runtime boundary
 
 - Native production: the Tauri shell uses Rust IPC and selected Python services for implemented Vault, Lounge, combat, progression, and P5 workflows; route coverage is partial (see [endpoint registry](api_endpoints.md))
