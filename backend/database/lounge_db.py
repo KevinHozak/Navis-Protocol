@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-DB_PATH = r"G:\My Drive\Navis-Vault\Lounge\lounge.db"
+NAVIS_ROOT = os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
+DB_PATH = os.path.join(NAVIS_ROOT, "Lounge", "lounge.db")
 
 
 def get_db_connection():

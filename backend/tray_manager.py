@@ -21,7 +21,8 @@ FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend")
 
 # Launch processes
 backend_env = os.environ.copy()
-backend_env["NAVIS_ROOT"] = "G:\\My Drive\\Navis-Vault"
+if not backend_env.get("NAVIS_ROOT"):
+    backend_env["NAVIS_ROOT"] = r"G:\My Drive\Navis-Vault"
 backend_exe = os.path.join(BACKEND_DIR, ".venv", "Scripts", "python.exe")
 
 # Using CREATE_NO_WINDOW so the console windows do not appear
