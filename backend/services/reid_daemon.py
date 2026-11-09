@@ -3,7 +3,12 @@ import json
 import subprocess
 from datetime import datetime
 
-NAVIS_VAULT_ROOT = os.getenv("NAVIS_VAULT_ROOT", r"G:\My Drive\Navis-Vault")
+# Match the backend root; retain the legacy alias for standalone callers.
+NAVIS_VAULT_ROOT = (
+    os.getenv("NAVIS_ROOT")
+    or os.getenv("NAVIS_VAULT_ROOT")
+    or r"G:\My Drive\Navis-Vault"
+)
 BIOMETRICS_PATH = os.path.join(NAVIS_VAULT_ROOT, "Bridge", "biometrics.json")
 STATUS_PATH = os.path.join(NAVIS_VAULT_ROOT, "Bridge", "status.json")
 

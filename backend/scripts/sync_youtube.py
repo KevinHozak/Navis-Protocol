@@ -4,7 +4,8 @@ import yt_dlp
 import datetime
 
 # Target file in the Vault
-VAULT_PATH = r"G:\My Drive\Navis-Vault\Lounge\youtube.json"
+NAVIS_ROOT = os.environ.get("NAVIS_ROOT") or r"G:\My Drive\Navis-Vault"
+VAULT_PATH = os.path.join(NAVIS_ROOT, "Lounge", "youtube.json")
 
 
 def sync_watch_later():
